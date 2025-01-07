@@ -1,0 +1,12 @@
+{
+	"BrokerAddr":"0x1a53e21d3f590c52a24a43b50d6bd73b13839b08",
+	"PrivatePoolFactoryAddr":"0xff44a4de2e4a53371e01235878613634f9df6c12",
+	"PublicPoolFactoryAddr":"0xecdc3ff005ddd42eb395c108667bdf5a3b6711aa",
+	"BTCUSDFormulaAddr":"0x381aed7711474050497ee78607bdb267ab7ad08d",
+	"ETHUSDFormulaAddr":"0xf157441fc3e4fa779667659c9f4bf75b893500cf",
+	"BTCUnderlyingAssetAddr":"0x1a8a48cfd56d9fad2b3c4aa670a668d157f1b769",
+	"ETHUnderlyingAssetAddr":"0xb4374db26b9795a1552a7abc82e339185c8ae806",
+	"LiquidityManagerAddr":"0x27da85d6c9f8e550f254715bd91eddba210aa509",
+	"PerpetualOptionsAddr":"0x0de8dd8edd910b4130d4a890bd369e86d327ba17",
+	"OrderBookAddr":"0x447660a6a1f62d07d9e88eaaa1b6dfa8624c301b"
+}
