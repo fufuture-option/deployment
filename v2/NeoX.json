@@ -1,0 +1,16 @@
+{
+	"BrokerAddr":"0x502c7c64692b94c6c8f4d755878cc50e768566ce",
+	"PrivatePoolFactoryAddr":"0x816d0a27227ebc342bbd07457d7aa28a5f7304ef",
+	"PublicPoolFactoryAddr":"0x8e535d2e351ab0b87b67c237044d116fb70256ed",
+	"LiquidityManagerAddr":"0x95fd2771a95caf4a89e83d744c8f28e1d041da4e",
+	"BTCUSDFormulaAddr":"0xb711ba37fa74b99e70c27e82def0b15a50ac7a9e",
+	"ETHUSDFormulaAddr":"0xb78356c8030a76b355c752b76225e19892982fc7",
+	"BTCUnderlyingAssetAddr":"0x5fb26e046515500c6d20208393dd24177319d076",
+	"ETHUnderlyingAssetAddr":"0xe52adac17dcfc9be6975ce99c1637e38336c8931",
+	"PerpetualOptionsAddr":"0x3aa0ee0f7ae6f23022d7a3197297c915f9166a15",
+	"OrderBookAddr":"0xaf42e2c2ae28f1fa869342af465fc81ec39d8ebd"
+}
+
+     rpc:https://mainnet-1.rpc.banelabs.org
+explorer:https://xexplorer.neo.org/
+ chainid:47763
