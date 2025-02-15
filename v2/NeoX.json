@@ -1,14 +1,14 @@
 {
-	"BrokerAddr":"0x502c7c64692b94c6c8f4d755878cc50e768566ce",
-	"PrivatePoolFactoryAddr":"0x816d0a27227ebc342bbd07457d7aa28a5f7304ef",
-	"PublicPoolFactoryAddr":"0x8e535d2e351ab0b87b67c237044d116fb70256ed",
-	"LiquidityManagerAddr":"0x95fd2771a95caf4a89e83d744c8f28e1d041da4e",
-	"BTCUSDFormulaAddr":"0xb711ba37fa74b99e70c27e82def0b15a50ac7a9e",
-	"ETHUSDFormulaAddr":"0xb78356c8030a76b355c752b76225e19892982fc7",
-	"BTCUnderlyingAssetAddr":"0x5fb26e046515500c6d20208393dd24177319d076",
-	"ETHUnderlyingAssetAddr":"0xe52adac17dcfc9be6975ce99c1637e38336c8931",
-	"PerpetualOptionsAddr":"0x3aa0ee0f7ae6f23022d7a3197297c915f9166a15",
-	"OrderBookAddr":"0xaf42e2c2ae28f1fa869342af465fc81ec39d8ebd"
+	"BrokerAddr":"0x5652Bf84AEd55C6A33F0CEDF76F5889E32cE76f3",
+	"PrivatePoolFactoryAddr":"0x43F323AcA25b57182bDc87564410ea7056975265",
+	"PublicPoolFactoryAddr":"0x479fEb66bCe1ED5DF92b08Bb87995C6545b238Af",
+	"LiquidityManagerAddr":"0x7de67CCD37Afae212F84E5902Afb8DADbB01c243",
+	"BTCUSDFormulaAddr":"0x1ee78b35F506E4DD1F130861e693e8D2cD826b32",
+	"ETHUSDFormulaAddr":"0x5874ee8e6e96bFB17212962537e5Bf359630a268",
+	"BTCUnderlyingAssetAddr":"0x22911312b8c4F389c0fEf27425C9Da6Bdc75087b",
+	"ETHUnderlyingAssetAddr":"0x700781856da027233A2de7f52919c3D12123788B",
+	"PerpetualOptionsAddr":"0x83950cf3CBd2bB3907bC476a4470bF8D7Dd31C8E",
+	"OrderBookAddr":"0x344d02cEBb36ABBA6e55A9cefC703A75cA09E4E0"
 }
 
      rpc:https://mainnet-1.rpc.banelabs.org
