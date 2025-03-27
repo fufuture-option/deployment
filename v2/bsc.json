@@ -1,0 +1,16 @@
+{
+        "BrokerAddr": "0x9afAFF673137C54C65e92627bB4416611C8956ab",
+        "BTCUSDFormulaAddr": "0xC7CB2b24e00eb16a88D7440F83f9059141644d9f",
+        "ETHUSDFormulaAddr": "0x81FF7E16D565926fA891A414b46B8C4E509a945f",
+        "LiquidityManagerAddr": "0x88f29D34c9602130B21Be4E1EaBEB7797177f259",
+        "OrderBookAddr": "0x01cB49d2677aac7FBCE1AE5487d8ae0615f0371C",
+        "PerpetualOptionsAddr": "0x4e10384e98F2f170E00bfB1C3363D6f108a9ee68",
+        "PrivatePoolFactoryAddr": "0x7209F7A9D209F605FCEC12fD9CfEb98241e02f07",
+        "PublicPoolFactoryAddr": "0x9e9683e9e20f280cD36a572BC709539364AF2a9c",
+        "BTCUnderlyingAssetAddr": "0xa1DA9d1C32897bA1c3CEff190b43Ff5C67a417b0",
+        "ETHUnderlyingAssetAddr": "0x35338c50E7aC3c5d13CDFb00922D2D025f1C3EDB"
+}
+
+chainID: 56
+ RPC: https://bsc-dataseed1.binance.org/
+broswer:  https://bscscan.com
