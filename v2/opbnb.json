@@ -1,0 +1,16 @@
+{
+  "BrokerAddr": "0xD5516E7A08487fcAd5b858eF9278BdB28D2138f1",
+  "BTCUSDFormulaAddr": "0x986820E20eD3c157CbA6B3a8f792f0c9c00c03EE",
+  "ETHUSDFormulaAddr": "0x5F402FBfe7a31c67eB8202dA36BC24c2AE9a1E72",
+  "LiquidityManagerAddr": "0x91ABFdd51c0959016c54AbDfb012E81Ef82008d1",
+  "OrderBookAddr": "0xB714F7e26697262cc8cD6f1686556BA001D3e39a",
+  "PerpetualOptionsAddr": "0x91e644C8Fd5d5B799e0D238F31D9b46a91b8Ca03",
+  "PrivatePoolFactoryAddr": "0x43e66F07a3E70b1a39C42512859347e5c9162E5b",
+  "PublicPoolFactoryAddr": "0x72de1D08b22e9137282b13A202A598854847256A",
+  "BTCUnderlyingAssetAddr": "0x1849ce6C3185770Bff8fd4244277514020F913F2",
+  "ETHUnderlyingAssetAddr": "0x5a69aFD891F5aBEaB4CE153EDeAF66484FB6c043"
+}
+
+chain ID:204
+explorer:https://opbnb.bscscan.com/
+     rpc:https://opbnb-mainnet-rpc.bnbchain.org/
