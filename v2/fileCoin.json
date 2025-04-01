@@ -13,3 +13,5 @@
 rpc node: https://api.node.glif.io/
 chain id: 314
 explorer: https://filfox.info/en/message/
+Oracle： pyth
+verify fee: 0.0008
