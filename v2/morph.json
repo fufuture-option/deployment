@@ -1,16 +1,18 @@
 {
-	"BrokerAddr":"0x502c7c64692b94c6c8f4d755878cc50e768566ce",
-	"PrivatePoolFactoryAddr":"0x816d0a27227ebc342bbd07457d7aa28a5f7304ef",
-	"PublicPoolFactoryAddr":"0x8e535d2e351ab0b87b67c237044d116fb70256ed",
-	"LiquidityManagerAddr":"0x95fd2771a95caf4a89e83d744c8f28e1d041da4e",
-	"BTCUSDFormulaAddr":"0xb711ba37fa74b99e70c27e82def0b15a50ac7a9e",
-	"ETHUSDFormulaAddr":"0xb78356c8030a76b355c752b76225e19892982fc7",
-	"BTCUnderlyingAssetAddr":"0x5fb26e046515500c6d20208393dd24177319d076",
-	"ETHUnderlyingAssetAddr":"0xe52adac17dcfc9be6975ce99c1637e38336c8931",
-	"PerpetualOptionsAddr":"0x3aa0ee0f7ae6f23022d7a3197297c915f9166a15",
-	"OrderBookAddr":"0xaf42e2c2ae28f1fa869342af465fc81ec39d8ebd"
+	"BrokerAddr":"0x583776d34a7d684b35a17e0ba22f3124d508df9e",
+	"PrivatePoolFactoryAddr":"0x5e413ed5e35506488779c5188ea58628955c83b8",
+	"PublicPoolFactoryAddr":"0x35ecfa87d4c1ce8fc455cb9af3d33aecac9ae560",
+	"LiquidityManagerAddr":"0x82d119792dd79311f494688f9c3aa2523ff2d808",
+	"BTCUSDFormulaAddr":"0x8458d7db5195e907d599f599136d0d6d2ae326c1",
+	"ETHUSDFormulaAddr":"0x4918cb538b2b05fd0176df82d98d98b98ebe8729",
+	"BTCUnderlyingAssetAddr":"0x807ff00fa9a253018ed5d106ff57d79a5fa5b8ac",
+	"ETHUnderlyingAssetAddr":"0x8a265e380dcca18d53a30c1025996b8814ab1da2",
+	"PerpetualOptionsAddr":"0x6a0cd3b789b8ed245229af92d71949fdebc2cc67",
+	"OrderBookAddr":"0x96bd6623443e27c54ef15e686575e77f621e244c"
 }
 
 chain ID:2818
 explorer:https://explorer.morphl2.io/
      rpc:https://rpc.morphl2.io
+oracle: pyth
+verify fee: 1e-18
