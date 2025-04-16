@@ -1,0 +1,18 @@
+{
+  "BrokerProxy": "0x68A78c2ee89997611b1D566D684F52e93a16eD94",
+  "FormulaBTCProxy": "0x5652Bf84AEd55C6A33F0CEDF76F5889E32cE76f3",
+  "FormulaETHProxy": "0x1ee78b35F506E4DD1F130861e693e8D2cD826b32",
+  "LiquidityManagerProxy": "0x5874ee8e6e96bFB17212962537e5Bf359630a268",
+  "OrderBookProxy": "0x7de67CCD37Afae212F84E5902Afb8DADbB01c243",
+  "PrivatePoolFactoryProxy": "0x83950cf3CBd2bB3907bC476a4470bF8D7Dd31C8E",
+  "PublicPoolFactoryProxy": "0x43F323AcA25b57182bDc87564410ea7056975265",
+  "PerpetualOptionsProxy": "0x344d02cEBb36ABBA6e55A9cefC703A75cA09E4E0",
+  "UnderlyingAssetBTCProxy": "0x479fEb66bCe1ED5DF92b08Bb87995C6545b238Af",
+  "UnderlyingAssetETHProxy": "0x22911312b8c4F389c0fEf27425C9Da6Bdc75087b"
+}
+
+    rpc: https://rpc.berachain.com
+chainID: 80094
+ browse: https://berascan.com
+ oracle: pyth
+    fee:1e-18
