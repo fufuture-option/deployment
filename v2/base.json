@@ -8,7 +8,8 @@
     "PrivatePoolFactoryProxy": "0x479fEb66bCe1ED5DF92b08Bb87995C6545b238Af",
     "PublicPoolFactoryProxy": "0x22911312b8c4F389c0fEf27425C9Da6Bdc75087b",
     "UnderlyingAssetBTCProxy": "0x700781856da027233A2de7f52919c3D12123788B",
-    "UnderlyingAssetETHProxy": "0xdAafEEdfFa27A8B307510b9904438eaFC42C6b1a"
+    "UnderlyingAssetETHProxy": "0xdAafEEdfFa27A8B307510b9904438eaFC42C6b1a"，
+    "LeadingContractFactoryProxy": "0x62ba3Ef39aCB03a3E3b5b239c234A1804377F1F6"
 }
 
 rpc: "https://base-mainnet.public.blastapi.io/",
