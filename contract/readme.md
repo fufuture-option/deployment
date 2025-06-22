@@ -2,6 +2,8 @@
 
 ## 1、BManager.json 是整个系统合约地址入口。 管理所有的交易币对，运行时用到的 Perpetual、 OrderBook、 TradeAgent、Underlying、 PrivatePool 合约地址都是该合约获取。
 
+# BManager 合约地址：0xB012A210793488e1bcD4bb8e6Be2Cb9c04d4d722， 可用链 OPBnb Test
+
 ### 函数名称：getSettleList
 
 - 列出已上币token列表，只返回token地址。可根据改token地址， 获取到其它信息。比如name、symbol、decimals等。
