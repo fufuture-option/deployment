@@ -23,20 +23,21 @@
   | 序号 | 参数                | 描述          |
   |----|-------------------|-------------|
   | 1  |  TradePoolUnit[] memory | 已部署交易合约地址明细 |
-    - TradePoolUnit 结构字段是说明
+     
+- TradePoolUnit 结构字段是说明
 
-      | 序号  | 参数          | 类型             | 描述                         |
-            |-----|--------------|----------------|----------------------------|
-      | 1   |  creator| address        | 创建交易对钱包地址                  |
-      | 2   |  settle| address        | 结算币地址                      |
-      | 3   |  decimals| uint256        | 结算币小数精度                    |
-      | 4   |  settleName| string         | 交易对别名，可以和 symbol 一样，用户自己维护 |
-      | 5   |  symbol| string         | 结算币名称                      |
-      | 6   |  privatePool| PrivatePool 合约 | 私池合约, 提供私池充提功能             |
-      | 7   |  perpetual| Perpetual 合约   | 交易合约。 提供开平仓、限价单、爆仓等接口      |
-      | 8   |  orderBook| OrderBook         | 订单合约。 提供用户持仓、成交单、限价单等查询功能  |
-      | 8   |  tradeAgent| TradeAgent         | 交易代理合约。提供 最大可开、最大可用等查询接口   
-      | 10 |  tradeStation| TradeStation         | 交易代理合约。提供触发限价单等功能          |
+  | 序号  | 参数          | 类型             | 描述                         |
+  |-----|--------------|----------------|----------------------------|
+  | 1   |  creator| address        | 创建交易对钱包地址                  |
+  | 2   |  settle| address        | 结算币地址                      |
+  | 3   |  decimals| uint256        | 结算币小数精度                    |
+  | 4   |  settleName| string         | 交易对别名，可以和 symbol 一样，用户自己维护 |
+  | 5   |  symbol| string         | 结算币名称                      |
+  | 6   |  privatePool| PrivatePool 合约 | 私池合约, 提供私池充提功能             |
+  | 7   |  perpetual| Perpetual 合约   | 交易合约。 提供开平仓、限价单、爆仓等接口      |
+  | 8   |  orderBook| OrderBook         | 订单合约。 提供用户持仓、成交单、限价单等查询功能  |
+  | 8   |  tradeAgent| TradeAgent         | 交易代理合约。提供 最大可开、最大可用等查询接口   
+  | 10 |  tradeStation| TradeStation         | 交易代理合约。提供触发限价单等功能          |
 
 ### 函数名称：getUnderlying
 
