@@ -239,6 +239,11 @@
   | 4  | orderLocked | uint256        | 占用清算资金 |
   | 5  | lastTime | uint256        | 最后更新时间 |
 
+### 获取维持保证金率
+- 函数名称 maintenanceMarginRate
+- 输入参数: 无
+- 输出参数：uint256 维持保证金率
+
 ### 开仓
 
 - 函数名称 tradeFutures
