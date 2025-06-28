@@ -298,7 +298,8 @@
   | 9   |  margin| uint256  | 冻结保证金           |- 
   | 10  |  rewardGas| uint256  | 触发奖励            |
   | 11  |  tradingFee| uint256  | 冻结手续费           |
-  | 12 |  goodTill | uint256  | 有效期             |
+  | 12  | startTime    | uint256 | 下单时间                                    |
+  | 13 |  goodTill | uint256  | 有效期             |
   OrderBook 合约发出
 
 ### 平仓
@@ -354,7 +355,8 @@
   | 9   |  margin| uint256  | 冻结保证金           |- 
   | 10  |  rewardGas| uint256  | 触发奖励     |
   | 11  |  tradingFee| uint256  | 冻结手续费     |
-  | 12 |  goodTill | uint256  | 有效期     |
+  | 12  | startTime    | uint256 | 下单时间                                    |
+  | 13 |  goodTill | uint256  | 有效期     |
   OrderBook 合约发出
 
 ### 用户设置杠杠倍数
@@ -422,14 +424,15 @@
   |----|--------------|---------|-----------------------------------------| 
   | 1  | taker        | address | 挂单钱包地址                                  |
   | 2  | direct      | uint256 | 多空方向 1 多单，2空单                           |
-  | 4  | state    | uint256 | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
-  | 6  | offset       | uint256 | 值为 1 开仓 2 平仓                            |
-  | 7  | name       | string  | 交易对名称 BTC ETH                           | 
-  | 8  | amount  | uint256 | 挂单数量                                    |
-  | 8  | targetPrice  | uint256 | 挂单价格                                    |
-  | 9  | margin       | uint256 | 冻结保证金                                   |- 
-  | 11 | tradingFee   | uint256 | 冻结手续费                                   |
+  | 3  | state    | uint256 | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
+  | 4  | offset       | uint256 | 值为 1 开仓 2 平仓                            |
+  | 5  | name       | string  | 交易对名称 BTC ETH                           | 
+  | 6  | amount  | uint256 | 挂单数量                                    |
+  | 7  | targetPrice  | uint256 | 挂单价格                                    |
+  | 8  | margin       | uint256 | 冻结保证金                                   |- 
+  | 9  | tradingFee   | uint256 | 冻结手续费                                   |
   | 10 | rewardGas    | uint256 | 触发奖励                                    |
+  | 11 | startTime    | uint256 | 下单时间                                    |
   | 12 | goodTill     | uint256 | 有效期                                     |
 
 ### 查询持仓数据信息
