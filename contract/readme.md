@@ -115,11 +115,12 @@
 - 关联事件  
   event Provide(address indexed account, uint256 amount, uint256 poolType);
 
-  | 序号 | 参数          | 类型             | 描述                     |
-  |----|--------------|----------------|------------------------|
-  | 1  |  account| address        | 充结算用户钱包地址              |
-  | 2  |  amount| uint256        | 充币金额                   |
-  | 3  |  poolType| uint256        | 池子类型 1、公池 2、私池。  |
+  | 序号 | 参数       | 类型             | 描述              |
+  |----|----------|----------------|-----------------|
+  | 1  | account  | address        | 充结算用户钱包地址       |
+  | 2  | token    | address        | 充结算币地址         |
+  | 3  | amount   | uint256        | 充币金额            |
+  | 4  | poolType | uint256        | 池子类型 1、公池 2、私池。 |
 
 ### 用户手动提取交易流动性
 
@@ -134,11 +135,12 @@
 - 关联事件  
   event Withdraw(address indexed account, uint256 amount, uint256 poolType);
 
-  | 序号 | 参数          | 类型             | 描述                     |
-  |----|--------------|--------|---------------|
-  | 1  |  account| address        | 充结算用户钱包地址              |
-  | 2  |  amount| uint256        | 充币金额                   |
-  | 3  |  poolType| uint256        | 池子类型 1、公池 2、私池。  |
+  | 序号  | 参数       | 类型             | 描述                     |
+  |-----|----------|--------|---------------|
+  | 1   | account  | address        | 充结算用户钱包地址              |
+  | 2   | token     | address       | 充结算币地址              |
+  | 3   | amount   | uint256        | 充币金额                   |
+  | 4   | poolType | uint256        | 池子类型 1、公池 2、私池。  |
 
 ### 查询用户流动池资产数据
 
@@ -188,12 +190,13 @@
 - 关联事件 event TransactionHistory(address indexed taker, TransactionType transactionType, uint256 amount, uint256
   timestamp);
 
-| 序号 | 参数              | 类型              | 描述            |
-|----|-----------------|-----------------|---------------|
-| 1  | taker           | address         | 持有token 的钱包地址 |
-| 2  | transactionType | TransactionType | 1、充入  2 提取    |
-| 3  | amount          | uint256         | 操作 token 数量   |
-| 4  | timestamp       | uint256         | 操作时间          |
+| 序号 | 参数              | 类型              | 描述             |
+|----|-----------------|-----------------|----------------|
+| 1  | taker           | address         | 持有token 的钱包地址  |
+| 2  | token           | address         | 充值币token地址 |
+| 3  | transactionType | TransactionType | 1、充入  2 提取     |
+| 4  | amount          | uint256         | 操作 token 数量    |
+| 5 | timestamp       | uint256         | 操作时间           |
 
 ### 用户提取资金
 
@@ -212,9 +215,10 @@
 | 序号 | 参数              | 类型              | 描述            |
 |----|-----------------|-----------------|---------------|
 | 1  | taker           | address         | 持有token 的钱包地址 |
-| 2  | transactionType | TransactionType | 1、充入  2 提取    |
-| 3  | amount          | uint256         | 操作 token 数量   |
-| 4  | timestamp       | uint256         | 操作时间          |
+| 2  | token           | address         | 充值币token地址 |
+| 3  | transactionType | TransactionType | 1、充入  2 提取    |
+| 4  | amount          | uint256         | 操作 token 数量   |
+| 5 | timestamp       | uint256         | 操作时间          |
 
 ### 查询用户资产
 
@@ -291,21 +295,22 @@
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
     tradingFee, uint256 goodTill );
 
-  | 序号  | 参数 | 类型       | 描述              |
-  |-----|--|----------|-----------------|
-  | 1   |  name| string   | 交易对名称 BTC 之类，大写 |
-  | 2   |  taker| address  | 挂单钱包地址          |
-  | 3   |  orderID| uint256  | 挂单号             |
-  | 4   |  orderType| uint256  | 多空方向 1 多  2 空   |
-  | 5   |  state| uint256  | 挂单状态 值为 1，挂单中   |
-  | 6   |  offset| uint256  | 值为 1 表示开仓       |
-  | 7   |  amount| uint256  | 挂单数量            | 
-  | 8   |  targetPrice| uint256  | 挂单价格            |
-  | 9   |  margin| uint256  | 冻结保证金           |- 
-  | 10  |  rewardGas| uint256  | 触发奖励            |
-  | 11  |  tradingFee| uint256  | 冻结手续费           |
-  | 12  | startTime    | uint256 | 下单时间                                    |
-  | 13 |  goodTill | uint256  | 有效期             |
+  | 序号   | 参数          | 类型       | 描述              |
+  |------|-------------|----------|-----------------|
+  | 1    | name        | string   | 交易对名称 BTC 之类，大写 |
+  | 2    | taker       | address  | 挂单钱包地址          |
+  | 3    | token       | address  | token 地址        |
+  | 4    | orderID     | uint256  | 挂单号             |
+  | 5    | orderType   | uint256  | 多空方向 1 多  2 空   |
+  | 6    | state       | uint256  | 挂单状态 值为 1，挂单中   |
+  | 7    | offset      | uint256  | 值为 1 表示开仓       |
+  | 8    | amount      | uint256  | 挂单数量            | 
+  | 9    | targetPrice | uint256  | 挂单价格            |
+  | 10   | margin      | uint256  | 冻结保证金           |- 
+  | 11   | rewardGas   | uint256  | 触发奖励            |
+  | 12   | tradingFee  | uint256  | 冻结手续费           |
+  | 13   | startTime   | uint256 | 下单时间            |
+  | 14   | goodTill    | uint256  | 有效期             |
   OrderBook 合约发出
 
 ### 平仓
@@ -354,21 +359,22 @@
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
     tradingFee, uint256 goodTill );
 
-  | 序号   | 参数 | 类型       | 描述              |
-  |------|--|----------|-----------------|
-  | 1    |  name| string   | 交易对名称 BTC 之类，大写 |
-  | 2    |  taker| address  | 挂单钱包地址    |
-  | 3    |  orderID| uint256  | 挂单号       |
-  | 4    |  orderType| uint256  | 多空方向 1 多  2 空   |
-  | 5    |  state| uint256  | 挂单状态 值为 1，挂单中   |
-  | 6    |  offset| uint256  | 值为 2 表示平仓仓      |
-  | 7    |  amount| uint256  | 挂单数量     | 
-  | 8    |  targetPrice| uint256  | 挂单价格   |
-  | 9    |  margin| uint256  | 冻结保证金           |- 
-  | 10   |  rewardGas| uint256  | 触发奖励     |
-  | 11   |  tradingFee| uint256  | 冻结手续费     |
-  | 12   | startTime    | uint256 | 下单时间     |
-  | 13   |  goodTill | uint256  | 有效期     |
+  | 序号  | 参数          | 类型       | 描述              |
+  |-----|-------------|----------|-----------------|
+  | 1   | name        | string   | 交易对名称 BTC 之类，大写 |
+  | 2   | taker       | address  | 挂单钱包地址          |
+  | 3   | token       | address  | 挂单token地址   |
+  | 4   | orderID     | uint256  | 挂单号             |
+  | 5   | orderType   | uint256  | 多空方向 1 多  2 空   |
+  | 6   | state       | uint256  | 挂单状态 值为 1，挂单中   |
+  | 7   | offset      | uint256  | 值为 2 表示平仓仓      |
+  | 8   | amount      | uint256  | 挂单数量            | 
+  | 9   | targetPrice | uint256  | 挂单价格            |
+  | 10  | margin      | uint256  | 冻结保证金           |- 
+  | 11  | rewardGas   | uint256  | 触发奖励            |
+  | 12  | tradingFee  | uint256  | 冻结手续费           |
+  | 13  | startTime   | uint256 | 下单时间            |
+  | 14  | goodTill    | uint256  | 有效期             |
   OrderBook 合约发出
 
 ### 用户设置杠杠倍数
