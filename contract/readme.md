@@ -172,8 +172,9 @@
 -----------------------------------------------
 
 ## Perpetual 合约交易接口
-
-    交易合约提供用户充提资金、市价开平仓、限价挂撤单、执行限价单、爆仓等功能 
+```
+    交易合约提供用户充提资金、市价开平仓、限价挂撤单、执行限价单、爆仓等功能
+```
 
 ### 用户充入资金
 
@@ -266,20 +267,25 @@
     orderType, uint256 amount, uint256 costPrice, uint256 price,uint256 tradingFee, uint256 limitOrderId, uint256
     timestamp);
 
-  | 序号 | 参数 | 类型             | 描述                      |
-  |----|--|----------------|-------------------------|
-  | 1  |  taker| address        | 成交订单钱包地址                |
-  | 2  |  name| string         | 订单交易对名称                 |
-  | 3  |  orderID| uint256  | 成交单号                    |
-  | 4  |  direction| uint256  | 多空方向， 1 多，2 空           |
-  | 5  |  orderType| uint256  | 市价开 1 ，限价开 2            |
-  | 6  |  amount| uint256  | 成交数量                    |
-  | 7  |  costPrice| uint256  | 成本价                     |
-  | 8  |  price| uint256  | 成交价格 为零                 |  
-  | 9  |  tradingFee| uint256  | 手续费                     |
-  | 10 |  limitOrderId| uint256  | 挂单订单号，市价成交为 uint256.max |
-  | 11 |  timestamp| uint256  | 订单成交时间                  |
+  | 序号  | 参数           | 类型       | 描述                      |
+  |-----|--------------|----------|-------------------------|
+  | 1   | taker        | address  | 成交订单钱包地址                |
+  | 2   | name         | string   | 订单交易对名称                 |
+  | 3   | token        | address  | 结算token地址               |
+  | 4   | orderID      | uint256  | 成交单号                    |
+  | 5   | direction    | uint256  | 多空方向， 1 多，2 空           |
+  | 6   | orderType    | uint256  | 市价开 1 ，限价开 2            |
+  | 7   | amount       | uint256  | 成交数量                    |
+  | 8   | costPrice    | uint256  | 成本价                     |
+  | 9   | price        | uint256  | 成交价格 为零                 |  
+  | 10  | tradingFee   | uint256  | 手续费                     |
+  | 11  | limitOrderId | uint256  | 挂单订单号，市价成交为 uint256.max |
+  | 12  | timestamp    | uint256  | 订单成交时间                  |
+```
   OrderBook 合约发出
+  orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
+```
+
 
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
@@ -318,45 +324,51 @@
   | 7  |  _deadline| uint256  | 订单有效时间                     |  
   | 8  |  _priceUpdate| bytes  | 价格认证加密byte，限价无意义，可为空       |
 
-- 关联事件
+ 关联事件
   - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
     orderType, uint256 amount, uint256 costPrice, uint256 price,uint256 tradingFee, uint256 limitOrderId, uint256
     timestamp);
 
-  | 序号 | 参数 | 类型             | 描述            |
-  |----|--|----------------|---------------|
-  | 1  |  taker| address        | 成交订单钱包地址      |
-  | 2  |  name| string         | 订单交易对名称       |
-  | 3  |  orderID| uint256  | 成交单号          |
-  | 4  |  direction| uint256  | 多空方向， 1 多，2 空 |
-  | 5  |  orderType| uint256  | 不分市价还是限价，都是 3 |
-  | 6  |  amount| uint256  | 成交数量          |
-  | 7  |  costPrice| uint256  | 平仓成本价     |
-  | 8  |  price| uint256  | 成交价格          |  
-  | 9  |  tradingFee| uint256  | 手续费           |
-  | 10 |  limitOrderId| uint256  | 挂单订单号，市价成交为零  |
-  | 11 |  timestamp| uint256  | 订单成交时间        |
+  | 序号   | 参数           | 类型             | 描述            |
+  |------|--------------|----------------|---------------|
+  | 1    | taker        | address        | 成交订单钱包地址      |
+  | 2    | name         | string         | 订单交易对名称       |
+  | 3    | token        | address  | 结算token地址               |
+  | 4    | orderID      | uint256  | 成交单号          |
+  | 5    | direction    | uint256  | 多空方向， 1 多，2 空 |
+  | 6    | orderType    | uint256  | 不分市价还是限价，都是 3 |
+  | 7    | amount       | uint256  | 成交数量          |
+  | 8    | costPrice    | uint256  | 平仓成本价     |
+  | 9    | price        | uint256  | 成交价格          |  
+  | 10   | tradingFee   | uint256  | 手续费           |
+  | 11   | limitOrderId | uint256  | 挂单订单号，市价成交为零  |
+  | 12   | timestamp    | uint256  | 订单成交时间        |
   OrderBook 合约发出
+```
+  OrderBook 合约发出
+  orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
+```
+
 
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
     tradingFee, uint256 goodTill );
 
-  | 序号  | 参数 | 类型       | 描述              |
-  |-----|--|----------|-----------------|
-  | 1   |  name| string   | 交易对名称 BTC 之类，大写 |
-  | 2   |  taker| address  | 挂单钱包地址    |
-  | 3   |  orderID| uint256  | 挂单号       |
-  | 4   |  orderType| uint256  | 多空方向 1 多  2 空   |
-  | 5   |  state| uint256  | 挂单状态 值为 1，挂单中   |
-  | 6   |  offset| uint256  | 值为 2 表示平仓仓      |
-  | 7   |  amount| uint256  | 挂单数量     | 
-  | 8   |  targetPrice| uint256  | 挂单价格   |
-  | 9   |  margin| uint256  | 冻结保证金           |- 
-  | 10  |  rewardGas| uint256  | 触发奖励     |
-  | 11  |  tradingFee| uint256  | 冻结手续费     |
-  | 12  | startTime    | uint256 | 下单时间                                    |
-  | 13 |  goodTill | uint256  | 有效期     |
+  | 序号   | 参数 | 类型       | 描述              |
+  |------|--|----------|-----------------|
+  | 1    |  name| string   | 交易对名称 BTC 之类，大写 |
+  | 2    |  taker| address  | 挂单钱包地址    |
+  | 3    |  orderID| uint256  | 挂单号       |
+  | 4    |  orderType| uint256  | 多空方向 1 多  2 空   |
+  | 5    |  state| uint256  | 挂单状态 值为 1，挂单中   |
+  | 6    |  offset| uint256  | 值为 2 表示平仓仓      |
+  | 7    |  amount| uint256  | 挂单数量     | 
+  | 8    |  targetPrice| uint256  | 挂单价格   |
+  | 9    |  margin| uint256  | 冻结保证金           |- 
+  | 10   |  rewardGas| uint256  | 触发奖励     |
+  | 11   |  tradingFee| uint256  | 冻结手续费     |
+  | 12   | startTime    | uint256 | 下单时间     |
+  | 13   |  goodTill | uint256  | 有效期     |
   OrderBook 合约发出
 
 ### 用户设置杠杠倍数
