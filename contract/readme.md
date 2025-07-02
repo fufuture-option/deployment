@@ -311,8 +311,11 @@
   | 12   | tradingFee  | uint256  | 冻结手续费           |
   | 13   | startTime   | uint256 | 下单时间            |
   | 14   | goodTill    | uint256  | 有效期             |
-  OrderBook 合约发出
 
+```
+  OrderBook 合约发出
+  state 取值范围：0-无效 1-挂单中 2-部分成交 3-全成 4-全撤 5-过期 6-异常        
+```
 ### 平仓
 
 - 函数名称 closePosition
@@ -375,7 +378,10 @@
   | 12  | tradingFee  | uint256  | 冻结手续费           |
   | 13  | startTime   | uint256 | 下单时间            |
   | 14  | goodTill    | uint256  | 有效期             |
+```
   OrderBook 合约发出
+  state 取值范围：0-无效 1-挂单中 2-部分成交 3-全成 4-全撤 5-过期 6-异常        
+```
 
 ### 用户设置杠杠倍数
 
