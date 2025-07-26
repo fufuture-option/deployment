@@ -158,19 +158,31 @@
 
   LP2Account 结构说明：
 
-  | 序号  | 参数          | 类型             | 描述                            |
-  |-----|--------------|----------------|-------------------------------|
-  | 1   |  holder| address        | 用户私池地址                        |
-  | 2   |  amount| uint256        | 期初资产数量，包含未结算盈亏                |
-  | 3   |  availableAmount| uint256        | 可用数量。可用来接单金额                  |
-  | 4   |  lockedAmount| uint256         | 已接接单数量，属于冻结数量                 |
-  | 5   |  maintenanceMargin| uint256         | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户   |
-  | 6   |  marginRate| uint256 | 用户自定义保证金比例。                   |
-  | 7   |  maintenanceMarginRate| uint256   | 用户自定义维持保证金比例。                 |
-  | 8   |  addMarginRate| uint256         | 用户自动追加保证金比例                   |
-  | 8   |  autoAddMargin| bool         | 爆仓时候，是否自动追加保证金          |      
-  | 10 |  isRejectOrder| bool         | 表示接单状态。 true 为拒绝接单，Fasle 可以接单 |
+  | 序号  | 参数                      | 类型        | 描述                            |
+  |-----|-------------------------|-----------|-------------------------------|
+  | 1   | holder                  | address   | 用户私池地址                        |
+  | 2   | amount                  | uint256   | 期初资产数量，包含未结算盈亏                |
+  | 3   | availableAmount         | uint256   | 可用数量。可用来接单金额                  |
+  | 4   | lockedAmount            | uint256   | 已接接单数量，属于冻结数量                 |
+  | 5   | maintenanceMargin       | uint256   | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户   |
+  | 6   | leverage                | uint256   | 用户自定义杠杠倍数。                  |
+  | 7   | maintenanceMarginRate   | uint256   | 用户自定义维持保证金比例。                 |
+  | 8   | addMarginRate           | uint256   | 用户自动追加保证金比例                   |
+  | 8   | autoAddMargin           | bool      | 爆仓时候，是否自动追加保证金                |      
+  | 10 | isRejectOrder           | bool      | 表示接单状态。 true 为拒绝接单，Fasle 可以接单 |
 
+-----------------------------------------------
+### 设置maker用户参数
+
+- 函数名称 setUserParam
+- 输入参数：
+
+  | 序号 | 参数             | 类型      | 描述        |
+  |----|----------------|---------|-----------|
+  | 1  | _leverage      | uint256 | 用户自定义杠杠倍数 |
+  | 2  | _isRejectOrder | bool    | 是否接单      |
+  | 3  | _autoAddMargin | bool    | 是否自动追加保证金 |
+- 输出参数：无
 -----------------------------------------------
 
 ## Perpetual 合约交易接口
@@ -289,7 +301,16 @@
   OrderBook 合约发出
   orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
 ```
-
+    event LockPoolMargin(
+        uint256 dealID,
+        address maker,
+        uint256 value,
+        uint256 price,
+        uint256 makerID,
+        uint256 marginAmount,
+        uint256 maintenanceMargin,
+        uint256 flag
+    );
 
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
@@ -356,6 +377,17 @@
   OrderBook 合约发出
   orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
 ```
+                  emit CloseMakerDealInPool(
+                        makerDeal.takerId,
+                        makerDeal.makerAddr,
+                        makerDeal.size,
+                        currentPrice,
+                        makerDealID,
+                        0,
+                        makerLoss,
+                        1,  //1-full 2-part
+                        5  //1-private normal 2-private force 3-public normal  4-public force 5-move pool
+                    );
 
 
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
