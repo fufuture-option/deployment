@@ -301,10 +301,11 @@
   OrderBook 合约发出
   orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
 ```
-    event LockPoolMargin(
+
+- 私池接单事件 event LockPoolMargin(
         uint256 dealID,
         address maker,
-        uint256 value,
+        uint256 size,
         uint256 price,
         uint256 makerID,
         uint256 marginAmount,
@@ -312,6 +313,48 @@
         uint256 flag
     );
 
+| 序号  | 参数              | 类型      | 描述                    |
+|------|-------------------|---------|-------------------------|
+| 1    | dealID            | uint256 | taker 订单序号            |
+| 2    | maker             | address | maker 接单地址            |
+| 3    | size              | uint256 | 接单数量                  |
+| 4    | price             | uint256 | 接单价格                  |
+| 5    | makerID           | uint256 | 接单序号                  |
+| 6    | marginAmount      | uint256 | 接单保证金                |
+| 7    | maintenanceMargin | uint256 | 接单维持保证金             |
+| 8    | flag              | uint256 | 1-公池  2-私池           |
+```
+该事件由私池发出
+```
+
+- 流水事件 event TransactionHistory(
+        address indexed token,
+        address indexed sender,
+        address indexed received,
+        TransactionType transactionType,
+        uint256 amount,
+        uint256 timestamp
+    );
+
+| 序号  | 参数             | 类型              | 描述        |
+|------|-----------------|-----------------|-----------|
+| 1    | token           | address         | 流水发生token |
+| 2    | sender          | address         | 流水发送方     |
+| 3    | received        | address         | 流水接收方     |
+| 4    | transactionType | TransactionType | 流水类型      |
+| 5    | amount          | uint256         | 发生数量      |
+| 6    | timestamp       | uint256         | 发生时间 |
+
+```
+  perpetual 合约发出
+  TransactionType 取值范围： 
+        1-用户入金, 
+        2-用户出金, 
+        3-手续费, 
+        4-平仓盈利, 
+        5-平仓亏损,              
+        12-代理分成       
+```
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
     tradingFee, uint256 goodTill );
@@ -377,18 +420,33 @@
   OrderBook 合约发出
   orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
 ```
-                  emit CloseMakerDealInPool(
-                        makerDeal.takerId,
-                        makerDeal.makerAddr,
-                        makerDeal.size,
-                        currentPrice,
-                        makerDealID,
-                        0,
-                        makerLoss,
-                        1,  //1-full 2-part
-                        5  //1-private normal 2-private force 3-public normal  4-public force 5-move pool
-                    );
+- 订单平仓事件 event CloseMakerDealInPool(
+    uint256 dealID,
+    address maker, 
+    uint256 size,  
+    uint256 price, 
+    uint256 makerID, 
+    uint256 makerGain, 
+    uint256 makerLoss, 
+    uint256 closeFlag, 
+    uint256 closeType  
+    );                     
 
+  | 序号  | 参数           | 类型             | 描述             |
+  |------|--------------|----------------|----------------|
+  | 1    | dealID        | uint256        | taker order id |
+  | 2    | maker         | address         | 私池接单地址         |
+  | 3    | size        | uint256  | 平仓数量           |
+  | 4    | price      | uint256  | 平仓价格           |
+  | 5    | makerID    | uint256  | 平仓接单序号         |
+  | 6    | makerGain    | uint256  | 平仓盈利           |
+  | 7    | makerLoss       | uint256  | 平仓亏损           |
+  | 8    | closeFlag    | uint256  | 1-全平 2-部分平仓    |
+  | 9    | closeType        | uint256  | 平仓类型           |  
+  privatePool 合约发出
+```
+  closeType 取值范围：1-私池正常平仓 2-私池爆仓 3-公池正常平仓  4-公池爆仓 5-移仓
+ ```
 
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
