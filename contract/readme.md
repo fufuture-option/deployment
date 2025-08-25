@@ -3,9 +3,9 @@
 ## 1、BManager.json 是整个系统合约地址入口。 管理所有的交易币对，运行时用到的 Perpetual、 OrderBook、 TradeAgent、Underlying、 PrivatePool 合约地址都是该合约获取。
 
 ## BManager 合约地址：
- | 链名称        | BManager 合约地址                            |
+ | 链名称       | BManager 合约地址                          |
  |--------------|--------------------------------------------|
- | OPBnb-test   | 0xB012A210793488e1bcD4bb8e6Be2Cb9c04d4d722 |
+ | Conflux      | 0xED3022f7A2Bd7caE94a404f31C978258838fB3ed |
  | Base         | 0x81bc4655BFdB7682bc7c54EE7121D37d07616022 |
 
 
