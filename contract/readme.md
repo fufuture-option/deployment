@@ -5,7 +5,7 @@
 ## BManager 合约地址：
  | 链名称     | BManager                                 | Broker                                      | 
  |---------|--------------------------------------------|---------------------------------------------|
- | Base    | 0xdE3C03F8Cc557C0394Db65DD8D9d015ce6540d06 | 0x813Ed0395bb6936321B850e58De63fa76a6a5b96  |
+ | Base    | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 | 0xeCB891ebB10158654037403Dc702B0E200885770  |
  | Bsc     | 0x041212B0Da2F57994e40df31dE2ADD61186c19C8 | 0x1B5f9B6193d5Da7cDB5Cd0675A6eDb8817C72C16  |
  | Conflux | 0xED3022f7A2Bd7caE94a404f31C978258838fB3ed | 0xe3E7b3782ac5549d2AF6be6F139f4dC0aCF85D0A  |
 
@@ -105,6 +105,17 @@
   |----|-------|----------------------|--------------------------| 
   | 1 | items | PrimaryMultiItem[] | 合约交易对的基础参数信息，字段结构详情见上方说明 |
 
+# Broker 功能
+
+## 手动创建邀约关系
+- 函数名称 relateInviteeToInviter
+- 输入参数：
+
+  | 序号  | 参数     | 类型             | 描述         |
+  |------|----------|----------------|------------|
+  | 1    | _inviter | address        | 代理人地址      |
+  | 2    | _invitee | address        | 被邀请人地址     |
+
 # 流动性管理
 
 ## 私池流动性管理功能由 PrivatePool 合约提供
@@ -165,15 +176,15 @@
 - 函数名称 addMarginAmount
 - 输入参数：
 
-  | 序号  | 参数         | 类型      | 描述        |
-  |------|--------------|---------|-----------|
-  | 1    | _dealID     | uint256 | 接单ID      |
-  | 2    | _amount | uint256    | 单笔增加保证金数量 |
+  | 序号  | 参数     | 类型      | 描述        |
+  |------|----------|---------|-----------|
+  | 1    | _dealID  | uint256 | 接单ID      |
+  | 2    | _amount  | uint256    | 单笔增加保证金数量 |
 - 输出参数：无
 ```
   发送日志：event AddMargin(address indexed account, 
                           address indexed token, 
-                          uint256 orderID, 
+                          uint256 marketDealID, 
                           uint256 amount, 
                           uint256 margin
                           );
@@ -183,7 +194,7 @@
     |------|---------------|---------|---------------|
     | 2    | account       | address | maker 接单地址    |
     | 3    | token         | address | 交易token 地址    |
-    | 4    | orderID       | uint256 | 接单ID          |
+    | 4    | marketDealID  | uint256 | 接单ID          |
     | 5    | amount        | uint256 | 本次增加保证金数量     |
     | 6    | margin        | uint256 | 增加保证金后总保证金数数量 |
 
@@ -420,7 +431,7 @@
         address maker,
         uint256 size,
         uint256 price,
-        uint256 makerID,
+        uint256 marketDealID,
         uint256 marginAmount,
         uint256 maintenanceMargin,
         uint256 flag
@@ -432,7 +443,7 @@
 | 2    | maker             | address | maker 接单地址            |
 | 3    | size              | uint256 | 接单数量                  |
 | 4    | price             | uint256 | 接单价格                  |
-| 5    | makerID           | uint256 | 接单序号                  |
+| 5    | marketDealID      | uint256 | 接单序号                  |
 | 6    | marginAmount      | uint256 | 接单保证金                |
 | 7    | maintenanceMargin | uint256 | 接单维持保证金             |
 | 8    | flag              | uint256 | 1-公池  2-私池           |
