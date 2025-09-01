@@ -6,8 +6,8 @@
  | 链名称     | BManager                                 | Broker                                      | 
  |---------|--------------------------------------------|---------------------------------------------|
  | Base    | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 | 0xeCB891ebB10158654037403Dc702B0E200885770  |
- | Bsc     | 0x041212B0Da2F57994e40df31dE2ADD61186c19C8 | 0x1B5f9B6193d5Da7cDB5Cd0675A6eDb8817C72C16  |
- | Conflux | 0xED3022f7A2Bd7caE94a404f31C978258838fB3ed | 0xe3E7b3782ac5549d2AF6be6F139f4dC0aCF85D0A  |
+ | Bsc     | 0x2eA66eF91bF4CeBf05BbfaF0A4d623d70774a95B | 0xb2Ca940f2E16167417863872Dfa73f0645dFB409  |
+ | Conflux | 0xb3C0F0330A06dB0587eF4A6A283A1f117203871c | 0xbe964767Bcf4c36C25F30D64D893E08Be4662d25  |
 
 
 ### 函数名称getSettleList
@@ -16,7 +16,7 @@
 - 输入参数： 无
 - 输出参数：
 
-  | 序号 | 参数                |  描述      |
+  | 序号 | 参数             |  描述      |
   |----|-------------------|---------|
   | 1  |  address[] memory |  已上币地址数组    |
 
