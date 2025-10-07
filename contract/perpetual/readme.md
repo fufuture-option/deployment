@@ -2,12 +2,47 @@
 
 ## 1、BManager.json 是整个系统合约地址入口。 管理所有的交易币对，运行时用到的 Perpetual、 OrderBook、 TradeAgent、Underlying、 PrivatePool 合约地址都是该合约获取。
 
-## BManager 合约地址：
- | 链名称     | BManager                                 | Broker                                      | 
- |---------|--------------------------------------------|---------------------------------------------|
- | Base    | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 | 0xeCB891ebB10158654037403Dc702B0E200885770  |
- | Bsc     | 0x2eA66eF91bF4CeBf05BbfaF0A4d623d70774a95B | 0xb2Ca940f2E16167417863872Dfa73f0645dFB409  |
- | Conflux | 0xb3C0F0330A06dB0587eF4A6A283A1f117203871c | 0xbe964767Bcf4c36C25F30D64D893E08Be4662d25  |
+## 已部署BManager
+
+| 链名称      | Base                                       |                                       
+|----------|--------------------------------------------|
+| BManager | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 |
+| Broker   | 0xeCB891ebB10158654037403Dc702B0E200885770 |
+| chain id | 8453                                       |
+| rpc      | https://base-mainnet.public.blastapi.io/   |
+| browser  | https://basescan.org/                      |
+| oracle   | PYTH                                       |
+| fee      | 1 wei                                      |
+
+| 链名称    | Bsc                                        |                                       
+|----------|--------------------------------------------|
+| BManager | 0x2eA66eF91bF4CeBf05BbfaF0A4d623d70774a95B |
+| Broker   | 0xb2Ca940f2E16167417863872Dfa73f0645dFB409 |
+| chain id | 56                                         |
+| rpc      | https://bsc-dataseed.binance.org/          |
+| browser  | https://bscscan.org/                       |
+| oracle   | PYTH                                       |
+| fee      | 1 wei                                      |
+
+| 链名称    | Conflux                                    |                                       
+|----------|--------------------------------------------|
+| BManager | 0xb3C0F0330A06dB0587eF4A6A283A1f117203871c |
+| Broker   | 0xbe964767Bcf4c36C25F30D64D893E08Be4662d25 |
+| chain id | 1030                                       |
+| rpc      | https://evm.confluxrpc.com/                |
+| browser  | https://evm.confluxscan.net/               |
+| oracle   | PYTH                                       |
+| fee      | 0.1 eth                                    |
+
+| 链名称    | ENI                                                  |                                       
+|----------|------------------------------------------------------|
+| BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788           |
+| Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010           |
+| chain id | 173                                                  |
+| rpc      | https://rpc.eniac.network/                           |
+| browser  | https://scan.eniac.network/                          |
+| oracle   | APRO                                                 |
+| fee      | 0.5 eth                                              |
 
 
 ### 函数名称getSettleList
