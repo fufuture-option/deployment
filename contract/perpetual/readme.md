@@ -45,6 +45,16 @@
 | fee      | 0.5 eth                                              |
 
 
+| 链名称    | XLayer                                           |                                       
+|----------|--------------------------------------------------|
+| BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788       |
+| Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010       |
+| chain id | 196                                              |
+| rpc      | https://xlayerrpc.okx.com/                       |
+| browser  | https://web3.okx.com/zh-hans/explorer/x-layer/   |
+| oracle   | Supra                                            |
+| fee      | 0                                                |
+
 ### 函数名称getSettleList
 
 - 列出已上币token列表，只返回token地址。可根据改token地址， 获取到其它信息。比如name、symbol、decimals等。
