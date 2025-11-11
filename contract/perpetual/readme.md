@@ -4,7 +4,7 @@
 
 ## 已部署BManager
 
-| 链名称      | Base                                       |                                       
+| 链名称      | Base                                    |                                       
 |----------|--------------------------------------------|
 | BManager | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 |
 | Broker   | 0xeCB891ebB10158654037403Dc702B0E200885770 |
@@ -14,7 +14,7 @@
 | oracle   | PYTH                                       |
 | fee      | 1 wei                                      |
 
-| 链名称    | Bsc                                        |                                       
+| 链名称    | Bsc                                       |                                       
 |----------|--------------------------------------------|
 | BManager | 0x2eA66eF91bF4CeBf05BbfaF0A4d623d70774a95B |
 | Broker   | 0xb2Ca940f2E16167417863872Dfa73f0645dFB409 |
@@ -24,7 +24,7 @@
 | oracle   | PYTH                                       |
 | fee      | 1 wei                                      |
 
-| 链名称    | Conflux                                    |                                       
+| 链名称    | Conflux                                   |                                       
 |----------|--------------------------------------------|
 | BManager | 0xb3C0F0330A06dB0587eF4A6A283A1f117203871c |
 | Broker   | 0xbe964767Bcf4c36C25F30D64D893E08Be4662d25 |
@@ -34,7 +34,7 @@
 | oracle   | PYTH                                       |
 | fee      | 0.1 eth                                    |
 
-| 链名称    | ENI                                                  |                                       
+| 链名称    | ENI                                                 |                                       
 |----------|------------------------------------------------------|
 | BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788           |
 | Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010           |
@@ -45,13 +45,23 @@
 | fee      | 0.5 eth                                              |
 
 
-| 链名称    | XLayer                                           |                                       
+| 链名称    | XLayer                                          |                                       
 |----------|--------------------------------------------------|
 | BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788       |
 | Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010       |
 | chain id | 196                                              |
 | rpc      | https://xlayerrpc.okx.com/                       |
 | browser  | https://web3.okx.com/zh-hans/explorer/x-layer/   |
+| oracle   | Supra                                            |
+| fee      | 0                                                |
+
+| 链名称    | Pharos Atlantic Test                            |                                       
+|----------|--------------------------------------------------|
+| BManager | 0x625D25bc601d92F77e321848f4e937c19F79f6c9       |
+| Broker   | 0x66DE4Cb4D0CDcBaB80d8DB3C9e8f6082d79dB75A       |
+| chain id | 688689                                           |
+| rpc      | https://atlantic.dplabs-internal.com/            |
+| browser  | https://atlantic.pharosscan.xyz/                 |
 | oracle   | Supra                                            |
 | fee      | 0                                                |
 
