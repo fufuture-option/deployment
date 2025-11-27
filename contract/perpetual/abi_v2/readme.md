@@ -4,101 +4,73 @@
 
 ## 已部署BManager
 
-| 链名称      | Base                                    |                                       
+| 链名称     | Base                                      |                                       
 |----------|--------------------------------------------|
-| BManager | 0xfde4c96c8593536e31f229ea8f37b2ada2699bb2 |
-| Broker   | 0xeCB891ebB10158654037403Dc702B0E200885770 |
-| chain id | 8453                                       |
-| rpc      | https://base-mainnet.public.blastapi.io/   |
-| browser  | https://basescan.org/                      |
+| BManager | 0x3025a8EC2682E2998FC0C3ed5F02faBDaBBDDfA3 |
+| Broker   | 0x63AbB15b38042CE0171756D7DA5Dd1bff20F459A |
+| chain id | 5611                                       |
+| rpc      | https://opbnb-testnet-rpc.bnbchain.org     |
+| browser  | https://opbnb-testnet.bscscan.com/         |
 | oracle   | PYTH                                       |
 | fee      | 1 wei                                      |
 
-| 链名称    | Bsc                                       |                                       
-|----------|--------------------------------------------|
-| BManager | 0x2eA66eF91bF4CeBf05BbfaF0A4d623d70774a95B |
-| Broker   | 0xb2Ca940f2E16167417863872Dfa73f0645dFB409 |
-| chain id | 56                                         |
-| rpc      | https://bsc-dataseed.binance.org/          |
-| browser  | https://bscscan.org/                       |
-| oracle   | PYTH                                       |
-| fee      | 1 wei                                      |
-
-| 链名称    | Conflux                                   |                                       
-|----------|--------------------------------------------|
-| BManager | 0xb3C0F0330A06dB0587eF4A6A283A1f117203871c |
-| Broker   | 0xbe964767Bcf4c36C25F30D64D893E08Be4662d25 |
-| chain id | 1030                                       |
-| rpc      | https://evm.confluxrpc.com/                |
-| browser  | https://evm.confluxscan.net/               |
-| oracle   | PYTH                                       |
-| fee      | 0.1 eth                                    |
-
-| 链名称    | ENI                                                 |                                       
-|----------|------------------------------------------------------|
-| BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788           |
-| Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010           |
-| chain id | 173                                                  |
-| rpc      | https://rpc.eniac.network/                           |
-| browser  | https://scan.eniac.network/                          |
-| oracle   | APRO                                                 |
-| fee      | 0.5 eth                                              |
-
-
-| 链名称    | XLayer                                          |                                       
-|----------|--------------------------------------------------|
-| BManager | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788       |
-| Broker   | 0xE74FDDd83d848e9611F84324b893f6f7241fB010       |
-| chain id | 196                                              |
-| rpc      | https://xlayerrpc.okx.com/                       |
-| browser  | https://web3.okx.com/zh-hans/explorer/x-layer/   |
-| oracle   | Supra                                            |
-| fee      | 0                                                |
-
-| 链名称    | Pharos Atlantic Test                            |                                       
-|----------|--------------------------------------------------|
-| BManager | 0x625D25bc601d92F77e321848f4e937c19F79f6c9       |
-| Broker   | 0x66DE4Cb4D0CDcBaB80d8DB3C9e8f6082d79dB75A       |
-| chain id | 688689                                           |
-| rpc      | https://atlantic.dplabs-internal.com/            |
-| browser  | https://atlantic.pharosscan.xyz/                 |
-| oracle   | Supra                                            |
-| fee      | 0                                                |
-
-### 函数名称getSettleList
-
-- 列出已上币token列表，只返回token地址。可根据改token地址， 获取到其它信息。比如name、symbol、decimals等。
-- 输入参数： 无
-- 输出参数：
-
-  | 序号 | 参数             |  描述      |
-  |----|-------------------|---------|
-  | 1  |  address[] memory |  已上币地址数组    |
-
-### 获取所有交易合约地址信息
-
-- 函数名称：getTradePoolUnit
+### 获取所有系统合约地址信息
+- 函数名称：marketAgent
 - 输入参数：无
 - 输出参数：
 
-  | 序号 | 参数                | 描述          |
-  |----|-------------------|-------------|
-  | 1  |  TradePoolUnit[] memory | 已部署交易合约地址明细 |
+  | 序号 | 参数        | 描述        |
+  |----|--------------|-----------|
+  | 1  | address      | Broker 地址 |
 
-- TradePoolUnit 结构字段是说明
+- 函数名称：perpetual
+- 输入参数：无
+- 输出参数：
 
-  | 序号  | 参数         | 类型              | 描述                         |
-  |------|--------------|------------------|----------------------------|
-  | 1    | creator      | address          | 创建交易对钱包地址                  |
-  | 2    | settle       | address          | 结算币地址                      |
-  | 3    | decimals     | uint256          | 结算币小数精度                    |
-  | 4    | settleName   | string           | 交易对别名，可以和 symbol 一样，用户自己维护 |
-  | 5    | symbol       | string           | 结算币名称                      |
-  | 6    | privatePool  | PrivatePool 合约  | 私池合约, 提供私池充提功能             |
-  | 7    | perpetual    | Perpetual 合约    | 交易合约。 提供开平仓、限价单、爆仓等接口      |
-  | 8    | orderBook    | OrderBook        | 订单合约。 提供用户持仓、成交单、限价单等查询功能  |
-  | 9    | tradeAgent   | TradeAgent       | 交易代理合约。提供 最大可开、最大可用等查询接口   |
-  | 10   | tradeStation | TradeStation     | 交易代理合约。提供触发限价单等功能          |
+  | 序号 | 参数        | 描述       |
+  |----|--------------|----------|
+  | 1  | address      | 交易主合约地址 |
+
+- 函数名称：privatePool
+- 输入参数：无
+- 输出参数：
+
+  | 序号 | 参数        | 描述        |
+  |----|--------------|-----------|
+  | 1  | address      | 私池交易主合约地址 |
+
+- 函数名称：orderBook
+- 输入参数：无
+- 输出参数：
+
+  | 序号 | 参数        | 描述      |
+  |----|--------------|---------|
+  | 1  | address      | 订单主合约地址 |
+
+- 函数名称：tradeAgent
+- 输入参数：无
+- 输出参数：
+
+  | 序号  | 参数        | 描述         |
+  |-----|--------------|------------|
+  | 1   | address      | 交易功能执行合约地址 |
+
+- 函数名称：tradeStation
+- 输入参数：无
+- 输出参数：
+
+  | 序号  | 参数        | 描述         |
+  |-----|--------------|------------|
+  | 1   | address      | 交易功能执行合约地址 |
+
+- 函数名称：poolAgent
+- 输入参数：无
+- 输出参数：
+
+  | 序号  | 参数        | 描述         |
+  |-----|--------------|------------|
+  | 1   | address      | 交易功能执行合约地址 |
+
 
 ### 获取所有underlying合约地址信息
 
@@ -115,50 +87,26 @@
 
 ## 交易对的基础信息，包括最小下单单位、手续费率、维持保证金率、挂单奖励等
 
-### 获取单个合约交易对的基础信息
+### 获取单个交易对的基础信息
 
-- 函数名称: getSettleDetail
-- 输入参数：
-
-  | 序号  | 参数      | 类型         | 描述        |
-  |-----|---------|---------|----------------| 
-  | 1   | primary | address | TradePoolUnit 结构中的 perpeutal字段值。 |
-
+- 函数名称: getTradeParams
+- 输入参数： 无
 - 输出参数:
 
-  | 序号 | 参数      | 类型   | 描述           |
-  |----|---------|------------|---------| 
-  | 1  | item | PrimaryMultiItem | 合约交易对的基础参数信息，字段结构详情见下方说明 |
+  | 序号  | 参数      | 类型   | 描述           |
+  |------|---------|------------|---------| 
+  | 1    | item | TradeParams | 合约交易对的基础参数信息，字段结构详情见下方说明 |
 
-  PrimaryMultiItem 结构说明
+  TradeParams 结构说明
 
-  | 序号   | 参数          | 类型       | 描述                              |
-  |------|----------------|----------|---------------------------------|
-  | 1    | name           | string   | 交易对别名，可自定义，一般情况下 就是结算币的 name 属性 |
-  | 2    | multi          | uint256  | 转换系数                            |
-  | 3    | settle         | address  | 结算币地址                           |
-  | 4    | primary        | address  | 交易合约。 提供开平仓、限价单、爆仓等接口           |
-  | 5    | privatePool    | address  | 私池地址                            |
-  | 6    | tradeAgent     | address  | 交易辅助合约，提供一些查询功能                 |
-  | 7    | orderBook      | address  | 订单合约。 提供用户持仓、成交单、限价单等查询功能       |
-  | 8    | station        | address  | 交易辅助合约，主要执行限价单功能                |
-  | 9    | tradingFeeRate | uint256  | 手续费率                            |       
-  | 10   | rewardGas      | uint256  | 挂单奖励费                           |
-  | 11   | minOrderAmount | uint256  | 最小下单单位                        |
-  | 12   | leverage       | uint256  | 默认杠杠倍数                          |
-  | 13   | lotMulti       | uint256  | 交易数量调整系数           |
-  | 14   | version        | uint256  | 版本号                             |
-  | 15   | status         | uint256  | 交易状态 0-正常 1-涨停 2-下架             |
-
-### 获取交易对内所有交易合约的基础信息
-
-- 函数名称: getSettles
-- 输入参数：无
-- 输出参数:
-
-  | 序号 | 参数    | 类型                   | 描述                       |
-  |----|-------|----------------------|--------------------------| 
-  | 1 | items | PrimaryMultiItem[] | 合约交易对的基础参数信息，字段结构详情见上方说明 |
+  | 序号  | 参数          | 类型       | 描述                              |
+  |-----|----------------|----------|---------------------------------|
+  | 1   | tradingFeeRate | uint256  | 手续费率                            |       
+  | 2   | rewardGas      | uint256  | 挂单奖励费                           |
+  | 3   | minOrderAmount | uint256  | 最小下单单位                        |
+  | 4   | leverage       | uint256  | 默认杠杠倍数                          |
+  | 5   | version        | uint256  | 版本号                             |
+  | 6   | status         | uint256  | 交易状态 0-正常 1-涨停 2-下架             |
 
 # Broker 功能
 
@@ -175,17 +123,30 @@
 
 ## 私池流动性管理功能由 PrivatePool 合约提供
 
+### 获取私池有效结算币列表
+- 函数名称 getTokenList
+- 输入参数：无
+- 输出参数：
+
+  | 序号  | 参数       | 类型          | 描述              |
+  |------|----------|----------------|-----------------|
+  | 1    | tokens   | address[]      | 私池有效结算币列表 |
+
 ### 用户手动充私池，提供交易流动性
 
 - 函数名称 provide
 - 输入参数：
 
-  | 序号  | 参数      | 类型             | 描述                         |
-  |------|-----------|----------------|----------------------------|
-  | 1    | amount    | uint256        | 充结算数量                      |
-  | 2    | priOrPub  | uint256        | 充币类型 1、公池 2、私池。 公池暂时禁用     |
+  | 序号  | 参数        | 类型       | 描述                     |
+  |------|-----------|----------|------------------------|
+  | 1    | token     | address  | 代币地址                   |
+  | 2    | amount    | uint256  | 充结算数量                  |
+  | 3    | priOrPub  | uint256  | 充币类型 1、公池 2、私池         |
+  | 4    | symbols   | string[] | 交易对名称数组，比如 btc eth     |
+  | 5    | prices    | bytes[]  | 交易对价格加密数组              |
+- 
 - 关联事件  
-  event Provide(address indexed account, uint256 amount, uint256 poolType);
+  event Provide(address indexed account, address indexed token, uint256 amount, uint256 poolType);
 
   | 序号  | 参数     | 类型            | 描述              |
   |------|----------|----------------|-----------------|
@@ -199,13 +160,16 @@
 - 函数名称 withdraw
 - 输入参数：
 
-  | 序号   | 参数       | 类型             | 描述                                  |
-  |-------|------------|----------------|-------------------------------------|
-  | 1     | amount     | uint256        | 提结算数量。 对私池来说，该值为提取数量，对公池来说，该值为提取的份额 |
-  | 2     | priOrPub   | uint256        | 充币类型 1、公池 2、私池。 公池暂时禁用              |
+  | 序号  | 参数        | 类型              | 描述                                   |
+  |------|------------|-----------|--------------------------------------|
+  | 1    | token      | address   | 代币地址                                 |
+  | 1    | amount     | uint256   | 提结算数量。 对私池来说，该值为提取数量，对公池来说，该值为提取的份额  |
+  | 3    | priOrPub   | uint256   | 充币类型 1、公池 2、私池                       |
+  | 4    | symbols    | string[]  | 交易对名称数组，比如 btc eth                   |
+  | 5    | prices     | bytes[]   | 交易对价格加密数组                            |
 
 - 关联事件  
-  event Withdraw(address indexed account, uint256 amount, uint256 poolType);
+  event Withdraw(address indexed account, address indexed token, uint256 amount, uint256 poolType);
 
   | 序号  | 参数      | 类型      | 描述                     |
   |------|-----------|----------|---------------|
@@ -220,10 +184,11 @@
 - 输入参数：
 
   | 序号  | 参数           | 类型      | 描述        |
-  |------|----------------|---------|-----------|
-  | 1    | _leverage      | uint256 | 用户自定义杠杠倍数 |
-  | 2    | _isRejectOrder | bool    | 是否接单      |
-  | 3    | _autoAddMargin | bool    | 是否自动追加保证金 |
+  |------|---------------|---------|-----------|
+- | 2    | token         | address  | 充结算币地址              |
+  | 1    | leverage      | uint256 | 用户自定义杠杠倍数 |
+  | 2    | isRejectOrder | bool    | 是否接单      |
+  | 3    | autoAddMargin | bool    | 是否自动追加保证金 |
 - 输出参数：无
 
 ### 手动增加接单保证金
@@ -245,22 +210,23 @@
                           );
 ```
 -
-    | 序号  | 参数          | 类型      | 描述            |
-    |------|---------------|---------|---------------|
-    | 2    | account       | address | maker 接单地址    |
-    | 3    | token         | address | 交易token 地址    |
-    | 4    | marketDealID  | uint256 | 接单ID          |
-    | 5    | amount        | uint256 | 本次增加保证金数量     |
-    | 6    | margin        | uint256 | 增加保证金后总保证金数数量 |
+    | 序号 | 参数          | 类型      | 描述            |
+    |----|---------------|---------|---------------|
+    | 1  | account       | address | maker 接单地址    |
+    | 2  | token         | address | 交易token 地址    |
+    | 3  | marketDealID  | uint256 | 接单ID          |
+    | 4  | amount        | uint256 | 本次增加保证金数量     |
+    | 5  | margin        | uint256 | 增加保证金后总保证金数数量 |
 
 ### 查询用户流动池资产数据
 
 - 函数名称 getLP2Account
 - 输入参数：
 
-  | 序号 | 参数   | 类型            | 描述                     |
-  |-----|--------|----------------|------------------------|
-  | 1   | maker  | address        | maker 用户地址             |
+  | 序号 | 参数     | 类型      | 描述          |
+  |-----|---------|-----------|-------------|
+  | 1   | token   | address   | 交易 token 地址 |
+  | 2   | maker   | address   | maker 用户地址  |
 - 输出参数：
 
   | 序号  | 参数   | 类型             | 描述           |
@@ -297,25 +263,28 @@
 
   MakerDeal 结构说明：
 
-  | 序号   | 参数               | 类型        | 描述                                     |
-  |-------|-------------------|-----------|----------------------------------------|
-  | 1     | makerAddr         | address   | 接单账号地址                                 |
-  | 2     | locked            | bool      | 是否平仓  true 未平 false 已平仓                |
-  | 3     | takerId           | uint256   | 对手方订单ID，通过该ID，可用OrderBook 合约查出对手方成交单信息 |
-  | 4     | size              | uint256   | 已接接单数量                                 |
-  | 5     | marginAmount      | uint256   |                                        |
-  | 6     | maintenanceMargin | uint256   | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户            |
-  | 7     | pubPriFlag        | uint256   | 接单池子类型 1-公池 2-私池 11，12，13 - 由私池转入到公池。  |
-  | 8     | movePrice         | uint256   | 接单价格                                   |
-  | 8     | time              | uint256   | 接单时间                                   |
+  | 序号  | 参数              | 类型      | 描述                                           |
+  |-----|-------------------|---------|--------------------------------------------------|
+  | 1   | name              | string  | 交易对名称 btc eth 之类的                            |
+  | 2   | token             | address | 结算币token地址                                       |
+  | 3   | makerAddr         | address | 接单账号地址                                          |
+  | 4   | takerId           | uint256 | 对手方订单ID，通过该ID，可用OrderBook 合约查出对手方成交单信息       |
+  | 5   | size              | uint256 | 已接接单数量                                       |
+  | 6   | direct            | uint8   | 1-多单  2-空单                                         |
+  | 7   | marginAmount      | uint256 | 接单占用的保证金                                        |
+  | 8   | maintenanceMargin | uint256 | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户     |
+  | 9   | price             | uint256 | 接单价格                                               |
+  | 10  | time              | uint256 | 接单时间                                                |
+- | 11  | locked            | bool    | 是否平仓  true 未平 false 已平仓                          |
 
 ### 获取指定接单用户有效订单号
-- 函数名称 getMakerUserDeals
+- 函数名称 getUserMakerDealIds
 - 输入参数：
 
-  | 序号  | 参数       | 类型      | 描述     |
-  |------|-----------|---------|--------|
-  | 1    | maker     | address | 私池用户地址 |
+  | 序号  | 参数    | 类型    | 描述        |
+  |------|--------|---------|-----------|
+  | 1    | token  | address | 结算币地址 |
+  | 1    | maker  | address | 私池用户地址    |
 - 输出参数：
 
   | 序号  | 参数  | 类型        | 描述         |
@@ -337,17 +306,40 @@
 
   MakerDeal 结构说明：
 
-  | 序号   | 参数               | 类型        | 描述                                     |
-  |-------|-------------------|-----------|----------------------------------------|
-  | 1     | makerAddr         | address   | 接单账号地址                                 |
-  | 2     | locked            | bool      | 是否平仓  true 未平 false 已平仓                |
-  | 3     | takerId           | uint256   | 对手方订单ID，通过该ID，可用OrderBook 合约查出对手方成交单信息 |
-  | 4     | size              | uint256   | 已接接单数量                                 |
-  | 5     | marginAmount      | uint256   |                                        |
-  | 6     | maintenanceMargin | uint256   | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户            |
-  | 7     | pubPriFlag        | uint256   | 接单池子类型 1-公池 2-私池 11，12，13 - 由私池转入到公池。  |
-  | 8     | movePrice         | uint256   | 接单价格                                   |
-  | 8     | time              | uint256   | 接单时间                                   |
+| 序号  | 参数              | 类型      | 描述                                           |
+|-----|-------------------|---------|--------------------------------------------------|
+| 1   | name              | string  | 交易对名称 btc eth 之类的                            |
+| 2   | token             | address | 结算币token地址                                       |
+| 3   | makerAddr         | address | 接单账号地址                                          |
+| 4   | takerId           | uint256 | 对手方订单ID，通过该ID，可用OrderBook 合约查出对手方成交单信息       |
+| 5   | size              | uint256 | 已接接单数量                                       |
+| 6   | direct            | uint8   | 1-多单  2-空单                                         |
+| 7   | marginAmount      | uint256 | 接单占用的保证金                                        |
+| 8   | maintenanceMargin | uint256 | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户     |
+| 9   | price             | uint256 | 接单价格                                               |
+| 10  | time              | uint256 | 接单时间                                                |
+| 11  | locked            | bool    | 是否平仓  true 未平 false 已平仓                          |
+
+## PoolAgent 私池代理接口
+```
+    私池中的一些查询功能
+```
+- 函数名称 getPoolAsset
+- 输入参数：
+
+  | 序号  | 参数      | 类型             | 描述                   |
+  |------|---------|----------------|----------------------|
+  | 1    |  _token | address | 查询token 在池子中的资产信息 |
+
+- 返回参数
+
+| 序号  | 参数               | 类型       | 描述         |
+|------|------------------|----------|------------|
+| 1    | privateAmount    | uint256  | 私池总资产      |
+| 2    | privateMargin    | uint256  | 私池占用保证金    |
+| 3    | share            | uint256  | 公池总份额      |
+| 4    | publicAmount     | uint256  | 公池总资产      |
+| 5    | amount           | uint256  | 公池占用保证金    |
 
 
 ## Perpetual 合约交易接口
@@ -360,9 +352,10 @@
 - 函数名称 deposit
 - 输入参数：
 
-  | 序号  | 参数     | 类型             | 描述         |
-  |------|----------|----------------|------------|
-  | 1    | _amount  | uint256        | 充入token 数量 |
+  | 序号 | 参数      | 类型       | 描述           |
+  |----|---------|----------|--------------|
+  | 1  | token   | address  | 充入token地址 |
+  | 2  | amount  | uint256  | 充入token 数量   |
 
 - 关联事件 event TransactionHistory(
               address indexed token,
@@ -387,11 +380,12 @@
 - 函数名称 withdraw
 - 输入参数：
 
-  | 序号   | 参数        | 类型              | 描述              |
-  |------|--------------|------------------|-----------------|
-  | 1    | _amount      | uint256          | 提取token 数量      |
-  | 1    | _symbols     | string[] memory  | 交易对数组 [btc,eth] |
-  | 1    | _priceUpdate | bytes[] calldata | 交易对对应的加密字节数组    |
+  | 序号  | 参数          | 类型               | 描述              |
+  |-----|-------------|------------------|-----------------|
+  | 1   | token       | address          | 充入token地址 |
+  | 2   | amount      | uint256          | 提取token 数量      |
+  | 3   | symbols     | string[] memory  | 交易对数组 [btc,eth] |
+  | 4   | priceUpdate | bytes[] calldata | 交易对对应的加密字节数组    |
 
   - 关联事件 event TransactionHistory(
       address indexed token,
@@ -416,9 +410,10 @@
 - 函数名称 getUserAccount
 - 输入参数:
 
-  | 序号  | 参数           | 类型             | 描述              |
-  |-----|--------------|----------------|-----------------|
-  | 1   | _taker       | address        | 用户钱包地址          |
+  | 序号  | 参数     | 类型           | 描述         |
+  |-----|---------|----------------|------------|
+  | 1   | token   | address        | 查询token    |
+  | 2   | taker   | address        | 用户钱包地址     |
 - 输出参数
 
   | 序号  | 参数    | 类型              | 描述     |
@@ -440,22 +435,23 @@
 - 输入参数: 无
 - 输出参数：uint256 维持保证金率
 
-### 开仓
+### 市价开平仓，限价单
 
-- 函数名称 tradeFutures
+- 函数名称 trade
   输入参数：
 
-  | 序号   | 参数        | 类型       | 描述                         |
-  |------|--------------|-----------|----------------------------|
-  | 1    | _name        | string    | 交易对名称 BTC 之类，大写            |
-  | 2    | _amount      | uint256   | 下单数量                       |
-  | 3    | _price       | uint256   | 下单，市价填 0， 限价填具体价格，小数位数 18位 |
-  | 4    | _orderType   | uint256   | 价格类型， 市价填0 ，限价 填1          |
-  | 5    | _type        | uint256   | 多空方向 多单 1， 空单 2            |
-  | 6    | _inviter     | address   | 代理地址，无代理可为空地址              |
-  | 7    | _goodTill    | uint256   | 市价无意义，限价单位有效期， 单位 秒        |
-  | 8    | _deadline    | uint256   | 订单有效时间                     |  
-  | 9    | _priceUpdate | bytes     | 价格认证加密byte，限价无意义，可为空       |
+  | 序号 | 参数           | 类型    | 描述                           |
+  |----|--------------|---------|------------------------------|
+  | 1  | name         | string  | 交易对名称 BTC 之类，大写              |
+  | 2  | token        | address | 结算币token                     |
+  | 3  | amount       | uint256 | 下单数量                         |
+  | 4  | price        | uint256 | 下单，市价填 0， 限价填具体价格，小数位数 18位   |
+  | 5  | orderType    | uint256 | 价格类型， 市价填0 ，限价 填1            |
+  | 6  | offset       | uint256 | 多空类型 1-多单 2-空单               |
+  | 6  | type         | uint256 | 多空方向 多单 1， 空单 2              |
+  | 7  | goodTill     | uint256 | 市价无意义，限价单位有效期， 单位 秒          |
+  | 8  | deadline     | uint256 | 订单有效时间                       |  
+  | 9  | priceUpdate  | bytes   | 价格认证加密byte，限价无意义，可为空         |
 
 - 关联事件
   - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
@@ -483,6 +479,7 @@
 
 - 私池接单事件 event LockPoolMargin(
         uint256 dealID,
+        address token,
         address maker,
         uint256 size,
         uint256 price,
@@ -492,16 +489,17 @@
         uint256 flag
     );
 
-| 序号  | 参数              | 类型      | 描述                    |
-|------|-------------------|---------|-------------------------|
-| 1    | dealID            | uint256 | taker 订单序号            |
-| 2    | maker             | address | maker 接单地址            |
-| 3    | size              | uint256 | 接单数量                  |
-| 4    | price             | uint256 | 接单价格                  |
-| 5    | marketDealID      | uint256 | 接单序号                  |
-| 6    | marginAmount      | uint256 | 接单保证金                |
-| 7    | maintenanceMargin | uint256 | 接单维持保证金             |
-| 8    | flag              | uint256 | 1-公池  2-私池           |
+| 序号 | 参数                | 类型      | 描述         |
+|----|-------------------|---------|------------|
+| 1  | dealID            | uint256 | taker 订单序号 |
+| 2  | token             | address | token 地址   |
+| 3  | maker             | address | maker 接单地址 |
+| 4  | size              | uint256 | 接单数量       |
+| 5  | price             | uint256 | 接单价格       |
+| 6  | marketDealID      | uint256 | 接单序号       |
+| 7  | marginAmount      | uint256 | 接单保证金      |
+| 8  | maintenanceMargin | uint256 | 接单维持保证金    |
+| 9 | flag              | uint256 | 1-公池  2-私池 |
 
 ```
 该事件由私池发出
@@ -560,117 +558,27 @@
   OrderBook 合约发出
   state 取值范围：0-无效 1-挂单中 2-部分成交 3-全成 4-全撤 5-过期 6-异常        
 ```
-### 平仓
-
-- 函数名称 closePosition
-  输入参数：
-
-  | 序号  | 参数         | 类型      | 描述                         |
-  |------|--------------|----------|----------------------------|
-  | 1    | _name        | string   | 交易对名称 BTC 之类，大写            |
-  | 2    | _amount      | uint256  | 下单数量                       |
-  | 3    | _orderType   | uint256  | 价格类型， 市价填0 ，限价 填1          |- 
-  | 4    | _price       | uint256  | 下单，市价填 0， 限价填具体价格，小数位数 18位 |
-  | 5    | _type        | uint256  | 多空方向 多单 1， 空单 2            | 
-  | 6    | _goodTill    | uint256  | 市价无意义，限价单位有效期， 单位 秒        |
-  | 7    | _deadline    | uint256  | 订单有效时间                     |  
-  | 8    | _priceUpdate | bytes    | 价格认证加密byte，限价无意义，可为空       |
-
- 关联事件
-  - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
-    orderType, uint256 amount, uint256 costPrice, uint256 price,uint256 tradingFee, uint256 limitOrderId, uint256
-    timestamp);
-
-  | 序号  | 参数         | 类型       | 描述            |
-  |------|--------------|-----------|---------------|
-  | 1    | taker        | address   | 成交订单钱包地址      |
-  | 2    | name         | string    | 订单交易对名称       |
-  | 3    | token        | address   | 结算token地址               |
-  | 4    | orderID      | uint256   | 成交单号          |
-  | 5    | direction    | uint256   | 多空方向， 1 多，2 空 |
-  | 6    | orderType    | uint256   | 不分市价还是限价，都是 3 |
-  | 7    | amount       | uint256   | 成交数量          |
-  | 8    | costPrice    | uint256   | 平仓成本价     |
-  | 9    | price        | uint256   | 成交价格          |  
-  | 10   | tradingFee   | uint256   | 手续费           |
-  | 11   | limitOrderId | uint256   | 挂单订单号，市价成交为零  |
-  | 12   | timestamp    | uint256   | 订单成交时间        |
-  OrderBook 合约发出
-```
-  OrderBook 合约发出
-  orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
-```
-- 订单平仓事件 event CloseMakerDealInPool(
-    uint256 dealID,
-    address maker, 
-    uint256 size,  
-    uint256 price, 
-    uint256 makerID, 
-    uint256 makerGain, 
-    uint256 makerLoss, 
-    uint256 closeFlag, 
-    uint256 closeType  
-    );                     
-
-  | 序号  | 参数        | 类型            | 描述             |
-  |------|------------|----------------|----------------|
-  | 1    | dealID     | uint256        | taker order id |
-  | 2    | maker      | address        | 私池接单地址         |
-  | 3    | size       | uint256        | 平仓数量           |
-  | 4    | price      | uint256        | 平仓价格           |
-  | 5    | makerID    | uint256        | 平仓接单序号         |
-  | 6    | makerGain  | uint256        | 平仓盈利           |
-  | 7    | makerLoss  | uint256        | 平仓亏损           |
-  | 8    | closeFlag  | uint256        | 1-全平 2-部分平仓    |
-  | 9    | closeType  | uint256        | 平仓类型           |  
-  privatePool 合约发出
-```
-  closeType 取值范围：1-私池正常平仓 2-私池爆仓 3-公池正常平仓  4-公池爆仓 5-移仓
- ```
-
-  - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
-    OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
-    tradingFee, uint256 goodTill );
-
-  | 序号   | 参数         | 类型       | 描述              |
-  |-------|-------------|----------|-----------------|
-  | 1     | name        | string   | 交易对名称 BTC 之类，大写 |
-  | 2     | taker       | address  | 挂单钱包地址          |
-  | 3     | token       | address  | 挂单token地址   |
-  | 4     | orderID     | uint256  | 挂单号             |
-  | 5     | orderType   | uint256  | 多空方向 1 多  2 空   |
-  | 6     | state       | uint256  | 挂单状态 值为 1，挂单中   |
-  | 7     | offset      | uint256  | 值为 2 表示平仓仓      |
-  | 8     | amount      | uint256  | 挂单数量            | 
-  | 9     | targetPrice | uint256  | 挂单价格            |
-  | 10    | margin      | uint256  | 冻结保证金           |- 
-  | 11    | rewardGas   | uint256  | 触发奖励            |
-  | 12    | tradingFee  | uint256  | 冻结手续费           |
-  | 13    | startTime   | uint256  | 下单时间            |
-  | 14    | goodTill    | uint256  | 有效期             |
-```
-  OrderBook 合约发出
-  state 取值范围：0-无效 1-挂单中 2-部分成交 3-全成 4-全撤 5-过期 6-异常        
-```
 
 ### 用户设置杠杠倍数
 
 - 函数名称 setUserLeverage
 - 输入参数
 
-  | 序号  | 参数      | 类型      | 描述                  |
-  |------|-----------|----------|---------------------|
-  | 1    | _name     | string   | 交易对名称 BTC ETH 之类，大写 |
-  | 2    | _leverage | uint256  | 杠杆倍数 |
+  | 序号 | 参数     | 类型       | 描述                  |
+  |----|----------|----------|---------------------|
+  | 1  | token    | address  | 要设置的 token 地址       |
+  | 2  | name     | string   | 交易对名称 BTC ETH 之类，大写 |
+  | 3  | leverage | uint256  | 杠杆倍数                |
 
 ### 用户获取当前杠杠倍数
 
 - 函数名称 getUserLeverage
 - 输入参数
 
-  | 序号  | 参数         | 类型          | 描述                  |
-  |------|-------------|---------------|---------------------|
-  | 1    | _name       | string        | 交易对名称 BTC ETH 之类，大写 |
+  | 序号  | 参数      | 类型         | 描述                  |
+  |-----|---------|------------|---------------------|
+  | 1   | token   | address    | 要设置的 token 地址       |
+  | 2   | name    | string     | 交易对名称 BTC ETH 之类，大写 |
 
 - 输出参数
 
@@ -687,9 +595,10 @@
 - 函数名称 getUserLimitOrdersID
 - 输入参数
 
-  | 序号   | 参数      | 类型            | 描述       |
-  |------|------------|----------------|----------|
-  | 1    | _user      | address        | 挂单用户钱包地址 |
+  | 序号 | 参数     | 类型        | 描述       |
+  |----|--------|-----------|----------|
+  | 1  | token  | address   | 要设置的 token 地址       |
+  | 2  | user   | address   | 挂单用户钱包地址 |
 
 - 输出参数
 
@@ -714,20 +623,21 @@
 
   LimitedOrder 结构说明
 
-  | 序号  | 参数           | 类型     | 描述                                      |
-  |------|---------------|----------|-----------------------------------------| 
-  | 1    | taker         | address  | 挂单钱包地址                                  |
-  | 2    | direct        | uint256  | 多空方向 1 多单，2空单                           |
-  | 3    | state         | uint256  | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
-  | 4    | offset        | uint256  | 值为 1 开仓 2 平仓                            |
-  | 5    | name          | string   | 交易对名称 BTC ETH                           | 
-  | 6    | amount        | uint256  | 挂单数量                                    |
-  | 7    | targetPrice   | uint256  | 挂单价格                                    |
-  | 8    | margin        | uint256  | 冻结保证金                                   |- 
-  | 9    | tradingFee    | uint256  | 冻结手续费                                   |
-  | 10   | rewardGas     | uint256  | 触发奖励                                    |
-  | 11   | startTime     | uint256  | 下单时间                                    |
-  | 12   | goodTill      | uint256  | 有效期                                     |
+  | 序号  | 参数          | 类型     | 描述                                      |
+  |-----|-------------|----------|-----------------------------------------| 
+  | 1   | token       | address  | 挂单token                           |
+  | 2   | taker       | address  | 挂单钱包地址                       |
+  | 3   | direct      | uint256  | 多空方向 1 多单，2空单                           |
+  | 4   | state       | uint256  | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
+  | 5   | offset      | uint256  | 值为 1 开仓 2 平仓                            |
+  | 6   | name        | string   | 交易对名称 BTC ETH                           | 
+  | 7   | amount      | uint256  | 挂单数量                                    |
+  | 8   | targetPrice | uint256  | 挂单价格                                    |
+  | 9   | margin      | uint256  | 冻结保证金                                   |
+  | 10  | tradingFee  | uint256  | 冻结手续费                                   |
+  | 11  | rewardGas   | uint256  | 触发奖励                                    |
+  | 12  | startTime   | uint256  | 下单时间                                    |
+  | 13  | goodTill    | uint256  | 有效期                                     |
 
 
 ### 查询单笔成交单信息
@@ -747,18 +657,21 @@
 
   Deal 结构说明
 
-  | 序号  | 参数         | 类型     | 描述                                   |
-  |-----|------------|----------|--------------------------------------| 
-  | 1   | taker      | address  | 挂单钱包地址                               |
-  | 2   | direct     | uint256  | 多空方向 1 多单，2空单                        |
-  | 3   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
-  | 4   | offset     | uint256  | 值为 1 开仓 2 平仓                         |
-  | 5   | name       | string   | 交易对名称 BTC ETH                        | 
-  | 6   | amount     | uint256  | 成交数量                                 |
-  | 7   | price      | uint256  | 成交价格                                 |
-  | 8   | margin     | uint256  | 成交保证金                                | 
-  | 9   | tradingFee | uint256  | 成交手续费                                |
-  | 10  | timestamp  | uint256  | 成交时间                                 |
+  | 序号  | 参数         | 类型     | 描述                                  |
+  |-----|------------|----------|-------------------------------------| 
+  | 1   | token      | address  | token 地址                            |
+  | 2   | taker      | address  | 挂单钱包地址                              |
+  | 3   | direct     | uint256  | 多空方向 1 多单，2空单                       |
+  | 4   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
+  | 5   | offset     | uint256  | 值为 1 开仓 2 平仓                        |
+  | 6   | orderID    | uint256  | 值为 1 开仓 2 平仓                        |
+  | 7   | name       | string   | 交易对名称 BTC ETH                       | 
+  | 8   | amount     | uint256  | 成交数量                                |
+  | 9   | price      | uint256  | 成交价格                                |
+  | 10  | leverage   | uint256  | 杠杆倍数                                |
+  | 11  | margin     | uint256  | 成交保证金                               | 
+  | 12  | tradingFee | uint256  | 成交手续费                               |
+  | 13  | timestamp  | uint256  | 成交时间                                |
 
 ### 查询单笔成交单信息
 
@@ -777,18 +690,21 @@
 
   Deal 结构说明
 
-  | 序号  | 参数         | 类型     | 描述                                   |
-  |-----|------------|----------|--------------------------------------| 
-  | 1   | taker      | address  | 挂单钱包地址                               |
-  | 2   | direct     | uint256  | 多空方向 1 多单，2空单                        |
-  | 3   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
-  | 4   | offset     | uint256  | 值为 1 开仓 2 平仓                         |
-  | 5   | name       | string   | 交易对名称 BTC ETH                        | 
-  | 6   | amount     | uint256  | 成交数量                                 |
-  | 7   | price      | uint256  | 成交价格                                 |
-  | 8   | margin     | uint256  | 成交保证金                                | 
-  | 9   | tradingFee | uint256  | 成交手续费                                |
-  | 10  | timestamp  | uint256  | 成交时间                                 |
+  | 序号  | 参数         | 类型     | 描述                                  |
+  |-----|------------|----------|-------------------------------------| 
+  | 1   | token      | address  | token 地址                            |
+  | 2   | taker      | address  | 挂单钱包地址                              |
+  | 3   | direct     | uint256  | 多空方向 1 多单，2空单                       |
+  | 4   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
+  | 5   | offset     | uint256  | 值为 1 开仓 2 平仓                        |
+  | 6   | orderID    | uint256  | 值为 1 开仓 2 平仓                        |
+  | 7   | name       | string   | 交易对名称 BTC ETH                       | 
+  | 8   | amount     | uint256  | 成交数量                                |
+  | 9   | price      | uint256  | 成交价格                                |
+  | 10  | leverage   | uint256  | 杠杆倍数                                |
+  | 11  | margin     | uint256  | 成交保证金                               | 
+  | 12  | tradingFee | uint256  | 成交手续费                               |
+  | 13  | timestamp  | uint256  | 成交时间                                |
 
 
 ### 查询持仓数据信息
@@ -796,11 +712,12 @@
 - 函数名称 positions
 - 输入参数
 
-  | 序号  | 参数    | 类型     | 描述             |
-  |------|---------|---------|----------------|
-  | 1    | user    | address | 用户持仓地址         |
-  | 2    | name    | string  | 交易对名称 BTC ETH  |
-  | 3    | direct  | uint256 | 多空方向 0 多单 1 空单 |
+  | 序号 | 参数     | 类型     | 描述             |
+  |----|--------|---------|----------------|
+  | 1  | token  | address | 用户token地址    |
+  | 2  | user   | address | 用户持仓地址         |
+  | 3  | name   | string  | 交易对名称 BTC ETH  |
+  | 4  | direct | uint256 | 多空方向 0 多单 1 空单 |
 
 - 输出参数
 
@@ -821,11 +738,12 @@
 - 函数名称 getMaxWithdrawableAmount
 - 输入参数
 
-  | 序号  | 参数     | 类型              | 描述            |
-  |------|----------|------------------|---------------|
-  | 1    | _user    | address          | 用户持仓地址        |
-  | 2    | _symbols | string[] memory  | 交易对名称 BTC ETH |
-  | 3    | _prices  | uint256[] memory | 和交易对对应的市场价格   |
+  | 序号 | 参数        | 类型              | 描述            |
+  |----|-----------|------------------|---------------|
+  | 1  | token | address          | 用户token地址   |
+  | 2  | user     | address          | 用户地址          |
+  | 3  | symbols  | string[] memory  | 交易对名称 BTC ETH |
+  | 4  | prices   | uint256[] memory | 和交易对对应的市场价格   |
 
 - 输出参数
 
@@ -838,11 +756,12 @@
 - 函数名称 getMaxOpenAmount
 - 输入参数
 
-  | 序号 | 参数      | 类型             | 描述            |
-  |----|------------|----------------|---------------|
-  | 1  | _user      | address        | 用户持仓地址        |
-  | 2  | _symbols   | string memory  | 交易对名称 BTC ETH |
-  | 3  | _prices    | uint256 memory | 和交易对对应的市场价格   |
+  | 序号  | 参数      | 类型          | 描述              |
+  |------|---------|----------------|-------------------|
+  | 1    | token   | address        | 用户持仓地址        |
+  | 2    | user    | address        | 用户持仓地址            |
+  | 3    | symbols | string memory  | 交易对名称 BTC ETH     |
+  | 5    | prices  | uint256 memory | 和交易对对应的市场价格       |
 
 - 输出参数
 
