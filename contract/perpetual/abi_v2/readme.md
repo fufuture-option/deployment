@@ -1,18 +1,18 @@
 # 合约ABI 功能说明：
 
-## 1、BManager.json 是整个系统合约地址入口。 管理所有的交易币对，运行时用到的 Perpetual、 OrderBook、 TradeAgent、Underlying、 PrivatePool 合约地址都是该合约获取。
+## 1、ProxyFactory.json 是整个系统合约地址入口。 管理所有的交易币对，运行时用到的 Perpetual、 OrderBook、 TradeAgent、Underlying、 PrivatePool 合约地址都是该合约获取。
 
 ## 已部署BManager
 
-| 链名称     | Base                                      |                                       
-|----------|--------------------------------------------|
-| BManager | 0x3025a8EC2682E2998FC0C3ed5F02faBDaBBDDfA3 |
-| Broker   | 0x63AbB15b38042CE0171756D7DA5Dd1bff20F459A |
-| chain id | 5611                                       |
-| rpc      | https://opbnb-testnet-rpc.bnbchain.org     |
-| browser  | https://opbnb-testnet.bscscan.com/         |
-| oracle   | PYTH                                       |
-| fee      | 1 wei                                      |
+| 链名称          | Base                                      |                                       
+|--------------|--------------------------------------------|
+| ProxyFactory | 0x3025a8EC2682E2998FC0C3ed5F02faBDaBBDDfA3 |
+| Broker       | 0x63AbB15b38042CE0171756D7DA5Dd1bff20F459A |
+| chain id     | 5611                                       |
+| rpc          | https://opbnb-testnet-rpc.bnbchain.org     |
+| browser      | https://opbnb-testnet.bscscan.com/         |
+| oracle       | PYTH                                       |
+| fee          | 1 wei                                      |
 
 ### 获取所有系统合约地址信息
 - 函数名称：marketAgent
