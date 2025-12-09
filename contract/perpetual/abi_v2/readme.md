@@ -558,6 +558,59 @@
   OrderBook 合约发出
   state 取值范围：0-无效 1-挂单中 2-部分成交 3-全成 4-全撤 5-过期 6-异常        
 ```
+### 止盈止损单
+
+- 函数名称 ocoTrade
+  输入参数：
+
+  | 序号   | 参数       | 类型    | 描述                  |
+  |------|----------|---------|---------------------|
+  | 1    | name     | string  | 交易对名称 BTC 之类，大写     |
+  | 2    | token    | address | 结算币token            |
+  | 3    | amount   | uint256 | 下单数量                |
+  | 4    | offset   | uint256 | 多空类型 1-多单 2-空单      |
+  | 5    | direct   | uint256 | 多空方向 多单 1， 空单 2     |
+  | 6    | param1   | uint256 | 参数1，含义见下            |
+  | 7    | param2   | uint256 | 参数2，含义见下            |
+  | 8    | param3   | uint256 | 参数3，含义见下            |
+  | 9    | param4   | uint256 | 参数4，含义见下            | 
+  | 10   | goodTill | uint256 | 市价无意义，限价单位有效期， 单位 秒 |
+  | 11   | deadline | uint256 | 订单有效时间              |
+
+```
+  参数1 - 参数4说明：
+  对开仓止盈止损。暂不支持
+  对持仓止盈止损订单来说
+  参数1 止盈触发价格 不可为零
+  参数2 止盈触发价格 为零时表示市价成交，非零时表示限价止盈
+  参数3 止损触发价格 不可为零
+  参数4 止损触发价格 为零时表示市价成交，非零时表示限价止损
+  注意：参数1 和 参数2 两个必须有一个为非零
+```
+
+- 关联事件
+  - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
+    orderType, uint256 amount, uint256 costPrice, uint256 price,uint256 tradingFee, uint256 limitOrderId, uint256
+    timestamp);
+
+  | 序号  | 参数           | 类型       | 描述                      |
+  |-----|--------------|----------|-------------------------|
+  | 1   | taker        | address  | 成交订单钱包地址                |
+  | 2   | name         | string   | 订单交易对名称                 |
+  | 3   | token        | address  | 结算token地址               |
+  | 4   | orderID      | uint256  | 成交单号                    |
+  | 5   | direction    | uint256  | 多空方向， 1 多，2 空           |
+  | 6   | orderType    | uint256  | 市价开 1 ，限价开 2            |
+  | 7   | amount       | uint256  | 成交数量                    |
+  | 8   | costPrice    | uint256  | 成本价                     |
+  | 9   | price        | uint256  | 成交价格 为零                 |  
+  | 10  | tradingFee   | uint256  | 手续费                     |
+  | 11  | limitOrderId | uint256  | 挂单订单号，市价成交为 uint256.max |
+  | 12  | timestamp    | uint256  | 订单成交时间                  |
+```
+  OrderBook 合约发出
+  orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
+```
 
 ### 用户设置杠杠倍数
 
