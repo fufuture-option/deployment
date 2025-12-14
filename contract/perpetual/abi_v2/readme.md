@@ -440,18 +440,18 @@
 - 函数名称 trade
   输入参数：
 
-  | 序号 | 参数           | 类型    | 描述                           |
-  |----|--------------|---------|------------------------------|
-  | 1  | name         | string  | 交易对名称 BTC 之类，大写              |
-  | 2  | token        | address | 结算币token                     |
-  | 3  | amount       | uint256 | 下单数量                         |
-  | 4  | price        | uint256 | 下单，市价填 0， 限价填具体价格，小数位数 18位   |
-  | 5  | orderType    | uint256 | 价格类型， 市价填0 ，限价 填1            |
-  | 6  | offset       | uint256 | 多空类型 1-多单 2-空单               |
-  | 6  | type         | uint256 | 多空方向 多单 1， 空单 2              |
-  | 7  | goodTill     | uint256 | 市价无意义，限价单位有效期， 单位 秒          |
-  | 8  | deadline     | uint256 | 订单有效时间                       |  
-  | 9  | priceUpdate  | bytes   | 价格认证加密byte，限价无意义，可为空         |
+  | 序号 | 参数          | 类型    | 描述                         |
+  |----|-------------|---------|----------------------------|
+  | 1  | name        | string  | 交易对名称 BTC 之类，大写            |
+  | 2  | token       | address | 结算币token                   |
+  | 3  | amount      | uint256 | 下单数量                       |
+  | 4  | price       | uint256 | 下单，市价填 0， 限价填具体价格，小数位数 18位 |
+  | 5  | orderType   | uint256 | 价格类型， 市价填0 ，限价 填1          |
+  | 6  | offset      | uint256 | 多空类型 1-多单 2-空单             |
+  | 6  | type        | uint256 | 多空方向 多单 1， 空单 2            |
+  | 7  | orderType2  | uint256 | 11-止盈止损 21-限价转市价,其他值忽略     |
+  | 8  | deadline    | uint256 | 订单有效时间                     |  
+  | 9  | priceUpdate | bytes   | 价格认证加密byte，限价无意义，可为空       |
 
 - 关联事件
   - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
@@ -535,7 +535,7 @@
 ```
   - 限价单发 event CreateLimitedOrder(string name, address indexed taker, uint256 orderID, Direct orderType,
     OrderState state, Offset offset, uint256 amount, uint256 targetPrice, uint256 margin, uint256 extraFee, uint256
-    tradingFee, uint256 goodTill );
+    tradingFee, uint256 orderType );
 
   | 序号   | 参数          | 类型       | 描述              |
   |------|-------------|----------|-----------------|
@@ -552,7 +552,7 @@
   | 11   | rewardGas   | uint256  | 触发奖励            |
   | 12   | tradingFee  | uint256  | 冻结手续费           |
   | 13   | startTime   | uint256  | 下单时间            |
-  | 14   | goodTill    | uint256  | 有效期             |
+  | 14   | orderType   | uint256  | 11-止盈止损 21-限价转市价 |
 
 ```
   OrderBook 合约发出
@@ -563,19 +563,19 @@
 - 函数名称 ocoTrade
   输入参数：
 
-  | 序号   | 参数       | 类型    | 描述                  |
-  |------|----------|---------|---------------------|
-  | 1    | name     | string  | 交易对名称 BTC 之类，大写     |
-  | 2    | token    | address | 结算币token            |
-  | 3    | amount   | uint256 | 下单数量                |
-  | 4    | offset   | uint256 | 多空类型 1-多单 2-空单      |
-  | 5    | direct   | uint256 | 多空方向 多单 1， 空单 2     |
-  | 6    | param1   | uint256 | 参数1，含义见下            |
-  | 7    | param2   | uint256 | 参数2，含义见下            |
-  | 8    | param3   | uint256 | 参数3，含义见下            |
-  | 9    | param4   | uint256 | 参数4，含义见下            | 
-  | 10   | goodTill | uint256 | 市价无意义，限价单位有效期， 单位 秒 |
-  | 11   | deadline | uint256 | 订单有效时间              |
+  | 序号   | 参数       | 类型    | 描述                |
+  |------|----------|---------|-------------------|
+  | 1    | name     | string  | 交易对名称 BTC 之类，大写   |
+  | 2    | token    | address | 结算币token          |
+  | 3    | amount   | uint256 | 下单数量              |
+  | 4    | offset   | uint256 | 多空类型 1-多单 2-空单    |
+  | 5    | direct   | uint256 | 多空方向 多单 1， 空单 2   |
+  | 6    | param1   | uint256 | 参数1，含义见下          |
+  | 7    | param2   | uint256 | 参数2，含义见下          |
+  | 8    | param3   | uint256 | 参数3，含义见下          |
+  | 9    | param4   | uint256 | 参数4，含义见下          | 
+  | 10   | reserve  | uint256 | 无意义 |
+  | 11   | deadline | uint256 | 订单有效时间            |
 
 ```
   参数1 - 参数4说明：
@@ -659,40 +659,6 @@
   |-------|---------|------------------|------------|
   | 1     | orders  | uint256[] memory | 用户有效挂单ID列表 |
 
-### 查询挂单数据信息
-
-- 函数名称 getLimitOrders
-- 输入参数
-
-  | 序号  | 参数      | 类型             | 描述        |
-  |------|---------|---------------|-----------|
-  | 1    | orders  | uint256[]     | 带查询挂单ID列表 |
-
-- 输出参数
-
-  | 序号  | 参数     | 类型                  | 描述             |
-  |------|--------|------------------------|----------------|
-  | 1    | info   | LimitedOrder[] memory  | 用户有效挂单详细信息列表 |
-
-  LimitedOrder 结构说明
-
-  | 序号  | 参数          | 类型     | 描述                                      |
-  |-----|-------------|----------|-----------------------------------------| 
-  | 1   | token       | address  | 挂单token                           |
-  | 2   | taker       | address  | 挂单钱包地址                       |
-  | 3   | direct      | uint256  | 多空方向 1 多单，2空单                           |
-  | 4   | state       | uint256  | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
-  | 5   | offset      | uint256  | 值为 1 开仓 2 平仓                            |
-  | 6   | name        | string   | 交易对名称 BTC ETH                           | 
-  | 7   | amount      | uint256  | 挂单数量                                    |
-  | 8   | targetPrice | uint256  | 挂单价格                                    |
-  | 9   | margin      | uint256  | 冻结保证金                                   |
-  | 10  | tradingFee  | uint256  | 冻结手续费                                   |
-  | 11  | rewardGas   | uint256  | 触发奖励                                    |
-  | 12  | startTime   | uint256  | 下单时间                                    |
-  | 13  | goodTill    | uint256  | 有效期                                     |
-
-
 ### 查询单笔成交单信息
 
 - 函数名称 getDeal
@@ -726,6 +692,31 @@
   | 12  | tradingFee | uint256  | 成交手续费                               |
   | 13  | timestamp  | uint256  | 成交时间                                |
 
+### 查询持仓数据信息
+
+- 函数名称 positions
+- 输入参数
+
+  | 序号 | 参数     | 类型     | 描述             |
+  |----|--------|---------|----------------|
+  | 1  | token  | address | 用户token地址    |
+  | 2  | user   | address | 用户持仓地址         |
+  | 3  | name   | string  | 交易对名称 BTC ETH  |
+  | 4  | direct | uint256 | 多空方向 0 多单 1 空单 |
+
+- 输出参数
+
+  | 序号  | 参数     | 类型             | 描述        | 
+  |------|---------|---------------|-----------|
+  | 1    | value   | uint256 | 持仓成本      |
+  | 4    | size    | uint256 | 持仓数量      |
+  | 6    | margin  | uint256 | 持仓保证金     |
+  | 7    | freeze  | uint256  | 平仓冻结数量    | 
+  | 8    | deals   | uint256[] | 持仓对应的成交订单 |
+
+# TradeAgent 合约接口
+
+    提供一些查询类接口。比如最大可开、最大可取等
 ### 查询单笔成交单信息
 
 - 函数名称 getDeals
@@ -760,31 +751,39 @@
   | 13  | timestamp  | uint256  | 成交时间                                |
 
 
-### 查询持仓数据信息
+### 查询挂单数据信息
 
-- 函数名称 positions
+- 函数名称 getLimitOrders
 - 输入参数
 
-  | 序号 | 参数     | 类型     | 描述             |
-  |----|--------|---------|----------------|
-  | 1  | token  | address | 用户token地址    |
-  | 2  | user   | address | 用户持仓地址         |
-  | 3  | name   | string  | 交易对名称 BTC ETH  |
-  | 4  | direct | uint256 | 多空方向 0 多单 1 空单 |
+  | 序号  | 参数      | 类型             | 描述        |
+  |------|---------|---------------|-----------|
+  | 1    | orders  | uint256[]     | 带查询挂单ID列表 |
 
 - 输出参数
 
-  | 序号  | 参数     | 类型             | 描述        | 
-  |------|---------|---------------|-----------|
-  | 1    | value   | uint256 | 持仓成本      |
-  | 4    | size    | uint256 | 持仓数量      |
-  | 6    | margin  | uint256 | 持仓保证金     |
-  | 7    | freeze  | uint256  | 平仓冻结数量    | 
-  | 8    | deals   | uint256[] | 持仓对应的成交订单 |
+  | 序号  | 参数     | 类型                  | 描述             |
+  |------|--------|------------------------|----------------|
+  | 1    | info   | LimitedOrder[] memory  | 用户有效挂单详细信息列表 |
 
-# TradeAgent 合约接口
+  LimitedOrder 结构说明
 
-    提供一些查询类接口。比如最大可开、最大可取等
+  | 序号  | 参数          | 类型     | 描述                                      |
+  |-----|-------------|----------|-----------------------------------------| 
+  | 1   | token       | address  | 挂单token                           |
+  | 2   | taker       | address  | 挂单钱包地址                       |
+  | 3   | direct      | uint256  | 多空方向 1 多单，2空单                           |
+  | 4   | state       | uint256  | 订单状态 1 挂当中  2 部分成交 3 完全成交 4 撤销 5过期 6 异常 |
+  | 5   | offset      | uint256  | 值为 1 开仓 2 平仓                            |
+  | 6   | name        | string   | 交易对名称 BTC ETH                           | 
+  | 7   | amount      | uint256  | 挂单数量                                    |
+  | 8   | targetPrice | uint256  | 挂单价格                                    |
+  | 9   | margin      | uint256  | 冻结保证金                                   |
+  | 10  | tradingFee  | uint256  | 冻结手续费                                   |
+  | 11  | rewardGas   | uint256  | 触发奖励                                    |
+  | 12  | startTime   | uint256  | 下单时间                                    |
+  | 13  | orderType   | uint256  | 11-止盈止损 21-限价转市价                                     |
+
 
 ### 查询用户最大可取金额
 
