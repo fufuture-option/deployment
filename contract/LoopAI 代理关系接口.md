@@ -45,11 +45,18 @@
 | rpc      | https://xlayerrpc.okx.com/                       |
 | browser  | https://web3.okx.com/zh-hans/explorer/x-layer/   |
 
-```angular2html
-   Broker 表示代理合约
+```
+   Broker 表示代理合约    
 ```
 
-- 新增代理关系事件
+| ABI 文件   | 文件链接                                           |                                       
+|-----------|------------------------------------------------|
+| Perpetual | https://github.com/fufuture-option/deployment/blob/master/contract/perpetual/abi/Perpetual.json    |
+| Broker    | https://github.com/fufuture-option/deployment/blob/master/contract/perpetual/abi/MarketAgent.json     |
+
+
+
+#### 新增代理关系事件
 ```
   事件原型：
   event addInviterRelation(
@@ -59,13 +66,33 @@
   );
   该事件由 Broker 合约发出。
 ```
-  | 序号  | 参数           | 类型              | 描述                        |
-  |------|--------------|------------------|---------------------------|
-  | 1    | token        | address          | 保留字段，现值为零地址，表示该对应关系适合所有币种 |
-  | 2    | inviter      | address          | 上级代理地址                    |
-  | 3    | invitee      | address          | 下级代理地址或交易员地址              |
+  | 序号  | 参数           | 类型              | 描述                            |
+  |------|--------------|------------------|-------------------------------|
+  | 1    | token        | address          | 保留字段，现值为零地址，表示该对应关系适合所有币种     |
+  | 2    | inviter      | address          | 上级代理地址                        |
+  | 3    | invitee      | address          | 下级代理地址或交易员地址                  |
 
-- 交易佣金发送事件
+#### 查询上级代理地址
+```
+  可以查询对应上级地址，如无上级地址，则返回零地址。
+  给定一个地址，循环调用此函数，可以获取该地址代理地址链。目前只能从底层向上调用，不能逆向获取下级代理数据。
+  注意：如果上级代理为代理自身地址，循环调用会出现死循环。
+```
+- 查询合约：Broke 合约
+- 函数名称：relationShip
+- 输入参数：
+
+| 序号 | 参数          | 类型              | 描述        |
+|----|--------------|------------------|-----------|
+| 1  | invitee      | address          | 代理或者交易员地址 |
+
+- 输出参数：
+
+| 序号  | 参数      | 类型         | 描述                  |
+|-----|-----------|------------|---------------------|
+| 1   | inviter   | address    | 上级代理地址，如无上级代理，返回零地址 |
+
+#### 交易佣金发送事件
 ```
   事件原型：
   event TransactionHistory(
