@@ -146,37 +146,39 @@
   | 5    | prices    | bytes[]  | 交易对价格加密数组              |
 - 
 - 关联事件  
-  event Provide(address indexed account, address indexed token, uint256 amount, uint256 poolType);
+  event Provide(address indexed account, address indexed token, uint256 amount, uint256 share, uint256 poolType);
 
-  | 序号  | 参数     | 类型            | 描述              |
-  |------|----------|----------------|-----------------|
-  | 1    | account  | address        | 充结算用户钱包地址       |
-  | 2    | token    | address        | 充结算币地址         |
-  | 3    | amount   | uint256        | 充币金额            |
-  | 4    | poolType | uint256        | 池子类型 1、公池 2、私池。 |
+  | 序号  | 参数       | 类型            | 描述              |
+  |-----|----------|----------------|-----------------|
+  | 1   | account  | address        | 充结算用户钱包地址       |
+  | 2   | token    | address        | 充结算币地址          |
+  | 3   | amount   | uint256        | 充币金额            |
+  | 4   | share    | uint256        | 充值份额 (对私池来说无意义) |
+  | 5   | poolType | uint256        | 池子类型 1、公池 2、私池。 |
 
 ### 用户手动提取交易流动性
 
 - 函数名称 withdraw
 - 输入参数：
 
-  | 序号  | 参数        | 类型              | 描述                                   |
-  |------|------------|-----------|--------------------------------------|
-  | 1    | token      | address   | 代币地址                                 |
-  | 1    | amount     | uint256   | 提结算数量。 对私池来说，该值为提取数量，对公池来说，该值为提取的份额  |
-  | 3    | priOrPub   | uint256   | 充币类型 1、公池 2、私池                       |
-  | 4    | symbols    | string[]  | 交易对名称数组，比如 btc eth                   |
-  | 5    | prices     | bytes[]   | 交易对价格加密数组                            |
+  | 序号 | 参数        | 类型              | 描述                                   |
+  |----|------------|-----------|--------------------------------------|
+  | 1  | token      | address   | 代币地址                                 |
+  | 2  | amount     | uint256   | 提结算数量。 对私池来说，该值为提取数量，对公池来说，该值为提取的份额  |
+  | 3  | priOrPub   | uint256   | 充币类型 1、公池 2、私池                       |
+  | 4  | symbols    | string[]  | 交易对名称数组，比如 btc eth                   |
+  | 5  | prices     | bytes[]   | 交易对价格加密数组                            |
 
 - 关联事件  
   event Withdraw(address indexed account, address indexed token, uint256 amount, uint256 poolType);
 
-  | 序号  | 参数      | 类型      | 描述                     |
-  |------|-----------|----------|---------------|
-  | 1    | account   | address  | 充结算用户钱包地址              |
-  | 2    | token     | address  | 充结算币地址              |
-  | 3    | amount    | uint256  | 充币金额                   |
-  | 4    | poolType  | uint256  | 池子类型 1、公池 2、私池。  |
+  | 序号 | 参数       | 类型        | 描述              |
+  |-----|-----------|-----------|-----------------|
+  | 1   | account   | address   | 提币结算用户钱包地址      |
+  | 2   | token     | address   | 结算币地址           |
+  | 3   | amount    | uint256   | 提币金额            |
+  | 4   | share     | uint256   | 提币份额 (对私池来说无意义) |- 
+  | 5   | poolType  | uint256   | 池子类型 1、公池 2、私池。 |
 
 ### 设置maker用户参数
 
