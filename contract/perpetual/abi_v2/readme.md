@@ -306,19 +306,20 @@
 
   MakerDeal 结构说明：
 
-| 序号  | 参数              | 类型      | 描述                                           |
+| 序号  | 参数                | 类型      | 描述                                           |
 |-----|-------------------|---------|--------------------------------------------------|
 | 1   | name              | string  | 交易对名称 btc eth 之类的                            |
 | 2   | token             | address | 结算币token地址                                       |
 | 3   | makerAddr         | address | 接单账号地址                                          |
 | 4   | takerId           | uint256 | 对手方订单ID，通过该ID，可用OrderBook 合约查出对手方成交单信息       |
 | 5   | size              | uint256 | 已接接单数量                                       |
-| 6   | direct            | uint8   | 1-多单  2-空单                                         |
-| 7   | marginAmount      | uint256 | 接单占用的保证金                                        |
-| 8   | maintenanceMargin | uint256 | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户     |
-| 9   | price             | uint256 | 接单价格                                               |
-| 10  | time              | uint256 | 接单时间                                                |
-| 11  | locked            | bool    | 是否平仓  true 未平 false 已平仓                          |
+| 6   | price             | uint256 | 接单价格                                               |
+| 7   | direct            | uint8   | 1-多单  2-空单                                         |
+| 8   | state             | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
+| 9   | marginAmount      | uint256 | 接单占用的保证金                                        |
+| 10  | maintenanceMargin | uint256 | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户     |
+| 11  | time              | uint256 | 接单时间                                                |
+
 
 ## PoolAgent 私池代理接口
 ```
@@ -734,21 +735,20 @@
 
   Deal 结构说明
 
-  | 序号  | 参数         | 类型     | 描述                                  |
-  |-----|------------|----------|-------------------------------------| 
-  | 1   | token      | address  | token 地址                            |
-  | 2   | taker      | address  | 挂单钱包地址                              |
-  | 3   | direct     | uint256  | 多空方向 1 多单，2空单                       |
-  | 4   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
-  | 5   | offset     | uint256  | 值为 1 开仓 2 平仓                        |
-  | 6   | orderID    | uint256  | 值为 1 开仓 2 平仓                        |
-  | 7   | name       | string   | 交易对名称 BTC ETH                       | 
-  | 8   | amount     | uint256  | 成交数量                                |
-  | 9   | price      | uint256  | 成交价格                                |
-  | 10  | leverage   | uint256  | 杠杆倍数                                |
-  | 11  | margin     | uint256  | 成交保证金                               | 
-  | 12  | tradingFee | uint256  | 成交手续费                               |
-  | 13  | timestamp  | uint256  | 成交时间                                |
+  | 序号 | 参数         | 类型     | 描述                                  |
+  |----|------------|----------|-------------------------------------| 
+  | 1  | token      | address  | token 地址                            |
+  | 2  | taker      | address  | 挂单钱包地址                              |
+  | 3  | direct     | uint256  | 多空方向 1 多单，2空单                       |
+  | 4  | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
+  | 5  | orderID    | uint256  | 值为 1 开仓 2 平仓                        |
+  | 6  | name       | string   | 交易对名称 BTC ETH                       | 
+  | 7  | amount     | uint256  | 成交数量                                |
+  | 8  | price      | uint256  | 成交价格                                |
+  | 9  | leverage   | uint256  | 杠杆倍数                                |
+  | 10 | margin     | uint256  | 成交保证金                               | 
+  | 11 | tradingFee | uint256  | 成交手续费                               |
+  | 12 | timestamp  | uint256  | 成交时间                                |
 
 
 ### 查询挂单数据信息
@@ -784,6 +784,42 @@
   | 12  | startTime   | uint256  | 下单时间                                    |
   | 13  | orderType   | uint256  | 11-止盈止损 21-限价转市价                                     |
 
+```
+   当orderType 为 11 时，表示该订单为平仓止盈止损单，需再次从合约中获取止盈止损数据。
+   
+```
+### 查询止盈止损信息
+- 函数名称 getTriggerConditions
+- 输入参数
+
+  | 序号  | 参数     | 类型          | 描述           |
+  |------|---------|---------------|--------------|
+  | 1    | orders  | uint256[]     | 待查询止盈止损单ID列表 |
+
+- 输出参数
+
+  | 序号  | 参数     | 类型                  | 描述             |
+  |------|--------|------------------------|----------------|
+  | 1    | info   | TriggerCondition[] memory  | 用户有效止盈止损单详细信息列表 |
+
+- TriggerCondition 结构说明
+
+  | 序号  | 参数            | 类型       | 描述                         |
+  |-----|------------------|----------|----------------------------| 
+  | 1   | remark           | string   | 挂单说明，一般为空，可忽略              |
+  | 2   | mean             | uint256  | 状态值 0-无效 1-有效 2-开仓后立即产生挂单。 |
+  | 3   | openLimitPrice   | uint256  | 开仓限价                       |
+  | 4   | gainTriggerPrice | uint256  | 止盈触发价                      |
+  | 5   | gainLimitPrice   | uint256  | 止盈挂单价                      |
+  | 6   | lossTriggerPrice | uint256  | 止损触发价                      | 
+  | 7   | lossLimitPrice   | uint256  | 止损挂单价                      |
+
+```
+   如何分辨单向委托、双向委托。
+   1、 gainTriggerPrice、 lossTriggerPrice 都不为零的时为双向委托。
+   2、 两个值只有一个不为零时为单向委托。
+   3、 两个都为零这笔订单就不是有效的止盈止损单 
+```
 
 ### 查询用户最大可取金额
 
