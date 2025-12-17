@@ -211,7 +211,8 @@
                           uint256 margin
                           );
 ```
--
+- 日志参数说明
+
     | 序号 | 参数          | 类型      | 描述            |
     |----|---------------|---------|---------------|
     | 1  | account       | address | maker 接单地址    |
@@ -451,10 +452,10 @@
   | 4  | price       | uint256 | 下单，市价填 0， 限价填具体价格，小数位数 18位 |
   | 5  | orderType   | uint256 | 价格类型， 市价填0 ，限价 填1          |
   | 6  | offset      | uint256 | 多空类型 1-多单 2-空单             |
-  | 6  | type        | uint256 | 多空方向 多单 1， 空单 2            |
-  | 7  | orderType2  | uint256 | 11-止盈止损 21-限价转市价,其他值忽略     |
-  | 8  | deadline    | uint256 | 订单有效时间                     |  
-  | 9  | priceUpdate | bytes   | 价格认证加密byte，限价无意义，可为空       |
+  | 7  | direct      | uint256 | 多空方向 多单 1， 空单 2            |
+  | 8  | orderType2  | uint256 | 11-止盈止损 21-限价转市价,其他值忽略     |
+  | 9  | deadline    | uint256 | 订单有效时间                     |  
+  | 10 | priceUpdate | bytes   | 价格认证加密byte，限价无意义，可为空       |
 
 - 关联事件
   - 市价单发 event OrderHistory(address indexed taker, string name,uint256 orderID, Direct direction, OrderType
