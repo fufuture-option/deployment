@@ -99,14 +99,14 @@
 
   TradeParams 结构说明
 
-  | 序号  | 参数          | 类型       | 描述                              |
-  |-----|----------------|----------|---------------------------------|
-  | 1   | tradingFeeRate | uint256  | 手续费率                            |       
-  | 2   | rewardGas      | uint256  | 挂单奖励费                           |
-  | 3   | minOrderAmount | uint256  | 最小下单单位                        |
-  | 4   | leverage       | uint256  | 默认杠杠倍数                          |
-  | 5   | version        | uint256  | 版本号                             |
-  | 6   | status         | uint256  | 交易状态 0-正常 1-涨停 2-下架             |
+  | 序号  | 参数          | 类型       | 描述                 |
+  |-----|----------------|----------|--------------------|
+  | 1   | tradingFeeRate | uint256  | 手续费率               |       
+  | 2   | rewardGas      | uint256  | 挂单奖励费 (仅限价单用)   |
+  | 3   | minOrderAmount | uint256  | 最小下单单位             |
+  | 4   | leverage       | uint256  | 默认杠杠倍数             |
+  | 5   | version        | uint256  | 版本号                |
+  | 6   | status         | uint256  | 交易状态 0-正常 1-涨停 2-下架 |
 
 # Broker 功能
 
@@ -861,6 +861,13 @@
   | 1  | value      | uint256 | 最大可开数量 |
   
 ```
+交易发送gas 值说明：
+1、限价单、市价转限价单 发送gas值=TradeParams 结构中RewardGas 的值即可。
+2、止盈止损单发送Gas值=TradeParams 结构中RewardGas 的值 * 2。
+3、市价单发送Gas值=部署文档中指定Oracle Fee 值。
+4、交易池withdraw 方法、私池provide、withdraw 方法 发送gas值= 部署文档中指定Oracle Fee 值 * 2.
+5、每条链的设置都不相同。 oracle fee 部署时候会单独给出。 TradeParams 取合约值即可。
+
 界面计算公式：
  1、强平价格：若多仓的标记价格低于此强平价格，或是空仓的标记价格高于此强平价格，你的持仓将被强平。
 计算公式：
