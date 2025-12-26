@@ -65,6 +65,16 @@
 | oracle   | Supra                                            |
 | fee      | 0                                                |
 
+| 链名称    | Polygon                                    |                                       
+|----------|--------------------------------------------|
+| BManager | 0x625D25bc601d92F77e321848f4e937c19F79f6c9 |
+| Broker   | 0x66DE4Cb4D0CDcBaB80d8DB3C9e8f6082d79dB75A |
+| chain id | 137                                        |
+| rpc      | https://polygon-rpc.com/                   |
+| browser  | https://polygonscan.com/                   |
+| oracle   | PYth                                       |
+| fee      | 1 wei                                      |
+
 ### 函数名称getSettleList
 
 - 列出已上币token列表，只返回token地址。可根据改token地址， 获取到其它信息。比如name、symbol、decimals等。
