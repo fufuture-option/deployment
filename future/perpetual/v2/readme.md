@@ -378,13 +378,14 @@
 
 - 返回参数 PoolShareValue 结构说明
 
-| 序号  | 参数          | 类型      | 描述         |
-|-----|-------------|---------|------------|
-| 1   | totalAmount | uint256 | 总资产      |
-| 2   | totalShare  | uint256 | 总份额 |
-| 3   | gain        | uint256 | 总盈利        |
-| 4   | loss        | uint256 | 总亏损        |
-| 5   | netValue    | uint256 | 净值         |
+| 序号  | 参数              | 类型      | 描述   |
+|-----|-----------------|---------|------|
+| 1   | totalAmount     | uint256 | 总资产  |
+| 2   | availableAmount | uint256 | 公池可用 |
+| 2   | totalShare      | uint256 | 总份额  |
+| 3   | gain            | uint256 | 总盈利  |
+| 4   | loss            | uint256 | 总亏损  |
+| 5   | netValue        | uint256 | 净值   |
 
 - 函数名称 getUserShareAmount
 - 功能 获取用户公池份额
