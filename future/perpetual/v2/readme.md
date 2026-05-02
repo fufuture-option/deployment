@@ -4,26 +4,28 @@
 
 ## 已部署 Proxy
 
-| 链名称        | Bsc                                        |                                       
-|--------------|--------------------------------------------|
-| ProxyFactory | 0xc17F54Aa9cA1AbFccbb4752b1115be11029EbEaa |
-| Broker       | 0x2bB4990bd38427275E79a9FC24b110A56330dC23 |
-| chain id     | 56                                         |
-| rpc          | https://bsc-dataseed.binance.org/          |
-| browser      | https://bscscan.com/                       |
-| oracle       | PYTH                                       |
-| fee          | 0.0000125 BNB                              |
+| 链名称            | Bsc                                        |                                       
+|----------------|--------------------------------------------|
+| ProxyFactory   | 0xc17F54Aa9cA1AbFccbb4752b1115be11029EbEaa |
+| Broker         | 0x2bB4990bd38427275E79a9FC24b110A56330dC23 |
+| chain id       | 56                                         |
+| rpc            | https://bsc-dataseed.binance.org/          |
+| browser        | https://bscscan.com/                       |
+| oracle         | PYTH                                       |
+| price fee      | 0.0000125 BNB                              |
+| limitOrder fee | 0.0004 BNB                                 |
 
 
-| 链名称        | zkSync Era                                 |                                       
-|--------------|--------------------------------------------|
-| ProxyFactory | 0x625D25bc601d92F77e321848f4e937c19F79f6c9 |
-| Broker       | 0xeE5a018E3927c2bF9952844692841827AB4BDF7B |
-| chain id     | 324                                        |
-| rpc          | https://mainnet.era.zksync.io              |
-| browser      | https://explorer.zksync.io/                |
-| oracle       | PYTH                                       |
-| fee          | 0.000003 ETH                               |
+| 链名称             | zkSync Era                                 |                                       
+|-----------------|--------------------------------------------|
+| ProxyFactory    | 0x625D25bc601d92F77e321848f4e937c19F79f6c9 |
+| Broker          | 0xeE5a018E3927c2bF9952844692841827AB4BDF7B |
+| chain id        | 324                                        |
+| rpc             | https://mainnet.era.zksync.io              |
+| browser         | https://explorer.zksync.io/                |
+| oracle          | PYTH                                       |
+| price fee       | 0.000003 ETH                               |
+| limitOrder fee  | 0.00005 ETH                                |
 
 ### 获取所有系统合约地址信息
 
