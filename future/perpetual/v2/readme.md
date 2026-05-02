@@ -4,15 +4,26 @@
 
 ## 已部署 Proxy
 
-| 链名称          | Base                                       |                                       
+| 链名称        | Bsc                                        |                                       
 |--------------|--------------------------------------------|
-| ProxyFactory | 0x3025a8EC2682E2998FC0C3ed5F02faBDaBBDDfA3 |
-| Broker       | 0x63AbB15b38042CE0171756D7DA5Dd1bff20F459A |
-| chain id     | 5611                                       |
-| rpc          | https://opbnb-testnet-rpc.bnbchain.org     |
-| browser      | https://opbnb-testnet.bscscan.com/         |
+| ProxyFactory | 0xc17F54Aa9cA1AbFccbb4752b1115be11029EbEaa |
+| Broker       | 0x2bB4990bd38427275E79a9FC24b110A56330dC23 |
+| chain id     | 56                                         |
+| rpc          | https://bsc-dataseed.binance.org/          |
+| browser      | https://bscscan.com/                       |
 | oracle       | PYTH                                       |
-| fee          | 1 wei                                      |
+| fee          | 0.0000125 BNB                              |
+
+
+| 链名称        | zkSync Era                                 |                                       
+|--------------|--------------------------------------------|
+| ProxyFactory | 0x625D25bc601d92F77e321848f4e937c19F79f6c9 |
+| Broker       | 0xeE5a018E3927c2bF9952844692841827AB4BDF7B |
+| chain id     | 324                                        |
+| rpc          | https://mainnet.era.zksync.io              |
+| browser      | https://explorer.zksync.io/                |
+| oracle       | PYTH                                       |
+| fee          | 0.000003 ETH                               |
 
 ### 获取所有系统合约地址信息
 
