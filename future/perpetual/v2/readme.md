@@ -27,6 +27,18 @@
 | price fee       | 0.000003 ETH                               |
 | limitOrder fee  | 0.00005 ETH                                |
 
+
+| 链名称             | Pharos                                     |                                       
+|-----------------|--------------------------------------------|
+| ProxyFactory    | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788 |
+| Broker          | 0x66DE4Cb4D0CDcBaB80d8DB3C9e8f6082d79dB75A |
+| chain id        | 1672                                       |
+| rpc             | https://rpc.pharos.xyz                     |
+| browser         | https://www.pharosscan.xyz/                |
+| oracle          | Supra                                      |
+| price fee       | 0.0 Pros                                   |
+| limitOrder fee  | 0.03 Pros                                  |
+
 ### 获取所有系统合约地址信息
 
 - 函数名称：marketAgent
