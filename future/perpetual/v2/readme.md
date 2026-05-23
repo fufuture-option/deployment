@@ -28,7 +28,7 @@
 | limitOrder fee  | 0.00005 ETH                                |
 
 
-| 链名称             | Pharos                                     |                                       
+| 链名称            | Pharos                                     |                                       
 |-----------------|--------------------------------------------|
 | ProxyFactory    | 0x09cD4951c43D609Ce01E8A05816537bB17eb1788 |
 | Broker          | 0x66DE4Cb4D0CDcBaB80d8DB3C9e8f6082d79dB75A |
@@ -38,6 +38,17 @@
 | oracle          | Supra                                      |
 | price fee       | 0.0 Pros                                   |
 | limitOrder fee  | 0.03 Pros                                  |
+
+| 链名称           | PGP                                        |                                       
+|-----------------|--------------------------------------------|
+| ProxyFactory    | 0xB3d7d12FEC4e35A03C2568c74BDB9aF6F0C417b9 |
+| Broker          | 0x30C29ee30eba3215688d78Bdd3C0aEd6746BaE45 |
+| chain id        | 860621                                     |
+| rpc             | https://api.elastos.io/pg                  |
+| browser         | https://pgp.elastos.io/                    |
+| oracle          | PGP                                        |
+| price fee       | 0.0 Pros                                   |
+| limitOrder fee  | 0.02 Pros                                  |
 
 ### 获取所有系统合约地址信息
 
