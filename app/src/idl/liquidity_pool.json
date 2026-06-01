@@ -1,0 +1,3009 @@
+{
+  "address": "7ekS1N6HZRwgkPsrpGbLUsbSqTnGZm3hbc2tjuEPbLuD",
+  "metadata": {
+    "name": "liquidity_pool",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "add_margin",
+      "docs": [
+        "LP 给特定 MakerDeal 追加保证金。"
+      ],
+      "discriminator": [
+        211,
+        238,
+        238,
+        90,
+        223,
+        228,
+        228,
+        76
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker_deal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  107,
+                  101,
+                  114,
+                  95,
+                  100,
+                  101,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "taker_deal_seq"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "taker_deal_seq",
+          "type": "u64"
+        },
+        {
+          "name": "amount",
+          "type": "u128"
+        }
+      ]
+    },
+    {
+      "name": "close_deal",
+      "docs": [
+        "关闭一笔 MakerDeal（全 / 部分，仅 normal close；强平 D9 接入）。"
+      ],
+      "discriminator": [
+        157,
+        173,
+        33,
+        216,
+        146,
+        16,
+        65,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "cpi_authority",
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker_deal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  107,
+                  101,
+                  114,
+                  95,
+                  100,
+                  101,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "args.taker_deal_seq"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "maker_deal.maker",
+                "account": "MakerDeal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_position",
+          "docs": [
+            "仅公共池路径需要传（escrow LpAccount）；私有路径传 None。"
+          ],
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "CloseDealArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_pool_config",
+      "docs": [
+        "初始化某个结算币的 pool config（每个 settle_mint 一次）。"
+      ],
+      "discriminator": [
+        229,
+        200,
+        245,
+        211,
+        100,
+        33,
+        44,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "docs": [
+            "Pool vault authority PDA — 仅派生 bump 写入 PoolConfig，不创建。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "InitPoolConfigArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_pool_vault",
+      "docs": [
+        "创建 PoolVault + Escrow LpAccount（每个 settle_mint 一次）。"
+      ],
+      "discriminator": [
+        202,
+        16,
+        192,
+        207,
+        207,
+        57,
+        145,
+        224
+      ],
+      "accounts": [
+        {
+          "name": "pool_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "pool_config"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "vault_authority",
+          "docs": [
+            "vault_authority — 持有 PoolVault 的 PDA。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_vault",
+          "docs": [
+            "PoolVault token account — 由 vault_authority PDA 拥有，按 settle_mint 一份。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow_lp_account",
+          "docs": [
+            "Escrow LpAccount — 公共池资金聚合账户。",
+            "holder = PoolConfig.escrow_authority。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "pool_config.escrow_authority",
+                "account": "PoolConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_lp_account",
+      "docs": [
+        "用户首次提供流动性前显式创建 LpAccount PDA。"
+      ],
+      "discriminator": [
+        187,
+        140,
+        129,
+        172,
+        136,
+        200,
+        194,
+        159
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "holder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "liquidate_lp",
+      "docs": [
+        "keeper 标记 LP 为不可接单（防止 LP 总锁仓超容量时继续接新单）。"
+      ],
+      "discriminator": [
+        184,
+        134,
+        42,
+        9,
+        9,
+        99,
+        65,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "args.lp_holder"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "LiquidateLpArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "match_order",
+      "docs": [
+        "撮合一笔 taker 单：client 预选 1 个 LP，链上校验 + 创建 MakerDeal。"
+      ],
+      "discriminator": [
+        95,
+        230,
+        21,
+        6,
+        114,
+        23,
+        41,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "cpi_authority",
+          "docs": [
+            "perp_core 的 `vault_authority` PDA — 通过签名 + seeds::program 双重证明 CPI 来源。"
+          ],
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "谁付 MakerDeal PDA 租金。常规由 taker 出（perp_core 把 taker 转 signer 传进来）。"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "docs": [
+            "被 client 预选的 LP（可以是私有 LP 或 escrow_authority 名下的 LpAccount）。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "lp_account.holder",
+                "account": "LpAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker_deal",
+          "docs": [
+            "新 MakerDeal PDA — seed 含 taker_deal_seq，per-taker-deal 唯一。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  107,
+                  101,
+                  114,
+                  95,
+                  100,
+                  101,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "args.taker_deal_seq"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_position",
+          "docs": [
+            "公共池路径才需要：escrow 在该 pair × taker_direction 的累计净仓位 PDA。",
+            "私有路径 client 传 None 即可。"
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "MatchOrderArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "provide",
+      "docs": [
+        "LP 入金（private / public 由 `pool_side` 参数决定）。"
+      ],
+      "discriminator": [
+        221,
+        83,
+        15,
+        115,
+        142,
+        64,
+        245,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "docs": [
+            "私有路径：provider 自己的 LpAccount（必须 mut + 已存在）。",
+            "公共路径：可传任意已存在的 LpAccount（程序内会跳过；但为了 schema 统一，要求传 provider 自己的）。",
+            "**简化决策**：D6 仅当 pool_side = PRIVATE 时检查 holder = provider；",
+            "公共路径不要求传 lp_account（用 escrow_lp_account 即可），用 Option。"
+          ],
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow_lp_account",
+          "docs": [
+            "公共路径必传：escrow_authority 的 LpAccount（聚合公共池资金）。",
+            "私有路径不需要传。"
+          ],
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "pool_config.escrow_authority",
+                "account": "PoolConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "public_share",
+          "docs": [
+            "公共路径必传：provider 在公共池的份额账户（init_if_needed，首次入金创建）。"
+          ],
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  117,
+                  98,
+                  108,
+                  105,
+                  99,
+                  95,
+                  115,
+                  104,
+                  97,
+                  114,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token_account",
+          "docs": [
+            "provider 的 token account。"
+          ],
+          "writable": true
+        },
+        {
+          "name": "pool_vault",
+          "docs": [
+            "PoolVault — 由 vault_authority PDA 拥有。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "pool_side",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "set_lp_params",
+      "docs": [
+        "LP 自定义风险参数（杠杆、维持保证金率等）。"
+      ],
+      "discriminator": [
+        227,
+        163,
+        242,
+        45,
+        79,
+        203,
+        106,
+        44
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "holder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SetLpParamsArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_pool_config",
+      "docs": [
+        "admin 增量更新 PoolConfig（status / pool_type / min_provide_amount / perp_core_program）。",
+        "与 perp_core 的 `update_pair` 对称；典型场景：紧急 pause、动态调最小入金、CPI guard 升级。",
+        "不能改：settle_mint / escrow_authority / admin（会破坏 PDA seeds / 公共池资金路径）。"
+      ],
+      "discriminator": [
+        68,
+        236,
+        203,
+        122,
+        179,
+        62,
+        234,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "UpdatePoolConfigArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdraw_lp",
+      "docs": [
+        "LP 出金（private / public 由 `pool_side` 参数决定）。",
+        "公共路径 `amount` 是销毁的份额数；私有路径 `amount` 是取出的 base units。"
+      ],
+      "discriminator": [
+        225,
+        221,
+        45,
+        211,
+        49,
+        60,
+        51,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "settle_mint"
+        },
+        {
+          "name": "pool_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_account",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "holder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow_lp_account",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "pool_config.escrow_authority",
+                "account": "PoolConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "public_share",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  117,
+                  98,
+                  108,
+                  105,
+                  99,
+                  95,
+                  115,
+                  104,
+                  97,
+                  114,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              },
+              {
+                "kind": "account",
+                "path": "holder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "holder_token_account",
+          "writable": true
+        },
+        {
+          "name": "pool_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "docs": [
+            "vault_authority — 签 SPL transfer。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settle_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "pool_side",
+          "type": "u8"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LpAccount",
+      "discriminator": [
+        23,
+        166,
+        251,
+        222,
+        23,
+        27,
+        215,
+        48
+      ]
+    },
+    {
+      "name": "LpPosition",
+      "discriminator": [
+        105,
+        241,
+        37,
+        200,
+        224,
+        2,
+        252,
+        90
+      ]
+    },
+    {
+      "name": "MakerDeal",
+      "discriminator": [
+        218,
+        11,
+        14,
+        132,
+        168,
+        138,
+        56,
+        96
+      ]
+    },
+    {
+      "name": "PoolConfig",
+      "discriminator": [
+        26,
+        108,
+        14,
+        123,
+        116,
+        230,
+        129,
+        43
+      ]
+    },
+    {
+      "name": "PublicShare",
+      "discriminator": [
+        58,
+        142,
+        19,
+        154,
+        246,
+        12,
+        243,
+        22
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AddMargin",
+      "discriminator": [
+        233,
+        254,
+        34,
+        205,
+        165,
+        70,
+        190,
+        141
+      ]
+    },
+    {
+      "name": "BalanceOfMaker",
+      "discriminator": [
+        203,
+        63,
+        35,
+        138,
+        46,
+        38,
+        65,
+        200
+      ]
+    },
+    {
+      "name": "CloseMakerDealInPool",
+      "discriminator": [
+        10,
+        190,
+        0,
+        54,
+        73,
+        51,
+        126,
+        122
+      ]
+    },
+    {
+      "name": "LockPoolMargin",
+      "discriminator": [
+        26,
+        218,
+        109,
+        67,
+        198,
+        116,
+        130,
+        117
+      ]
+    },
+    {
+      "name": "LpAccountInitialized",
+      "discriminator": [
+        49,
+        176,
+        126,
+        171,
+        31,
+        11,
+        212,
+        214
+      ]
+    },
+    {
+      "name": "LpParamsUpdated",
+      "discriminator": [
+        54,
+        236,
+        196,
+        237,
+        83,
+        125,
+        251,
+        124
+      ]
+    },
+    {
+      "name": "PoolConfigInitialized",
+      "discriminator": [
+        229,
+        220,
+        87,
+        241,
+        175,
+        165,
+        198,
+        28
+      ]
+    },
+    {
+      "name": "PoolConfigUpdated",
+      "discriminator": [
+        206,
+        33,
+        29,
+        8,
+        84,
+        84,
+        130,
+        39
+      ]
+    },
+    {
+      "name": "PoolVaultInitialized",
+      "discriminator": [
+        160,
+        18,
+        48,
+        172,
+        183,
+        112,
+        51,
+        109
+      ]
+    },
+    {
+      "name": "Provide",
+      "discriminator": [
+        108,
+        192,
+        55,
+        102,
+        60,
+        30,
+        245,
+        223
+      ]
+    },
+    {
+      "name": "Withdraw",
+      "discriminator": [
+        192,
+        241,
+        201,
+        217,
+        70,
+        150,
+        90,
+        247
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotAdmin",
+      "msg": "Caller is not the admin"
+    },
+    {
+      "code": 6001,
+      "name": "NotLpHolder",
+      "msg": "Caller is not the LP account holder"
+    },
+    {
+      "code": 6002,
+      "name": "NotPerpCore",
+      "msg": "Caller is not the perp_core program (CPI guard)"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidPoolType",
+      "msg": "Invalid pool type (1=PUBLIC 2=PRIVATE 3=MIXED 4=REFUSE)"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidStatus",
+      "msg": "Invalid status"
+    },
+    {
+      "code": 6005,
+      "name": "SettleMintZero",
+      "msg": "Settle mint cannot be zero"
+    },
+    {
+      "code": 6006,
+      "name": "VersionMismatch",
+      "msg": "Account version mismatch"
+    },
+    {
+      "code": 6007,
+      "name": "AmountZero",
+      "msg": "Amount must be > 0"
+    },
+    {
+      "code": 6008,
+      "name": "ProvideAmountTooSmall",
+      "msg": "Provide amount is below the configured minimum"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidPoolSide",
+      "msg": "Pool side flag must be 1 (PUBLIC) or 2 (PRIVATE)"
+    },
+    {
+      "code": 6010,
+      "name": "PoolSideNotAccepted",
+      "msg": "This pool does not accept the requested side (public/private mismatch)"
+    },
+    {
+      "code": 6011,
+      "name": "EscrowSelfOp",
+      "msg": "Escrow authority cannot provide / withdraw via LP entry points"
+    },
+    {
+      "code": 6012,
+      "name": "PoolPaused",
+      "msg": "Pool is paused; provide / withdraw disabled"
+    },
+    {
+      "code": 6013,
+      "name": "SettleMintMismatch",
+      "msg": "Settle mint does not match the pool config"
+    },
+    {
+      "code": 6014,
+      "name": "LpHolderMismatch",
+      "msg": "LP account does not belong to the holder"
+    },
+    {
+      "code": 6015,
+      "name": "LpAlreadyInitialized",
+      "msg": "LP account already initialized"
+    },
+    {
+      "code": 6016,
+      "name": "InsufficientLpAvailable",
+      "msg": "Insufficient available LP balance"
+    },
+    {
+      "code": 6017,
+      "name": "WithdrawLeavesDustyAccount",
+      "msg": "Withdraw would leave the private LP account below the minimum mint amount"
+    },
+    {
+      "code": 6018,
+      "name": "PublicPoolEmpty",
+      "msg": "Public pool has zero total shares; cannot compute share price"
+    },
+    {
+      "code": 6019,
+      "name": "InsufficientPublicShares",
+      "msg": "Insufficient public shares"
+    },
+    {
+      "code": 6020,
+      "name": "LpLeverageOutOfRange",
+      "msg": "Leverage out of range (1x..=100x)"
+    },
+    {
+      "code": 6021,
+      "name": "LpMaintenanceMarginRateOutOfRange",
+      "msg": "Maintenance margin rate must be ≤ 1e18 (100%)"
+    },
+    {
+      "code": 6022,
+      "name": "LpAddMarginRateOutOfRange",
+      "msg": "Add margin rate must be ≤ 1e18 (100%)"
+    },
+    {
+      "code": 6023,
+      "name": "MakerDealNotLocked",
+      "msg": "MakerDeal is not locked or already closed"
+    },
+    {
+      "code": 6024,
+      "name": "MakerDealNotOwned",
+      "msg": "MakerDeal does not belong to the caller"
+    },
+    {
+      "code": 6025,
+      "name": "LpRejectingOrders",
+      "msg": "LP is rejecting new orders (reject_order = true)"
+    },
+    {
+      "code": 6026,
+      "name": "LpAvailableInsufficient",
+      "msg": "LP has insufficient available balance to take this order"
+    },
+    {
+      "code": 6027,
+      "name": "MakerLossExceedsLpCapacity",
+      "msg": "Maker P/L exceeds LP available + locked; risk fund tap is D9 work"
+    },
+    {
+      "code": 6028,
+      "name": "InvalidCpiAuthority",
+      "msg": "CPI authority does not match perp_core's vault_authority PDA"
+    },
+    {
+      "code": 6029,
+      "name": "MakerDealKeyMismatch",
+      "msg": "MakerDeal pair_id / settle_mint mismatch"
+    },
+    {
+      "code": 6030,
+      "name": "LpPositionMissing",
+      "msg": "LpPosition required for escrow path but missing"
+    },
+    {
+      "code": 6031,
+      "name": "LpPositionMismatch",
+      "msg": "LpPosition pair_id / direction mismatch"
+    },
+    {
+      "code": 6032,
+      "name": "CloseAmountExceedsDealSize",
+      "msg": "Close amount exceeds MakerDeal size"
+    },
+    {
+      "code": 6033,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "AddMargin",
+      "docs": [
+        "EVM 对应：`IPool.AddMargin`。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "account",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "taker_deal_seq",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u128"
+          },
+          {
+            "name": "margin_after",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BalanceOfMaker",
+      "docs": [
+        "EVM 对应：`IPool.BalanceOfMaker`。每个修改 LpAccount 的 ix 前后各发一次。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "holder",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u128"
+          },
+          {
+            "name": "available_amount",
+            "type": "u128"
+          },
+          {
+            "name": "locked_amount",
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin",
+            "type": "u128"
+          },
+          {
+            "name": "share",
+            "docs": [
+              "仅 escrow LP 有意义（= PoolConfig.total_shares）；其他 = 0。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "stage",
+            "docs": [
+              "0 = 入口, 10 = 出口；其他值（3 / 11 / 12 / 13）见 EVM 注释。"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CloseDealArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "taker_deal_seq",
+            "type": "u64"
+          },
+          {
+            "name": "close_type",
+            "docs": [
+              "0 = normal close（D7 唯一支持值）；1 = liquidate（D9）。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "close_amount_e18",
+            "docs": [
+              "关闭数量（1e18）；0 表示 full close（按 MakerDeal.size 关）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "close_price_e18",
+            "docs": [
+              "成交价（仅用于事件 / indexer；账务由 perp_core 算好 P/L 传进来）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "taker_profit_base",
+            "docs": [
+              "taker 视角的盈亏（base units），由 perp_core 算好传进来。",
+              "互斥：要么 profit > 0 & loss = 0，要么 loss > 0 & profit = 0，要么都 = 0。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "taker_loss_base",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CloseMakerDealInPool",
+      "docs": [
+        "单笔 MakerDeal 关闭事件。",
+        "",
+        "EVM 对应：`IPool.CloseMakerDealInPool`。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "taker_deal_seq",
+            "type": "u64"
+          },
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "close_size",
+            "type": "u128"
+          },
+          {
+            "name": "close_price",
+            "type": "u128"
+          },
+          {
+            "name": "maker_gain",
+            "type": "u128"
+          },
+          {
+            "name": "maker_loss",
+            "type": "u128"
+          },
+          {
+            "name": "close_fully",
+            "docs": [
+              "1 = full, 2 = partial"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "close_type",
+            "docs": [
+              "EVM CloseMakerDealInPool 第二个 flag：",
+              "1 = private normal, 2 = private force, 3 = public normal,",
+              "4 = public force, 5 = move pool"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitPoolConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_type",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "perp_core_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "private_min_provide_amount",
+            "docs": [
+              "私有池单笔最小入金（base units）。0 → 走默认 1 USDC（与 EVM `privateMinMintAmount` 等价）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "public_min_provide_amount",
+            "docs": [
+              "公共池单笔最小入金（base units）。0 → 走默认 1 USDC。"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LiquidateLpArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lp_holder",
+            "docs": [
+              "被清算的 LP holder（lp_account.holder）。"
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LockPoolMargin",
+      "docs": [
+        "LP 接到一笔新的对手单 → 锁仓事件。",
+        "",
+        "EVM 对应：`IPool.LockPoolMargin`。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "taker_deal_seq",
+            "type": "u64"
+          },
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pair_id",
+            "type": "u16"
+          },
+          {
+            "name": "direction",
+            "type": "u8"
+          },
+          {
+            "name": "size",
+            "type": "u128"
+          },
+          {
+            "name": "price",
+            "type": "u128"
+          },
+          {
+            "name": "margin_amount",
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin",
+            "type": "u128"
+          },
+          {
+            "name": "flag",
+            "docs": [
+              "1 = 公共池(maker=escrow), 2 = 私有池"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LpAccount",
+      "docs": [
+        "LP（做市方）账户。私有 holder=用户；公共 holder=escrow_authority（聚合公共池资金）。",
+        "PDA seeds: [\"lp_account\", settle_mint, holder]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "holder",
+            "docs": [
+              "持有者钱包（私有 LP 是用户，公共池 escrow 是 PoolConfig.escrow_authority）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "docs": [
+              "结算币 SPL mint。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "已 provide 的本金（累计入金，**不随**普通 withdraw 减少；做市盈亏会调）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "available_amount",
+            "docs": [
+              "可用余额（可继续接单 / 可 withdraw）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "locked_amount",
+            "docs": [
+              "已锁定保证金（MakerDeal 锁仓总额，含 margin + maintenance）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin",
+            "docs": [
+              "维持保证金合计（locked_amount 中专门用于强平触发的部分）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "leverage",
+            "docs": [
+              "杠杆倍数（1e18 精度，例 10x = 10e18）；EVM 默认 10。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin_rate",
+            "docs": [
+              "维持保证金率（1e18 精度，例 10% = 1e17）；EVM 默认 0.2%（EVM 代码注释和值不一致，按值 10%）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "add_margin_rate",
+            "docs": [
+              "强平时追加保证金的比例（1e18 精度，例 10% = 1e17）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "auto_add_margin",
+            "docs": [
+              "自动追加保证金开关。"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "reject_order",
+            "docs": [
+              "拒绝接新单（暂停 maker 服务但保留已有头寸）。"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "last_time",
+            "docs": [
+              "最后操作时间戳。"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LpAccountInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "holder",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "leverage",
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin_rate",
+            "type": "u128"
+          },
+          {
+            "name": "auto_add_margin",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LpParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "holder",
+            "type": "pubkey"
+          },
+          {
+            "name": "leverage",
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin_rate",
+            "type": "u128"
+          },
+          {
+            "name": "add_margin_rate",
+            "type": "u128"
+          },
+          {
+            "name": "auto_add_margin",
+            "type": "bool"
+          },
+          {
+            "name": "reject_order",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LpPosition",
+      "docs": [
+        "公共池 escrow 在某 (pair, direction) 的累计净仓位（公共路径才写）。",
+        "PDA seeds: [\"lp_position\", settle_mint, pair_id_le_bytes, direction]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pair_id",
+            "type": "u16"
+          },
+          {
+            "name": "direction",
+            "docs": [
+              "0 = LONG, 1 = SHORT。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "value",
+            "docs": [
+              "持仓 USD 总价值（1e18 精度，等同于 perp_core::Position.value）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "size",
+            "docs": [
+              "持仓合约数量（1e18 精度）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MakerDeal",
+      "docs": [
+        "LP 接的 taker 对手单（与 perp_core::DealRecord 1:1，通过 taker_deal_seq 关联）。",
+        "PDA seeds: [\"maker_deal\", settle_mint, taker_deal_seq_le_bytes]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "taker_deal_seq",
+            "docs": [
+              "对应 taker DealRecord.deal_id（perp_core 端的 deal_seq）。"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "maker",
+            "docs": [
+              "做市方钱包（私有 LP 是 LP 用户；公共池路径是 PoolConfig.escrow_authority）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "docs": [
+              "结算币 mint。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "pair_id",
+            "docs": [
+              "交易对。"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "direction",
+            "docs": [
+              "taker 方向（0 = LONG, 1 = SHORT）；maker 方向相反。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "size",
+            "docs": [
+              "当前剩余合约数量（1e18 精度，部分平仓后递减）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "margin_amount",
+            "docs": [
+              "已锁定保证金（base units，含 EVM 端 marginAmount）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "maintenance_margin",
+            "docs": [
+              "维持保证金（base units，EVM 端 maintenanceMargin；强平触发线）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "pub_pri_flag",
+            "docs": [
+              "`pubPriFlag`：",
+              "1 = 公共池路径（maker = escrow_authority）",
+              "2 = 私有池路径（maker = 用户 LP）",
+              "11 / 12 / 13 = 私有→公共池\"移仓\"中间状态（D7 高级特性）"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "move_price",
+            "docs": [
+              "移仓时的\"被替换价\"，用于事件溯源；普通路径写 0。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "opened_at",
+            "docs": [
+              "创建时间戳（unix sec）。"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "locked",
+            "docs": [
+              "是否仍处于活跃（true = 占用 LpAccount.locked_amount；false = 已关单或被强平）。"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchOrderArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "taker",
+            "docs": [
+              "taker 钱包（仅用作 MakerDeal 反查；与 maker 无关）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "pair_id",
+            "type": "u16"
+          },
+          {
+            "name": "taker_direction",
+            "docs": [
+              "taker 方向（0=LONG, 1=SHORT）；maker 是相反方向。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "amount_e18",
+            "docs": [
+              "合约张数，1e18 精度。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "price_e18",
+            "docs": [
+              "成交价，1e18 USD。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "taker_deal_seq",
+            "docs": [
+              "perp_core 端 SeqCounter 分配的 deal_seq；用于 MakerDeal PDA 派生。"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "pool_default_leverage_e18",
+            "docs": [
+              "池子全局默认杠杆（用于 LP 自定义 = 0 时 fallback）。perp_core 可以从自己的",
+              "GlobalConfig 或 PairConfig 取一个值传进来。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "pool_default_mmr_e18",
+            "docs": [
+              "同上：维持保证金率默认值（1e18 精度）。"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolConfig",
+      "docs": [
+        "每结算币流动性池配置。PDA seeds: [\"pool_config\", settle_mint]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "admin",
+            "docs": [
+              "管理员（修改本配置）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "docs": [
+              "该池对应的结算币 SPL mint。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_authority_bump",
+            "docs": [
+              "Pool vault authority PDA bump 缓存。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "pool_type",
+            "docs": [
+              "池类型：1=PUBLIC, 2=PRIVATE, 3=MIXED, 4=REFUSE。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "escrow_authority",
+            "docs": [
+              "公共池 escrow 管理员（仅 pool_type 涉及 PUBLIC 时使用）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "perp_core_program",
+            "docs": [
+              "允许通过 CPI 调用本 program 的 perp_core program ID（CPI guard）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "docs": [
+              "0 = active, 1 = paused（停止 provide / match_order），2 = offline。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "total_shares",
+            "docs": [
+              "公共池累计发行份额数（1e18 精度）。",
+              "第一次 provide(public)：total_shares = amount；",
+              "之后 share_net_value = escrow_amount * 1e18 / total_shares。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "total_locked_liquidity",
+            "docs": [
+              "全部 MakerDeal 占用的保证金合计（base units）。",
+              "等于 Σ (maker_deal.margin_amount + maker_deal.maintenance_margin)。",
+              "仅供链下监控；链上业务以 LpAccount.locked_amount 为准。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "private_min_provide_amount",
+            "docs": [
+              "私有池单笔最小入金（base units）；0 = 走默认 1 USDC。",
+              "EVM 对应：`privateMinMintAmount`（EVM 初值 1e18）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "public_min_provide_amount",
+            "docs": [
+              "公共池单笔最小入金（base units）；0 = 走默认 1 USDC。",
+              "EVM 没有此参数，但 require(_amount >= E18)，即同样的 1 USDC 等价。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolConfigInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_type",
+            "type": "u8"
+          },
+          {
+            "name": "perp_core_program",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolConfigUpdated",
+      "docs": [
+        "PoolConfig 字段变更后 emit；indexer 应 re-fetch 全字段（事件不带 diff）。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "pool_type",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolVaultInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Provide",
+      "docs": [
+        "EVM 对应：`IPool.Provide`。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "account",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "pool_side",
+            "docs": [
+              "1 = PUBLIC, 2 = PRIVATE。"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "shares_minted",
+            "docs": [
+              "公共池：本次铸造的份额；私有池：0。"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PublicShare",
+      "docs": [
+        "用户在公共池的份额账户。net_value = escrow.amount × 1e18 / total_shares。",
+        "PDA seeds: [\"public_share\", settle_mint, holder]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "holder",
+            "docs": [
+              "持有者钱包。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "docs": [
+              "结算币 mint。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "docs": [
+              "持有的份额数（1e18 精度，与 PoolConfig.total_shares 同精度）。"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "last_time",
+            "docs": [
+              "最后操作时间戳。"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetLpParamsArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "leverage",
+            "docs": [
+              "杠杆（1e18 精度，例 10x = 10e18）。允许 [1e18, 100e18]。"
+            ],
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "maintenance_margin_rate",
+            "docs": [
+              "维持保证金率（1e18 精度）。允许 (0, 1e18]。"
+            ],
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "add_margin_rate",
+            "docs": [
+              "追加保证金率（1e18 精度）。允许 (0, 1e18]。"
+            ],
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "auto_add_margin",
+            "type": {
+              "option": "bool"
+            }
+          },
+          {
+            "name": "reject_order",
+            "type": {
+              "option": "bool"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdatePoolConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "docs": [
+              "0 = active；1 = paused（停 provide / match_order）；2 = offline。"
+            ],
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "pool_type",
+            "docs": [
+              "1=PUBLIC 2=PRIVATE 3=MIXED 4=REFUSE。"
+            ],
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "private_min_provide_amount",
+            "docs": [
+              "私有池最小入金（base units）。"
+            ],
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "public_min_provide_amount",
+            "docs": [
+              "公共池最小入金（base units）。"
+            ],
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "perp_core_program",
+            "docs": [
+              "CPI guard 用的 perp_core program ID（升级时偶尔会用）。"
+            ],
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdraw",
+      "docs": [
+        "EVM 对应：`IPool.Withdraw`。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "account",
+            "type": "pubkey"
+          },
+          {
+            "name": "settle_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "pool_side",
+            "type": "u8"
+          },
+          {
+            "name": "shares_burned",
+            "docs": [
+              "公共池：本次销毁的份额；私有池：0。"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "SEED_LP_ACCOUNT",
+      "type": "bytes",
+      "value": "[108, 112, 95, 97, 99, 99, 111, 117, 110, 116]"
+    },
+    {
+      "name": "SEED_LP_POSITION",
+      "type": "bytes",
+      "value": "[108, 112, 95, 112, 111, 115, 105, 116, 105, 111, 110]"
+    },
+    {
+      "name": "SEED_MAKER_DEAL",
+      "type": "bytes",
+      "value": "[109, 97, 107, 101, 114, 95, 100, 101, 97, 108]"
+    },
+    {
+      "name": "SEED_POOL_CONFIG",
+      "type": "bytes",
+      "value": "[112, 111, 111, 108, 95, 99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "SEED_POOL_VAULT_AUTH",
+      "type": "bytes",
+      "value": "[112, 111, 111, 108, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]"
+    },
+    {
+      "name": "SEED_POOL_VAULT_TOKEN",
+      "type": "bytes",
+      "value": "[112, 111, 111, 108, 95, 118, 97, 117, 108, 116, 95, 116, 111, 107, 101, 110]"
+    },
+    {
+      "name": "SEED_PUBLIC_SHARE",
+      "type": "bytes",
+      "value": "[112, 117, 98, 108, 105, 99, 95, 115, 104, 97, 114, 101]"
+    }
+  ]
+}
