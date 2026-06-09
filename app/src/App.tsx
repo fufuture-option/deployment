@@ -1,28 +1,57 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getPhantom, makeCtx, Ctx } from "./solana";
+import TradePanel from "./TradePanel";
+import { web3 } from "@anchor-lang/core";
+import { getPhantom, makeCtx, withMint, withPair, Ctx } from "./solana";
 import * as actions from "./actions";
 import { fromUnits } from "./actions";
-import { PAIR_NAME, USDC_DECIMALS, RPC_URL } from "./config";
+import { PAIRS, PAIR_NAME, USDC_DECIMALS, RPC_URL, RPC_FALLBACK, settleLabel } from "./config";
+import AdminPanel from "./AdminPanel";
+
+type Tab = "user" | "admin";
+
+// host of an RPC URL (hide the api key in the UI)
+const rpcHost = (url: string) => {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
+};
 
 export default function App() {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [addr, setAddr] = useState<string>("");
+  const [tab, setTab] = useState<Tab>("user");
   const [price, setPrice] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
-  const logEnd = useRef<HTMLDivElement>(null);
+  const logBox = useRef<HTMLDivElement>(null);
 
   // state panel
   const [usdc, setUsdc] = useState<bigint>(0n);
   const [lpInfo, setLpInfo] = useState<actions.LpInfo | null>(null);
+  const [pubInfo, setPubInfo] = useState<actions.PublicPoolInfo | null>(null);
   const [bal, setBal] = useState<actions.UserBalances | null>(null);
   const [orders, setOrders] = useState<actions.PendingOrder[]>([]);
+  const [deals, setDeals] = useState<actions.MyDeal[]>([]);
+  const [inviter, setInviter] = useState<string | null>(null);
+  const [commission, setCommission] = useState<actions.CommissionInfo | null>(null);
+  const [inviteInput, setInviteInput] = useState("");
   const [history, setHistory] = useState<actions.HistoryItem[]>([]);
   const [histBusy, setHistBusy] = useState(false);
+  const [userLev, setUserLev] = useState<number | null>(null);
+  const [settles, setSettles] = useState<actions.SettleMintRow[]>([]);
 
   // form: private pool (provide / withdraw)
   const [poolAmt, setPoolAmt] = useState("20");
   const [lpWdAmt, setLpWdAmt] = useState("10");
+  // form: public pool (provide / withdraw)
+  const [pubAmt, setPubAmt] = useState("20");
+  const [pubWdAmt, setPubWdAmt] = useState("10");
+  // form: pool risk params (set_lp_params)
+  const [lpLevX, setLpLevX] = useState("10");
+  // form: user trading leverage (set_user_leverage)
+  const [userLevX, setUserLevX] = useState("10");
   // form: trading-account deposit / withdraw
   const [depAmt, setDepAmt] = useState("50");
   const [wdAmt, setWdAmt] = useState("10");
@@ -32,22 +61,32 @@ export default function App() {
   const [reward, setReward] = useState("0.1");
   const [goodTill, setGoodTill] = useState(60);
 
-  const append = (m: string) =>
-    setLog((l) => [...l, `${new Date().toLocaleTimeString()}  ${m}`]);
-  useEffect(() => logEnd.current?.scrollIntoView({ behavior: "smooth" }), [log]);
+  // stable identity — otherwise it changes every render and any useCallback/effect
+  // depending on it (e.g. AdminPanel.load) refires on every render → RPC 429 storm.
+  const append = useCallback(
+    (m: string) => setLog((l) => [...l, `${new Date().toLocaleTimeString()}  ${m}`]),
+    []
+  );
+  // auto-scroll the log box internally (do NOT scroll the whole page)
+  useEffect(() => {
+    const el = logBox.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log]);
 
-  // live price
+  // live price (of the active pair; re-subscribes when the pair switches)
   useEffect(() => {
     let alive = true;
+    const feed = ctx?.pythFeedHex ?? PAIRS[0].pythFeedHex;
+    setPrice(null);
     const tick = () =>
-      actions.fetchHermesPrice().then((p) => alive && setPrice(p)).catch(() => {});
+      actions.fetchHermesPrice(feed).then((p) => alive && setPrice(p)).catch(() => {});
     tick();
     const t = setInterval(tick, 5000);
     return () => {
       alive = false;
       clearInterval(t);
     };
-  }, []);
+  }, [ctx?.pythFeedHex]);
 
   const connect = async () => {
     try {
@@ -59,25 +98,66 @@ export default function App() {
       append(`✅ connected ${publicKey.toBase58()}`);
       refresh(c);
       loadHistory(c);
+      loadSettles(c);
     } catch (e: any) {
       append(`❌ ${e.message || e}`);
     }
+  };
+
+  const loadSettles = useCallback(async (c?: Ctx) => {
+    const cc = c || ctx;
+    if (!cc) return;
+    try {
+      setSettles(await actions.listSettleMints(cc));
+    } catch (e: any) {
+      append(`⚠ settles: ${e.message || e}`);
+    }
+  }, [ctx]);
+
+  // switch active settle currency (collateral): rebuild ctx, reload balances/history.
+  const switchSettle = (mintB58: string) => {
+    if (!ctx || mintB58 === ctx.mint.toBase58()) return;
+    const row = settles.find((s) => s.mint === mintB58);
+    const c = withMint(ctx, new web3.PublicKey(mintB58), row ? row.decimals : USDC_DECIMALS);
+    setCtx(c);
+    append(`↔ 切换结算币 → ${c.settleName}`);
+    refresh(c);
+    loadHistory(c);
+  };
+
+  // switch active trading pair: rebuild ctx (TradePanel + price re-fetch via ctx change).
+  const switchPair = (idStr: string) => {
+    if (!ctx) return;
+    const pair = PAIRS.find((p) => String(p.id) === idStr);
+    if (!pair || pair.id === ctx.pairId) return;
+    const c = withPair(ctx, pair);
+    setCtx(c);
+    append(`↔ 切换交易对 → ${c.pairName}`);
+    refresh(c);
   };
 
   const refresh = useCallback(async (c?: Ctx) => {
     const cc = c || ctx;
     if (!cc) return;
     try {
-      const [u, l, b, o] = await Promise.all([
+      // positions + open orders are loaded by <TradePanel> itself (its own gPA);
+      // refresh only does the cheap account reads here to avoid extra getProgramAccounts.
+      const [u, l, b, ul, pp, inv, comm] = await Promise.all([
         actions.getUsdcBalance(cc),
         actions.getLpInfo(cc),
         actions.getUserBalances(cc),
-        actions.getMyPendingOrders(cc),
+        actions.getUserLeverage(cc),
+        actions.getPublicPoolInfo(cc),
+        actions.getInviteRelation(cc),
+        actions.getCommission(cc),
       ]);
       setUsdc(u);
       setLpInfo(l);
       setBal(b);
-      setOrders(o);
+      setUserLev(ul);
+      setPubInfo(pp);
+      setInviter(inv);
+      setCommission(comm);
     } catch (e: any) {
       append(`⚠ refresh: ${e.message || e}`);
     }
@@ -113,15 +193,17 @@ export default function App() {
     }
   };
 
-  const fmt6 = (v: bigint | null) => (v == null ? "—" : fromUnits(v, USDC_DECIMALS));
-  const fmt18 = (v: bigint) => fromUnits(v, 18);
+  const fmt6 = (v: bigint | null) =>
+    v == null ? "—" : fromUnits(v, ctx?.mintDecimals ?? USDC_DECIMALS);
+  const fmt9 = (v: bigint) => fromUnits(v, 9);
+  const settle = ctx?.settleName ?? "USDC";
 
   return (
     <div className="wrap">
       <header>
         <h1>Future&nbsp;Solana — Limit Order Demo</h1>
         <div className="sub">
-          {PAIR_NAME} · devnet · live Pyth&nbsp;
+          {ctx?.pairName ?? PAIR_NAME} · devnet · live Pyth&nbsp;
           <b>{price ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "…"}</b>
         </div>
       </header>
@@ -133,17 +215,47 @@ export default function App() {
           <div className="row">
             <div>
               <div className="mono small">{addr}</div>
-              <div className="small">RPC: {RPC_URL}</div>
+              <div className="small">RPC: {rpcHost(RPC_URL)} · gPA→{rpcHost(RPC_FALLBACK)}</div>
             </div>
+            <label className="small">交易对&nbsp;
+              <select value={String(ctx.pairId)} onChange={(e) => switchPair(e.target.value)}>
+                {PAIRS.map((p) => (
+                  <option key={p.id} value={String(p.id)}>{p.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="small">结算币&nbsp;
+              <select value={ctx.mint.toBase58()} onChange={(e) => switchSettle(e.target.value)}>
+                {settles.length === 0 && <option value={ctx.mint.toBase58()}>{ctx.settleName}</option>}
+                {settles.map((s) => (
+                  <option key={s.mint} value={s.mint}>
+                    {settleLabel(s.mint)}（{s.decimals} 位）
+                  </option>
+                ))}
+              </select>
+            </label>
             <button className="ghost" onClick={() => refresh()}>↻ refresh</button>
           </div>
         )}
       </section>
 
       {ctx && (
+        <nav className="tabs">
+          <button className={tab === "user" ? "tab active" : "tab"} onClick={() => setTab("user")}>
+            用户
+          </button>
+          <button className={tab === "admin" ? "tab active" : "tab"} onClick={() => setTab("admin")}>
+            管理员
+          </button>
+        </nav>
+      )}
+
+      {ctx && tab === "admin" && <AdminPanel ctx={ctx} append={append} />}
+
+      {ctx && tab === "user" && (
         <>
           <section className="card grid">
-            <Stat label="钱包 USDC" v={fmt6(usdc)} />
+            <Stat label={`钱包 ${settle}`} v={fmt6(usdc)} />
             <Stat label="私有池本金" v={fmt6(lpInfo?.amount ?? null)} />
             <Stat label="可用(交易)" v={fmt6(bal?.available ?? null)} />
             <Stat label="挂单冻结" v={fmt6(bal?.orderLocked ?? null)} />
@@ -160,17 +272,27 @@ export default function App() {
               </div>
             ) : (
               <p className="small">
-                你还没有私有池。入金即创建：<code>initialize_lp_account</code> + <code>provide(side=PRIVATE)</code>（需要钱包里有测试 USDC）。
+                你还没有私有池。<b>第一步</b>先「创建私有池」(<code>initialize_lp_account</code>，仅建账户、不转账)，
+                <b>第二步</b>再「入金」(<code>provide(side=PRIVATE)</code>，需钱包里有测试 USDC)。
+                合约里每个钱包/结算币对应<b>一个</b> LpAccount。
               </p>
             )}
+
+            <div className="row" style={{ marginBottom: 8 }}>
+              <button disabled={busy || !!lpInfo} onClick={() => run("创建私有池 (initialize_lp_account)", () => actions.createPrivatePool(ctx))}>
+                {lpInfo ? "私有池已创建 ✓" : "创建私有池"}
+              </button>
+              <span className="small">创建与入金分开：先建账户，再分次入金。</span>
+            </div>
+
             <div className="row">
-              <label>入金额 (USDC)
+              <label>入金额 ({settle})
                 <input value={poolAmt} onChange={(e) => setPoolAmt(e.target.value)} />
               </label>
-              <button disabled={busy} onClick={() => run("私有池入金 (provide)", () => actions.createPrivatePool(ctx, poolAmt))}>
+              <button disabled={busy || !lpInfo} onClick={() => run("私有池入金 (provide)", () => actions.providePrivatePool(ctx, poolAmt))}>
                 入金
               </button>
-              <label>出金额 (USDC)
+              <label>出金额 ({settle})
                 <input value={lpWdAmt} onChange={(e) => setLpWdAmt(e.target.value)} />
               </label>
               <button className="ghost" disabled={busy || !lpInfo} onClick={() => run("私有池出金 (withdraw_lp)", () => actions.withdrawLp(ctx, lpWdAmt))}>
@@ -178,6 +300,64 @@ export default function App() {
               </button>
             </div>
             <p className="small">出金只能提"可用"部分(已被接单锁定的不可提);池暂停/下线时禁止出金。</p>
+
+            <h3 style={{ margin: "14px 0 6px" }}>池参数 (set_lp_params)</h3>
+            <div className="row">
+              <label>接单杠杆 (x)
+                <input value={lpLevX} onChange={(e) => setLpLevX(e.target.value)} />
+              </label>
+              <button disabled={busy || !lpInfo} onClick={() => run(`设置池杠杆 ${lpLevX}x`, () => actions.setLpParams(ctx, { leverageX: lpLevX }))}>
+                设杠杆
+              </button>
+              <button
+                className="ghost"
+                disabled={busy || !lpInfo}
+                onClick={() =>
+                  run(
+                    lpInfo?.rejectOrder ? "恢复接单" : "暂停接单",
+                    () => actions.setLpParams(ctx, { rejectOrder: !lpInfo?.rejectOrder })
+                  )
+                }
+              >
+                {lpInfo?.rejectOrder ? "恢复接单" : "暂停接单"}
+              </button>
+            </div>
+            <p className="small">接单杠杆决定池子作为对手方时每笔占用的保证金；暂停后不再被 keeper 选为对手方。</p>
+          </section>
+
+          <section className="card">
+            <h2>2 · 公有池（共享做市金库）</h2>
+            {pubInfo && (pubInfo.myShares > 0n || pubInfo.escrowAmount > 0n) ? (
+              <div className="grid" style={{ marginBottom: 12 }}>
+                <Stat label="我的估值" v={fmt6(pubInfo.myValue)} />
+                <Stat label="我的份额" v={fmt6(pubInfo.myShares)} />
+                <Stat label="池总规模(TVL)" v={fmt6(pubInfo.escrowAmount)} />
+              </div>
+            ) : (
+              <p className="small">
+                公有池是所有出资人<b>共担盈亏</b>的做市金库。入金按当前净值发<b>份额</b>
+                (<code>provide(side=PUBLIC)</code>)，<b>无需先「创建账户」</b>——首次入金自动建份额账户。
+                池子做市赚/亏时，所有份额持有人按比例分担。
+              </p>
+            )}
+            <div className="row">
+              <label>入金额 ({settle})
+                <input value={pubAmt} onChange={(e) => setPubAmt(e.target.value)} />
+              </label>
+              <button disabled={busy} onClick={() => run("公有池入金 (provide PUBLIC)", () => actions.providePublicPool(ctx, pubAmt))}>
+                入金
+              </button>
+              <label>提取额 ({settle})
+                <input value={pubWdAmt} onChange={(e) => setPubWdAmt(e.target.value)} />
+              </label>
+              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares <= 0n} onClick={() => run("公有池提取 (withdraw PUBLIC)", () => actions.withdrawPublicPool(ctx, { amountUsdc: pubWdAmt }))}>
+                提取
+              </button>
+              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares <= 0n} onClick={() => run("公有池全部提取", () => actions.withdrawPublicPool(ctx, { all: true }))}>
+                全部提取
+              </button>
+            </div>
+            <p className="small">提取按份额<b>当前净值</b>结算(份额 × 池净值);输入金额会换算成对应份额(向下取整)。池下线时禁止提取。</p>
           </section>
 
           <section className="card">
@@ -186,13 +366,13 @@ export default function App() {
               交易/下单用的保证金账户。<code>deposit</code> 把钱包 USDC 转入,<code>withdraw</code> 提回钱包(仅可提"可用"余额,不含持仓/挂单占用)。
             </p>
             <div className="row">
-              <label>存入 (USDC)
+              <label>存入 ({settle})
                 <input value={depAmt} onChange={(e) => setDepAmt(e.target.value)} />
               </label>
               <button disabled={busy} onClick={() => run("入金 (deposit)", () => actions.deposit(ctx, depAmt))}>
                 存入
               </button>
-              <label>提取 (USDC)
+              <label>提取 ({settle})
                 <input value={wdAmt} onChange={(e) => setWdAmt(e.target.value)} />
               </label>
               <button className="ghost" disabled={busy} onClick={() => run("出金 (withdraw)", () => actions.withdraw(ctx, wdAmt))}>
@@ -211,6 +391,18 @@ export default function App() {
               下单价(Pyth 最新价):
               <b>{price ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "加载中…"}</b>
             </div>
+            <div className="row" style={{ margin: "8px 0" }}>
+              <label>交易杠杆 (x)
+                <input value={userLevX} onChange={(e) => setUserLevX(e.target.value)} />
+              </label>
+              <button className="ghost" disabled={busy} onClick={() => run(`设置交易杠杆 ${userLevX}x`, () => actions.setUserLeverage(ctx, userLevX))}>
+                设置交易杠杆
+              </button>
+              <span className="small">
+                当前：{userLev != null ? `${userLev}x（已自定义）` : "未设置 → 取 pair 默认值"}。
+                影响开仓保证金占用；不设也能下单。
+              </span>
+            </div>
             <div className="formgrid">
               <label>Side
                 <select value={dir} onChange={(e) => setDir(Number(e.target.value) as 0 | 1)}>
@@ -221,7 +413,7 @@ export default function App() {
               <label>Amount (BTC)
                 <input value={amount} onChange={(e) => setAmount(e.target.value)} />
               </label>
-              <label>Keeper reward (USDC)
+              <label>Keeper reward ({settle})
                 <input value={reward} onChange={(e) => setReward(e.target.value)} />
               </label>
               <label>Good-till (min)
@@ -246,76 +438,62 @@ export default function App() {
           </section>
 
           <section className="card">
-            <h2>My pending limit orders</h2>
-            {orders.length === 0 ? (
-              <p className="small">none — place one above, then watch the keeper fill it.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr><th>seq</th><th>side</th><th>amount</th><th>target</th><th>state</th></tr>
-                </thead>
-                <tbody>
-                  {orders.map((o) => (
-                    <tr key={o.orderSeq.toString()}>
-                      <td>{o.orderSeq.toString()}</td>
-                      <td>{o.direction === 0 ? "LONG" : "SHORT"}</td>
-                      <td>{fmt18(o.amount)}</td>
-                      <td>${fmt18(o.targetPrice)}</td>
-                      <td>PENDING</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <h2>用户邀请 / 推荐返佣</h2>
+            <p className="small">
+              绑定邀请人后，你的交易手续费会按比例返佣给邀请人；把<b>你的地址</b>分享给别人，他们绑定后<b>你赚返佣</b>。
+            </p>
+            <div className="row" style={{ marginBottom: 8, gap: 8 }}>
+              <div className="small">我的邀请地址（分享给别人）：<span className="mono">{addr}</span></div>
+              <button className="ghost" onClick={() => { navigator.clipboard?.writeText(addr); append("✅ 已复制邀请地址"); }}>复制</button>
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              {inviter ? (
+                <div className="small">我的邀请人：<span className="mono">{inviter}</span>（已绑定，一次性不可更改）</div>
+              ) : (
+                <div className="row" style={{ gap: 8 }}>
+                  <input
+                    placeholder="输入邀请人地址（base58）"
+                    value={inviteInput}
+                    onChange={(e) => setInviteInput(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <button disabled={busy || !inviteInput.trim()} onClick={() => run("绑定邀请人", () => actions.bindInviter(ctx, inviteInput))}>
+                    绑定邀请人
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="row" style={{ gap: 16, marginBottom: 8 }}>
+              <div className="small">可领返佣：<b style={{ color: "#3fb950" }}>{fmt6(commission?.unclaimed ?? 0n)} {settle}</b></div>
+              <div className="small">已领返佣：{fmt6(commission?.claimed ?? 0n)} {settle}</div>
+            </div>
+            <button
+              disabled={busy || !commission || commission.unclaimed === 0n}
+              onClick={() => run("领取返佣", () => actions.claimCommission(ctx))}
+            >
+              领取返佣
+            </button>
           </section>
 
-          <section className="card">
-            <div className="row">
-              <h2>下单 / 成交记录（链上事件，无后端）</h2>
-              <button className="ghost" disabled={histBusy} onClick={() => loadHistory()}>
-                {histBusy ? "…" : "↻ 刷新历史"}
-              </button>
-            </div>
-            <p className="small">
-              来自 <code>getSignaturesForAddress(userAccount)</code> + <code>getTransaction</code> +
-              Anchor <code>EventParser</code> 解码事件（成交单已 close，但事件永久留在链上账本）。
-            </p>
-            {history.length === 0 ? (
-              <p className="small">{histBusy ? "加载中…" : "暂无记录"}</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr><th>时间</th><th>类型</th><th>seq</th><th>方向</th><th>数量</th><th>价格</th><th>tx</th></tr>
-                </thead>
-                <tbody>
-                  {history.map((h, i) => (
-                    <tr key={i}>
-                      <td>{h.time ? new Date(h.time * 1000).toLocaleString() : "—"}</td>
-                      <td>{h.kind}</td>
-                      <td>{h.orderSeq}</td>
-                      <td>{h.side}</td>
-                      <td>{h.amount}</td>
-                      <td>${h.price}</td>
-                      <td>
-                        <a href={`https://solscan.io/tx/${h.sig}?cluster=devnet`} target="_blank" rel="noreferrer">
-                          {h.sig.slice(0, 8)}…
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
+          <TradePanel
+            ctx={ctx}
+            mark={price}
+            userLev={userLev}
+            busy={busy}
+            setBusy={setBusy}
+            append={append}
+            onRefresh={refresh}
+          />
         </>
       )}
 
-      <section className="card log">
+      <section className="card">
         <h2>Log</h2>
-        {log.map((l, i) => (
-          <div key={i} className="mono small">{l}</div>
-        ))}
-        <div ref={logEnd} />
+        <div className="logbox" ref={logBox}>
+          {log.map((l, i) => (
+            <div key={i} className="mono small">{l}</div>
+          ))}
+        </div>
       </section>
     </div>
   );

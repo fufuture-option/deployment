@@ -1,7 +1,16 @@
 import { AnchorProvider, Program, web3 } from "@anchor-lang/core";
-import { RPC_URL, PERP_CORE, LIQUIDITY_POOL } from "./config";
+import { RPC_URL, RPC_FALLBACK, PERP_CORE, LIQUIDITY_POOL, USDC_MINT, USDC_DECIMALS, settleLabel, PAIRS, PairOption } from "./config";
 import perpIdl from "./idl/perp_core.json";
 import lpIdl from "./idl/liquidity_pool.json";
+import treasuryIdl from "./idl/treasury.json";
+import type { PerpCore } from "./types/perp_core";
+import type { LiquidityPool } from "./types/liquidity_pool";
+import type { Treasury } from "./types/treasury";
+
+// Re-export the Anchor-generated program types for use across the app.
+export type { PerpCore, LiquidityPool };
+export type PerpProgram = Program<PerpCore>;
+export type LpProgram = Program<LiquidityPool>;
 
 const { Connection, Transaction, PublicKey } = web3;
 type PublicKey = web3.PublicKey;
@@ -44,18 +53,91 @@ export interface Ctx {
   connection: web3.Connection;
   phantom: Phantom;
   wallet: PublicKey;
-  perp: Program;
-  lp: Program;
+  perp: Program<PerpCore>;
+  lp: Program<LiquidityPool>;
+  treasury: Program<Treasury>;
+  // active settle currency (collateral). User-page selector switches these;
+  // admin actions pin USDC explicitly. Defaults to USDC.
+  mint: PublicKey;
+  mintDecimals: number;
+  settleName: string;
+  // active trading pair (user-page selector switches these). Defaults to PAIRS[0].
+  pairId: number;
+  pairName: string;
+  pythFeedHex: string;
 }
 
-export function makeCtx(phantom: Phantom): Ctx {
-  const connection = new Connection(RPC_URL, "confirmed");
+// Build the primary (Alchemy) connection but route getProgramAccounts to the
+// public fallback — Alchemy's free tier blocks getProgramAccounts. Everything
+// else (getAccountInfo, getMultipleAccounts, getTransaction, sendRawTransaction,
+// blockhash, signature statuses) stays on the fast/high-limit primary.
+function makeConnection(): web3.Connection {
+  const primary = new Connection(RPC_URL, "confirmed");
+  if (!RPC_FALLBACK || RPC_FALLBACK === RPC_URL) return primary;
+  const fallback = new Connection(RPC_FALLBACK, "confirmed");
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const routeToFallback = (method: "getProgramAccounts" | "getProgramAccountsWithOpts") => {
+    const orig = (fallback as any)[method];
+    if (typeof orig !== "function") return; // method not present in this web3.js build
+    const fn = orig.bind(fallback);
+    (primary as any)[method] = async (...args: any[]) => {
+      let delay = 600;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await fn(...args);
+        } catch (e: any) {
+          const is429 = /429|too many requests/i.test(String(e?.message || e));
+          if (attempt >= 2 || !is429) throw e;
+          await sleep(delay);
+          delay *= 2; // 600ms -> 1.2s -> 2.4s
+        }
+      }
+    };
+  };
+  routeToFallback("getProgramAccounts");
+  routeToFallback("getProgramAccountsWithOpts");
+  return primary;
+}
+
+export function makeCtx(
+  phantom: Phantom,
+  mint: PublicKey = USDC_MINT,
+  mintDecimals: number = USDC_DECIMALS,
+  pair: PairOption = PAIRS[0]
+): Ctx {
+  const connection = makeConnection();
   const provider = new AnchorProvider(connection, new PhantomWalletAdapter(phantom) as any, {
     commitment: "confirmed",
   });
-  const perp = new Program(perpIdl as any, provider);
-  const lp = new Program(lpIdl as any, provider);
-  return { connection, phantom, wallet: phantom.publicKey!, perp, lp };
+  // Type from target/types/*.ts; runtime IDL data from target/idl/*.json.
+  const perp = new Program<PerpCore>(perpIdl as PerpCore, provider);
+  const lp = new Program<LiquidityPool>(lpIdl as LiquidityPool, provider);
+  const treasury = new Program<Treasury>(treasuryIdl as Treasury, provider);
+  return {
+    connection,
+    phantom,
+    wallet: phantom.publicKey!,
+    perp,
+    lp,
+    treasury,
+    mint,
+    mintDecimals,
+    settleName: settleLabel(mint.toBase58()),
+    pairId: pair.id,
+    pairName: pair.name,
+    pythFeedHex: pair.pythFeedHex,
+  };
+}
+
+// Return a shallow copy of ctx switched to another settle currency (reuses the
+// same connection + Program objects — only the active mint/decimals change).
+export function withMint(ctx: Ctx, mint: PublicKey, mintDecimals: number): Ctx {
+  return { ...ctx, mint, mintDecimals, settleName: settleLabel(mint.toBase58()) };
+}
+
+// Switch the active trading pair on an existing ctx (keeps connection/programs).
+export function withPair(ctx: Ctx, pair: PairOption): Ctx {
+  return { ...ctx, pairId: pair.id, pairName: pair.name, pythFeedHex: pair.pythFeedHex };
 }
 
 // HTTP-poll confirmation (avoids relying on WS signatureSubscribe).

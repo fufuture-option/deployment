@@ -1,14 +1,20 @@
-{
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/perp_core.json`.
+ */
+export type PerpCore = {
   "address": "9xFsNHYCBk1Zhar6ukRDrUyDipQS2zE9wDcFHj29q4t3",
   "metadata": {
-    "name": "perp_core",
+    "name": "perpCore",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "cancel_limit_order",
+      "name": "cancelLimitOrder",
       "docs": [
         "用户主动取消自己的 PENDING 挂单，退冻 + close PDA 退租。"
       ],
@@ -28,17 +34,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -61,13 +67,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -90,7 +96,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -108,7 +114,7 @@
           "optional": true
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "docs": [
             "要取消的 LimitedOrder —— 关闭 PDA 退租给 owner。"
           ],
@@ -135,7 +141,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -145,7 +151,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "docs": [
             "配对的 TriggerCondition —— 一并 close 退租。"
           ],
@@ -171,7 +177,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -181,7 +187,7 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -190,14 +196,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "CancelLimitOrderArgs"
+              "name": "cancelLimitOrderArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "close_position",
+      "name": "closePosition",
       "docs": [
         "用户平仓（仅 Market close + 单笔 DealRecord；批量由 client SDK 循环）。"
       ],
@@ -217,17 +223,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -252,7 +258,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -275,13 +281,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -308,7 +314,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -331,7 +337,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -345,7 +351,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "writable": true,
           "pda": {
             "seeds": [
@@ -367,7 +373,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -377,19 +383,19 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "由 oracle 模块验证 discriminator + feed_id + staleness + conf。"
           ]
         },
         {
-          "name": "switchboard_feed",
+          "name": "switchboardFeed",
           "docs": [
             "Switchboard PullFeed 账户（v1.1 fallback）。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "docs": [
             "perp_core 端 vault_authority PDA —— 作为 CPI 进 liquidity_pool 的 signer。"
           ],
@@ -412,28 +418,28 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program"
+          "name": "liquidityPoolProgram"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_account",
+          "name": "lpAccount",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "docs": [
             "LpPosition 仅当 maker 是 escrow_authority 时需要传。"
           ],
@@ -441,7 +447,7 @@
           "optional": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -450,14 +456,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "ClosePositionArgs"
+              "name": "closePositionArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "collect_trade_fee",
+      "name": "collectTradeFee",
       "docs": [
         "把一笔 DealRecord 的 trading_fee CPI 切给 treasury。",
         "客户端 SDK 通常将此 ix 与 trade_futures / close_position 打包进同一 tx 实现\"原子收费\"。"
@@ -482,10 +488,10 @@
           "signer": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -508,13 +514,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "writable": true,
           "pda": {
             "seeds": [
@@ -536,7 +542,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -546,7 +552,7 @@
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "docs": [
             "perp_core vault_authority PDA —— 作为 treasury split_trade_fee 的 cpi_authority signer。"
           ],
@@ -569,13 +575,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "source_vault",
+          "name": "sourceVault",
           "docs": [
             "perp_core vault token（fee 来源）。"
           ],
@@ -600,17 +606,17 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "treasury_program",
+          "name": "treasuryProgram",
           "address": "JAX56qnm1CXf1zsMCfPAEscDLxgEZnYkNW7hsSdNX9xY"
         },
         {
-          "name": "treasury_config",
+          "name": "treasuryConfig",
           "pda": {
             "seeds": [
               {
@@ -674,35 +680,35 @@
           }
         },
         {
-          "name": "platform_fee_vault",
+          "name": "platformFeeVault",
           "docs": [
             "platform_fee_vault（treasury 端）。"
           ],
           "writable": true
         },
         {
-          "name": "trade_fee_vault",
+          "name": "tradeFeeVault",
           "docs": [
             "trade_fee_vault（treasury 端）。"
           ],
           "writable": true
         },
         {
-          "name": "treasury_vault",
+          "name": "treasuryVault",
           "docs": [
             "treasury_vault（累计佣金池）。"
           ],
           "writable": true
         },
         {
-          "name": "invite_relation",
+          "name": "inviteRelation",
           "docs": [
             "invite_relation（Option，taker 已绑定 inviter 时传）。"
           ],
           "optional": true
         },
         {
-          "name": "commission_account",
+          "name": "commissionAccount",
           "docs": [
             "commission_account（Option，taker 已绑定 inviter 时传，init_if_needed）。"
           ],
@@ -710,11 +716,11 @@
           "optional": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -723,7 +729,7 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "CollectTradeFeeArgs"
+              "name": "collectTradeFeeArgs"
             }
           }
         }
@@ -750,17 +756,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "只读 — 取 min_deposit_amount 的 fallback 值。"
           ],
@@ -788,7 +794,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "docs": [
             "只读 — 取 status + min_deposit_amount。"
           ],
@@ -814,13 +820,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "docs": [
             "目标账户 — 必须事先由 `initialize_user_account` 创建。"
           ],
@@ -846,7 +852,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -856,14 +862,14 @@
           }
         },
         {
-          "name": "user_token_account",
+          "name": "userTokenAccount",
           "docs": [
             "用户提供的 token account（owner 的 ATA 或任何持有 settle_mint 的账户）。"
           ],
           "writable": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "docs": [
             "Vault token account（由 vault_authority PDA 拥有；入金不需要 vault 签名）。"
           ],
@@ -888,13 +894,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -906,7 +912,7 @@
       ]
     },
     {
-      "name": "expire_order",
+      "name": "expireOrder",
       "docs": [
         "keeper 清理 good_till 已过的挂单，退冻给用户、reward_gas 给 keeper。"
       ],
@@ -931,10 +937,10 @@
           "writable": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -961,7 +967,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -984,13 +990,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1013,7 +1019,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -1031,7 +1037,7 @@
           "optional": true
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1055,7 +1061,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -1065,7 +1071,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1088,7 +1094,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -1098,7 +1104,7 @@
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -1118,13 +1124,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1146,21 +1152,21 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "keeper_token_account",
+          "name": "keeperTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1169,14 +1175,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "ExpireOrderArgs"
+              "name": "expireOrderArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "init_global_config",
+      "name": "initGlobalConfig",
       "docs": [
         "初始化全局配置（GlobalConfig + KeeperRegistry 两个 PDA）。",
         "部署后**第一笔**调用；重复调用会被 Anchor 的 `init` 约束拒绝。",
@@ -1202,7 +1208,7 @@
           "signer": true
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "全局唯一的 GlobalConfig PDA。"
           ],
@@ -1231,7 +1237,7 @@
           }
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "docs": [
             "Keeper 白名单也在这里一并创建（同 admin 控制）。"
           ],
@@ -1262,7 +1268,7 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1271,14 +1277,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "InitGlobalConfigArgs"
+              "name": "initGlobalConfigArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "init_risk_fund_vault",
+      "name": "initRiskFundVault",
       "docs": [
         "Admin 一次性创建给定 settle_mint 的风险基金 vault。"
       ],
@@ -1294,7 +1300,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -1322,7 +1328,7 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
@@ -1331,10 +1337,10 @@
           "signer": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1358,13 +1364,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "risk_vault_authority",
+          "name": "riskVaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -1389,13 +1395,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "risk_vault_token",
+          "name": "riskVaultToken",
           "docs": [
             "风险基金 vault token account。"
           ],
@@ -1425,17 +1431,17 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -1446,7 +1452,7 @@
       "args": []
     },
     {
-      "name": "init_settle_config",
+      "name": "initSettleConfig",
       "docs": [
         "为某个 settle_mint 注册结算币配置（每币种一次）。",
         "创建 SettleConfig PDA + 派生 vault_authority bump（vault token 后续 ix 创建）。",
@@ -1464,7 +1470,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "只读 — 校验 admin。"
           ],
@@ -1495,14 +1501,14 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "docs": [
             "本 ix 创建的目标 PDA。"
           ],
@@ -1529,13 +1535,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -1555,7 +1561,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
@@ -1566,7 +1572,7 @@
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1575,14 +1581,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "InitSettleConfigArgs"
+              "name": "initSettleConfigArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "init_settle_vault",
+      "name": "initSettleVault",
       "docs": [
         "创建给定结算币的 vault token account + SeqCounter PDA。",
         "每个 settle_mint 一次，admin 调用。"
@@ -1599,7 +1605,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -1627,7 +1633,7 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
@@ -1636,10 +1642,10 @@
           "signer": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -1662,13 +1668,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "docs": [
             "PDA 作为 vault token account 的 authority；不直接持有 token。"
           ],
@@ -1691,13 +1697,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "docs": [
             "Vault token account（由 vault_authority PDA 拥有）。",
             "PDA seed: [\"vault_token\", settle_mint] — 不用 ATA 公式，自定义 PDA 更可控。"
@@ -1723,13 +1729,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "seq_counter",
+          "name": "seqCounter",
           "docs": [
             "SeqCounter PDA：分配 deal_seq / order_seq。"
           ],
@@ -1754,17 +1760,17 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -1775,7 +1781,7 @@
       "args": []
     },
     {
-      "name": "initialize_user_account",
+      "name": "initializeUserAccount",
       "docs": [
         "用户首次入金前显式创建 UserAccount PDA。"
       ],
@@ -1799,10 +1805,10 @@
           "signer": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "docs": [
             "仅校验 settle_mint 已被注册（防 owner 误传未注册 mint）。"
           ],
@@ -1828,13 +1834,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "docs": [
             "目标 PDA — init 模式，同账户 init 第二次会被 Anchor 拒绝（防覆盖余额）。"
           ],
@@ -1860,7 +1866,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -1870,14 +1876,14 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "liquidate_taker",
+      "name": "liquidateTaker",
       "docs": [
         "keeper 强平一名 taker 的某笔 DealRecord（穿仓时从 risk fund 兜底）。"
       ],
@@ -1901,10 +1907,10 @@
           "name": "taker"
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -1929,7 +1935,7 @@
           }
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -1956,7 +1962,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -1979,13 +1985,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -2012,7 +2018,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2035,7 +2041,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -2049,7 +2055,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2071,7 +2077,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2081,19 +2087,19 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "由 oracle 模块验证 discriminator + feed_id + staleness。"
           ]
         },
         {
-          "name": "switchboard_feed",
+          "name": "switchboardFeed",
           "docs": [
             "Switchboard PullFeed 账户（v1.1 fallback）。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -2113,13 +2119,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "risk_vault_authority",
+          "name": "riskVaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -2144,13 +2150,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "risk_vault_token",
+          "name": "riskVaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2177,13 +2183,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "docs": [
             "perp_core vault token（接收 risk fund 补差）。"
           ],
@@ -2208,38 +2214,38 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program",
+          "name": "liquidityPoolProgram",
           "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_account",
+          "name": "lpAccount",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "writable": true,
           "optional": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -2248,14 +2254,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "LiquidateTakerArgs"
+              "name": "liquidateTakerArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "make_limit_close",
+      "name": "makeLimitClose",
       "docs": [
         "用户挂限价平仓单（LIMIT_CLOSE）。冻 Position.freeze + 冻 reward_gas。"
       ],
@@ -2275,17 +2281,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -2310,7 +2316,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -2333,13 +2339,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -2366,7 +2372,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2389,7 +2395,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -2406,7 +2412,7 @@
           "writable": true
         },
         {
-          "name": "seq_counter",
+          "name": "seqCounter",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2428,13 +2434,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2458,7 +2464,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2468,7 +2474,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2491,7 +2497,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2501,7 +2507,7 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -2510,14 +2516,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "MakeLimitCloseArgs"
+              "name": "makeLimitCloseArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "make_limit_order",
+      "name": "makeLimitOrder",
       "docs": [
         "用户挂限价开仓单（LIMIT_OPEN）。预冻结 margin+fee+reward_gas 到 order_locked。"
       ],
@@ -2537,17 +2543,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -2572,7 +2578,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -2595,13 +2601,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -2628,7 +2634,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2651,7 +2657,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -2661,7 +2667,7 @@
           }
         },
         {
-          "name": "user_leverage",
+          "name": "userLeverage",
           "docs": [
             "UserLeverage —— 与 trade_futures 一致，init_if_needed 默认走 pair.default_leverage。"
           ],
@@ -2688,7 +2694,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2702,7 +2708,7 @@
           }
         },
         {
-          "name": "seq_counter",
+          "name": "seqCounter",
           "docs": [
             "SeqCounter —— 分配 order_seq。"
           ],
@@ -2727,13 +2733,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "docs": [
             "新 LimitedOrder PDA。"
           ],
@@ -2760,7 +2766,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2770,7 +2776,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "docs": [
             "配对的 TriggerCondition PDA（LimitOpen 时 mean=INVALID，但仍 init 占位，",
             "便于 keeper / indexer 用一份查询拿全订单状态）。"
@@ -2797,7 +2803,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -2807,7 +2813,7 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -2816,14 +2822,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "MakeLimitOrderArgs"
+              "name": "makeLimitOrderArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "register_pair",
+      "name": "registerPair",
       "docs": [
         "admin 注册一个新的交易对（pair_id 全局唯一）。",
         "写入 PairConfig PDA：基础参数 + Pyth feed 元数据。",
@@ -2841,7 +2847,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "只读 — 校验 admin。"
           ],
@@ -2872,11 +2878,11 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "docs": [
             "新 pair_config PDA — init 模式，重复注册同 pair_id 会被 Anchor 直接拒绝。"
           ],
@@ -2915,7 +2921,7 @@
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -2924,14 +2930,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "RegisterPairArgs"
+              "name": "registerPairArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "set_addresses",
+      "name": "setAddresses",
       "docs": [
         "admin 批量更新 GlobalConfig 可变字段（admin / 各 vault authority /",
         "LP+treasury program ID / mmr / 平台抽成比例等）。所有字段均 `Option`，",
@@ -2949,7 +2955,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "全局配置 PDA — 唯一目标账户。"
           ],
@@ -2984,7 +2990,7 @@
           ],
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         }
       ],
@@ -2993,14 +2999,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "SetAddressesArgs"
+              "name": "setAddressesArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "set_keeper",
+      "name": "setKeeper",
       "docs": [
         "admin 启用 / 禁用一个 keeper 地址（KeeperRegistry 白名单）。",
         "keeper 用于触发 trigger_*, expire_order, liquidate_taker 等非用户 ix。",
@@ -3018,7 +3024,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "只读 — 仅用来校验 admin signer。"
           ],
@@ -3049,11 +3055,11 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "docs": [
             "白名单 PDA — 实际被修改的目标。"
           ],
@@ -3096,7 +3102,7 @@
       ]
     },
     {
-      "name": "set_user_leverage",
+      "name": "setUserLeverage",
       "docs": [
         "用户为特定 (settle_mint, pair_id) 设置自定义杠杆。",
         "首次调用自动创建 UserLeverage PDA；后续调用覆盖。"
@@ -3121,13 +3127,13 @@
           "signer": true
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "docs": [
             "结算币 mint（用于 PDA 推导，与 UserAccount 隔离不同结算币）。"
           ]
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "docs": [
             "交易对配置（用于校验 leverage 上限和 pair 状态）。"
           ],
@@ -3151,13 +3157,13 @@
               },
               {
                 "kind": "arg",
-                "path": "pair_id"
+                "path": "pairId"
               }
             ]
           }
         },
         {
-          "name": "user_leverage",
+          "name": "userLeverage",
           "docs": [
             "UserLeverage PDA — 首次自动创建，后续覆盖。"
           ],
@@ -3184,11 +3190,11 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
-                "path": "pair_id"
+                "path": "pairId"
               },
               {
                 "kind": "account",
@@ -3198,13 +3204,13 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "pair_id",
+          "name": "pairId",
           "type": "u16"
         },
         {
@@ -3214,7 +3220,7 @@
       ]
     },
     {
-      "name": "stop_take_order",
+      "name": "stopTakeOrder",
       "docs": [
         "用户挂条件单（STOP_TAKE_OPEN / STOP_TAKE_CLOSE）。只冻结 reward_gas。"
       ],
@@ -3234,17 +3240,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -3269,7 +3275,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -3292,13 +3298,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -3325,7 +3331,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3348,7 +3354,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -3358,7 +3364,7 @@
           }
         },
         {
-          "name": "seq_counter",
+          "name": "seqCounter",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3380,7 +3386,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
@@ -3394,7 +3400,7 @@
           "optional": true
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3418,7 +3424,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -3428,7 +3434,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3451,7 +3457,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -3461,7 +3467,7 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -3470,14 +3476,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "StopTakeOrderArgs"
+              "name": "stopTakeOrderArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "trade_futures",
+      "name": "tradeFutures",
       "docs": [
         "用户开仓",
         "客户端必须：",
@@ -3503,20 +3509,20 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "docs": [
             "结算币 mint（用于 PDA 推导和 fee 单位转换）。"
           ],
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "pda": {
             "seeds": [
               {
@@ -3541,7 +3547,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -3564,13 +3570,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -3597,7 +3603,7 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3620,7 +3626,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -3630,7 +3636,7 @@
           }
         },
         {
-          "name": "user_leverage",
+          "name": "userLeverage",
           "docs": [
             "用户对该 pair 的自定义杠杆。首次开仓自动 init 为 pair.default_leverage；",
             "用户可在交易前先调 `set_user_leverage` 自定义。"
@@ -3658,7 +3664,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -3681,7 +3687,7 @@
           "writable": true
         },
         {
-          "name": "seq_counter",
+          "name": "seqCounter",
           "docs": [
             "全局序列号计数器（按 settle_mint 分）；mut 以便分配 deal_seq。"
           ],
@@ -3706,13 +3712,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "docs": [
             "DealRecord PDA — seeds 中含 `args.deal_seq`，handler 校验等于 seq_counter.next_deal_seq。",
             "**Boxed** — 同上，DealRecord 体积也较大。"
@@ -3738,7 +3744,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -3748,7 +3754,7 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "Pyth `PriceUpdateV2` 账户。由用户在同一笔 tx 内通过 pyth_solana_receiver::post_update_atomic",
             "创建（短暂账户，tx 末尾 close 回收 rent）。Market 必传。",
@@ -3756,14 +3762,14 @@
           ]
         },
         {
-          "name": "switchboard_feed",
+          "name": "switchboardFeed",
           "docs": [
             "Switchboard PullFeed 账户（v1.1 fallback）。",
             "`oracle_mode = AutoFallback` 时由 dispatcher 在 fallback 路径上做地址匹配 + 数据校验。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "docs": [
             "perp_core 端 vault_authority PDA —— 作为 CPI 进 liquidity_pool 的 signer。"
           ],
@@ -3786,34 +3792,34 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program"
+          "name": "liquidityPoolProgram"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "candidate_lp_account",
+          "name": "candidateLpAccount",
           "docs": [
             "Client 预选的 LP（私有 LP 或 escrow_authority LpAccount）。"
           ],
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "docs": [
             "MakerDeal PDA — 由 liquidity_pool init，seed 含 deal_seq。"
           ],
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "docs": [
             "LpPosition PDA — 仅当 LP 是 escrow_authority 时需要（公共池路径）。"
           ],
@@ -3821,7 +3827,7 @@
           "optional": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -3830,14 +3836,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "TradeFuturesArgs"
+              "name": "tradeFuturesArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "trigger_limit_close",
+      "name": "triggerLimitClose",
       "docs": [
         "keeper 触发 LIMIT_CLOSE（价格穿透 target_price 时按当前价平指定 deal）。",
         "v1 约定：`limited_order.amount <= deal.remaining`，单笔 LimitedOrder 必须一次性 full close。"
@@ -3863,10 +3869,10 @@
           "writable": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -3893,7 +3899,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -3916,13 +3922,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3945,7 +3951,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -3959,7 +3965,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "writable": true,
           "pda": {
             "seeds": [
@@ -3981,7 +3987,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -3991,7 +3997,7 @@
           }
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4015,7 +4021,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4025,7 +4031,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4048,7 +4054,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4058,13 +4064,13 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "oracle 模块用 LimitedOrder 创建时快照的 pyth_feed_id 校验内容。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -4084,34 +4090,34 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program",
+          "name": "liquidityPoolProgram",
           "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_account",
+          "name": "lpAccount",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "writable": true,
           "optional": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4133,21 +4139,21 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "keeper_token_account",
+          "name": "keeperTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -4156,14 +4162,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "TriggerLimitCloseArgs"
+              "name": "triggerLimitCloseArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "trigger_limit_open",
+      "name": "triggerLimitOpen",
       "docs": [
         "keeper 触发 LIMIT_OPEN（价格穿透 target_price 时）。"
       ],
@@ -4194,10 +4200,10 @@
           "writable": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -4224,7 +4230,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -4247,13 +4253,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -4275,13 +4281,13 @@
               {
                 "kind": "account",
                 "path": "limited_order.pair_id",
-                "account": "LimitedOrder"
+                "account": "limitedOrder"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4304,7 +4310,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -4321,7 +4327,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "docs": [
             "新 DealRecord（trigger 后才创建）。"
           ],
@@ -4346,7 +4352,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4356,7 +4362,7 @@
           }
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "docs": [
             "要触发的 LimitedOrder —— close 退租给 taker。"
           ],
@@ -4383,7 +4389,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4393,7 +4399,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4416,7 +4422,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4426,19 +4432,19 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "由 oracle 模块验证 discriminator + feed_id + staleness。"
           ]
         },
         {
-          "name": "switchboard_feed",
+          "name": "switchboardFeed",
           "docs": [
             "Switchboard PullFeed 账户（v1.1 fallback）。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -4458,37 +4464,37 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program",
+          "name": "liquidityPoolProgram",
           "docs": [
             "用 `address = liquidity_pool::ID` 编译期常量校验（比 constraint = key()==... 省字节）。"
           ],
           "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "candidate_lp_account",
+          "name": "candidateLpAccount",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "writable": true,
           "optional": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "docs": [
             "Perp vault token —— reward_gas 从这里转出。"
           ],
@@ -4513,24 +4519,24 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "keeper_token_account",
+          "name": "keeperTokenAccount",
           "docs": [
             "Keeper 的 token account —— 接收 reward_gas。"
           ],
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -4539,14 +4545,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "TriggerLimitOpenArgs"
+              "name": "triggerLimitOpenArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "trigger_stop_take_close",
+      "name": "triggerStopTakeClose",
       "docs": [
         "keeper 触发 STOP_TAKE_CLOSE（TP / SL 价格命中时）。"
       ],
@@ -4571,10 +4577,10 @@
           "writable": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -4601,7 +4607,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -4624,13 +4630,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4653,7 +4659,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -4667,7 +4673,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4689,7 +4695,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4699,13 +4705,13 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "oracle 模块用 LimitedOrder 创建时快照的 pyth_feed_id 校验内容。"
           ]
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "docs": [
             "要触发的 LimitedOrder —— close 退租给 taker。"
           ],
@@ -4732,7 +4738,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4742,7 +4748,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4765,7 +4771,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -4775,7 +4781,7 @@
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -4795,34 +4801,34 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program",
+          "name": "liquidityPoolProgram",
           "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_account",
+          "name": "lpAccount",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "writable": true,
           "optional": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -4844,21 +4850,21 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "keeper_token_account",
+          "name": "keeperTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -4867,14 +4873,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "TriggerStopTakeCloseArgs"
+              "name": "triggerStopTakeCloseArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "trigger_stop_take_open",
+      "name": "triggerStopTakeOpen",
       "docs": [
         "keeper 触发 STOP_TAKE_OPEN（条件开仓，价格命中 target 时触发 Market 开仓）。",
         "v1 仅支持 Market 路径（cond.open_limit_price / gain_trigger / loss_trigger 必须全 0）；",
@@ -4904,10 +4910,10 @@
           "writable": true
         },
         {
-          "name": "settle_mint"
+          "name": "settleMint"
         },
         {
-          "name": "keeper_registry",
+          "name": "keeperRegistry",
           "pda": {
             "seeds": [
               {
@@ -4934,7 +4940,7 @@
           }
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -4957,13 +4963,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "pda": {
             "seeds": [
               {
@@ -4985,13 +4991,13 @@
               {
                 "kind": "account",
                 "path": "limited_order.pair_id",
-                "account": "LimitedOrder"
+                "account": "limitedOrder"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -5014,7 +5020,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -5031,7 +5037,7 @@
           "writable": true
         },
         {
-          "name": "deal_record",
+          "name": "dealRecord",
           "docs": [
             "新 DealRecord（trigger 后创建）。"
           ],
@@ -5056,7 +5062,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -5066,7 +5072,7 @@
           }
         },
         {
-          "name": "limited_order",
+          "name": "limitedOrder",
           "docs": [
             "要触发的 LimitedOrder —— close 退租给 taker。",
             "kind 必须是 STOP_TAKE_OPEN，否则用 `trigger_limit_open` / `trigger_stop_take_close`。"
@@ -5094,7 +5100,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -5104,7 +5110,7 @@
           }
         },
         {
-          "name": "trigger_condition",
+          "name": "triggerCondition",
           "writable": true,
           "pda": {
             "seeds": [
@@ -5127,7 +5133,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "arg",
@@ -5137,19 +5143,19 @@
           }
         },
         {
-          "name": "price_update",
+          "name": "priceUpdate",
           "docs": [
             "由 oracle 模块验证 discriminator + feed_id + staleness + conf。"
           ]
         },
         {
-          "name": "switchboard_feed",
+          "name": "switchboardFeed",
           "docs": [
             "Switchboard PullFeed 账户（v1.1 fallback）。"
           ]
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -5169,34 +5175,34 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "liquidity_pool_program",
+          "name": "liquidityPoolProgram",
           "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE"
         },
         {
-          "name": "pool_config",
+          "name": "poolConfig",
           "writable": true
         },
         {
-          "name": "candidate_lp_account",
+          "name": "candidateLpAccount",
           "writable": true
         },
         {
-          "name": "maker_deal",
+          "name": "makerDeal",
           "writable": true
         },
         {
-          "name": "lp_position",
+          "name": "lpPosition",
           "writable": true,
           "optional": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -5218,21 +5224,21 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "keeper_token_account",
+          "name": "keeperTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -5241,14 +5247,14 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "TriggerStopTakeOpenArgs"
+              "name": "triggerStopTakeOpenArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "update_pair",
+      "name": "updatePair",
       "docs": [
         "admin 增量更新已存在的 PairConfig 字段（trading_fee_rate / leverage /",
         "status / Pyth 账户切换等）。**不允许改 pair_id / multi / lot_multi**",
@@ -5266,7 +5272,7 @@
       ],
       "accounts": [
         {
-          "name": "global_config",
+          "name": "globalConfig",
           "docs": [
             "只读 — 校验 admin。"
           ],
@@ -5297,11 +5303,11 @@
           "name": "admin",
           "signer": true,
           "relations": [
-            "global_config"
+            "globalConfig"
           ]
         },
         {
-          "name": "pair_config",
+          "name": "pairConfig",
           "docs": [
             "必须已存在（无 init）— pair_id 路由到对应 PDA。"
           ],
@@ -5337,7 +5343,7 @@
           "name": "args",
           "type": {
             "defined": {
-              "name": "UpdatePairArgs"
+              "name": "updatePairArgs"
             }
           }
         }
@@ -5364,17 +5370,17 @@
           "writable": true,
           "signer": true,
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_mint",
+          "name": "settleMint",
           "relations": [
-            "user_account"
+            "userAccount"
           ]
         },
         {
-          "name": "settle_config",
+          "name": "settleConfig",
           "pda": {
             "seeds": [
               {
@@ -5397,13 +5403,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -5426,7 +5432,7 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               },
               {
                 "kind": "account",
@@ -5436,11 +5442,11 @@
           }
         },
         {
-          "name": "user_token_account",
+          "name": "userTokenAccount",
           "writable": true
         },
         {
-          "name": "vault_token",
+          "name": "vaultToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -5462,13 +5468,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "vault_authority",
+          "name": "vaultAuthority",
           "pda": {
             "seeds": [
               {
@@ -5488,13 +5494,13 @@
               },
               {
                 "kind": "account",
-                "path": "settle_mint"
+                "path": "settleMint"
               }
             ]
           }
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -5508,7 +5514,7 @@
   ],
   "accounts": [
     {
-      "name": "DealRecord",
+      "name": "dealRecord",
       "discriminator": [
         77,
         196,
@@ -5521,7 +5527,7 @@
       ]
     },
     {
-      "name": "GlobalConfig",
+      "name": "globalConfig",
       "discriminator": [
         149,
         8,
@@ -5534,7 +5540,7 @@
       ]
     },
     {
-      "name": "KeeperRegistry",
+      "name": "keeperRegistry",
       "discriminator": [
         131,
         98,
@@ -5547,7 +5553,7 @@
       ]
     },
     {
-      "name": "LimitedOrder",
+      "name": "limitedOrder",
       "discriminator": [
         21,
         1,
@@ -5560,7 +5566,7 @@
       ]
     },
     {
-      "name": "PairConfig",
+      "name": "pairConfig",
       "discriminator": [
         119,
         167,
@@ -5573,7 +5579,7 @@
       ]
     },
     {
-      "name": "Position",
+      "name": "position",
       "discriminator": [
         170,
         188,
@@ -5586,7 +5592,7 @@
       ]
     },
     {
-      "name": "SeqCounter",
+      "name": "seqCounter",
       "discriminator": [
         43,
         24,
@@ -5599,7 +5605,7 @@
       ]
     },
     {
-      "name": "SettleConfig",
+      "name": "settleConfig",
       "discriminator": [
         105,
         211,
@@ -5612,7 +5618,7 @@
       ]
     },
     {
-      "name": "TriggerCondition",
+      "name": "triggerCondition",
       "discriminator": [
         147,
         75,
@@ -5625,7 +5631,7 @@
       ]
     },
     {
-      "name": "UserAccount",
+      "name": "userAccount",
       "discriminator": [
         211,
         33,
@@ -5638,7 +5644,7 @@
       ]
     },
     {
-      "name": "UserLeverage",
+      "name": "userLeverage",
       "discriminator": [
         56,
         241,
@@ -5653,7 +5659,7 @@
   ],
   "events": [
     {
-      "name": "AccountPosition",
+      "name": "accountPosition",
       "discriminator": [
         134,
         192,
@@ -5666,7 +5672,7 @@
       ]
     },
     {
-      "name": "AllOraclesFailed",
+      "name": "allOraclesFailed",
       "discriminator": [
         118,
         47,
@@ -5679,7 +5685,7 @@
       ]
     },
     {
-      "name": "BalanceOfTaker",
+      "name": "balanceOfTaker",
       "discriminator": [
         244,
         2,
@@ -5692,7 +5698,7 @@
       ]
     },
     {
-      "name": "CreateLimitedOrder",
+      "name": "createLimitedOrder",
       "discriminator": [
         196,
         122,
@@ -5705,7 +5711,7 @@
       ]
     },
     {
-      "name": "CreateTriggerCondition",
+      "name": "createTriggerCondition",
       "discriminator": [
         164,
         25,
@@ -5718,7 +5724,7 @@
       ]
     },
     {
-      "name": "Deposited",
+      "name": "deposited",
       "discriminator": [
         111,
         141,
@@ -5731,7 +5737,7 @@
       ]
     },
     {
-      "name": "ErrorInfo",
+      "name": "errorInfo",
       "discriminator": [
         30,
         81,
@@ -5744,7 +5750,7 @@
       ]
     },
     {
-      "name": "GlobalConfigInitialized",
+      "name": "globalConfigInitialized",
       "discriminator": [
         5,
         221,
@@ -5757,7 +5763,7 @@
       ]
     },
     {
-      "name": "GlobalConfigUpdated",
+      "name": "globalConfigUpdated",
       "discriminator": [
         232,
         238,
@@ -5770,7 +5776,7 @@
       ]
     },
     {
-      "name": "KeeperRegistryInitialized",
+      "name": "keeperRegistryInitialized",
       "discriminator": [
         248,
         82,
@@ -5783,7 +5789,7 @@
       ]
     },
     {
-      "name": "KeeperToggled",
+      "name": "keeperToggled",
       "discriminator": [
         140,
         140,
@@ -5796,7 +5802,7 @@
       ]
     },
     {
-      "name": "LimitedOrderHistory",
+      "name": "limitedOrderHistory",
       "discriminator": [
         175,
         63,
@@ -5809,7 +5815,7 @@
       ]
     },
     {
-      "name": "OracleSourceUsed",
+      "name": "oracleSourceUsed",
       "discriminator": [
         111,
         120,
@@ -5822,7 +5828,7 @@
       ]
     },
     {
-      "name": "OrderHistory",
+      "name": "orderHistory",
       "discriminator": [
         106,
         83,
@@ -5835,7 +5841,7 @@
       ]
     },
     {
-      "name": "PairRegistered",
+      "name": "pairRegistered",
       "discriminator": [
         125,
         143,
@@ -5848,7 +5854,7 @@
       ]
     },
     {
-      "name": "PairUpdated",
+      "name": "pairUpdated",
       "discriminator": [
         208,
         67,
@@ -5861,7 +5867,7 @@
       ]
     },
     {
-      "name": "SettleConfigInitialized",
+      "name": "settleConfigInitialized",
       "discriminator": [
         82,
         254,
@@ -5874,7 +5880,7 @@
       ]
     },
     {
-      "name": "SettleVaultInitialized",
+      "name": "settleVaultInitialized",
       "discriminator": [
         168,
         104,
@@ -5887,7 +5893,7 @@
       ]
     },
     {
-      "name": "TradeHistory",
+      "name": "tradeHistory",
       "discriminator": [
         121,
         42,
@@ -5900,7 +5906,7 @@
       ]
     },
     {
-      "name": "TransactionHistory",
+      "name": "transactionHistory",
       "discriminator": [
         148,
         208,
@@ -5913,7 +5919,7 @@
       ]
     },
     {
-      "name": "UserAccountInitialized",
+      "name": "userAccountInitialized",
       "discriminator": [
         248,
         93,
@@ -5926,7 +5932,7 @@
       ]
     },
     {
-      "name": "Withdrawn",
+      "name": "withdrawn",
       "discriminator": [
         20,
         89,
@@ -5942,413 +5948,413 @@
   "errors": [
     {
       "code": 6000,
-      "name": "NotAdmin",
+      "name": "notAdmin",
       "msg": "Caller is not the admin"
     },
     {
       "code": 6001,
-      "name": "NotKeeper",
+      "name": "notKeeper",
       "msg": "Caller is not a registered keeper"
     },
     {
       "code": 6002,
-      "name": "NotPerpCore",
+      "name": "notPerpCore",
       "msg": "Caller is not the perp_core program (CPI guard)"
     },
     {
       "code": 6003,
-      "name": "InvalidMaintenanceMarginRate",
+      "name": "invalidMaintenanceMarginRate",
       "msg": "Invalid maintenance margin rate"
     },
     {
       "code": 6004,
-      "name": "InvalidPercent",
+      "name": "invalidPercent",
       "msg": "Invalid percent (must be <= 1e18)"
     },
     {
       "code": 6005,
-      "name": "InvalidLeverage",
+      "name": "invalidLeverage",
       "msg": "Invalid leverage (must be > 0)"
     },
     {
       "code": 6006,
-      "name": "InvalidFeeRate",
+      "name": "invalidFeeRate",
       "msg": "Invalid trading fee rate"
     },
     {
       "code": 6007,
-      "name": "InvalidPairStatus",
+      "name": "invalidPairStatus",
       "msg": "Invalid pair status"
     },
     {
       "code": 6008,
-      "name": "PairNameTooLong",
+      "name": "pairNameTooLong",
       "msg": "Pair name too long"
     },
     {
       "code": 6009,
-      "name": "SettleMintZero",
+      "name": "settleMintZero",
       "msg": "Settle mint cannot be zero address"
     },
     {
       "code": 6010,
-      "name": "PythFeedIdZero",
+      "name": "pythFeedIdZero",
       "msg": "Pyth feed id cannot be all-zero"
     },
     {
       "code": 6011,
-      "name": "InvalidStaleness",
+      "name": "invalidStaleness",
       "msg": "Max staleness must be > 0"
     },
     {
       "code": 6012,
-      "name": "KeeperRegistryFull",
+      "name": "keeperRegistryFull",
       "msg": "Keeper registry is full"
     },
     {
       "code": 6013,
-      "name": "KeeperNotFound",
+      "name": "keeperNotFound",
       "msg": "Keeper not found"
     },
     {
       "code": 6014,
-      "name": "KeeperAlreadyRegistered",
+      "name": "keeperAlreadyRegistered",
       "msg": "Keeper already registered"
     },
     {
       "code": 6015,
-      "name": "VersionMismatch",
+      "name": "versionMismatch",
       "msg": "Account version mismatch — please run migration"
     },
     {
       "code": 6016,
-      "name": "DepositTooSmall",
+      "name": "depositTooSmall",
       "msg": "Deposit amount is below the minimum"
     },
     {
       "code": 6017,
-      "name": "AmountZero",
+      "name": "amountZero",
       "msg": "Amount must be > 0"
     },
     {
       "code": 6018,
-      "name": "InsufficientAvailable",
+      "name": "insufficientAvailable",
       "msg": "Insufficient available balance"
     },
     {
       "code": 6019,
-      "name": "SettleMintMismatch",
+      "name": "settleMintMismatch",
       "msg": "User account belongs to a different settle mint"
     },
     {
       "code": 6020,
-      "name": "UserOwnerMismatch",
+      "name": "userOwnerMismatch",
       "msg": "User account does not belong to the signer"
     },
     {
       "code": 6021,
-      "name": "SettleConfigPaused",
+      "name": "settleConfigPaused",
       "msg": "Settle config is paused; deposit/trade disabled"
     },
     {
       "code": 6022,
-      "name": "MathOverflow",
+      "name": "mathOverflow",
       "msg": "Arithmetic overflow"
     },
     {
       "code": 6023,
-      "name": "PythFeedIdMismatch",
+      "name": "pythFeedIdMismatch",
       "msg": "Pyth price account feed_id does not match registered pair feed_id"
     },
     {
       "code": 6024,
-      "name": "PythPriceTooStale",
+      "name": "pythPriceTooStale",
       "msg": "Pyth price is stale (exceeds max_staleness_secs)"
     },
     {
       "code": 6025,
-      "name": "PythPriceInvalid",
+      "name": "pythPriceInvalid",
       "msg": "Pyth price is <= 0"
     },
     {
       "code": 6026,
-      "name": "PythConfTooWide",
+      "name": "pythConfTooWide",
       "msg": "Pyth confidence interval too wide"
     },
     {
       "code": 6027,
-      "name": "PythDiscriminatorMismatch",
+      "name": "pythDiscriminatorMismatch",
       "msg": "Pyth price account discriminator mismatch"
     },
     {
       "code": 6028,
-      "name": "PythAccountTooShort",
+      "name": "pythAccountTooShort",
       "msg": "Pyth price account data too short"
     },
     {
       "code": 6029,
-      "name": "PythExponentOutOfRange",
+      "name": "pythExponentOutOfRange",
       "msg": "Pyth price exponent out of supported range"
     },
     {
       "code": 6030,
-      "name": "InvalidDirection",
+      "name": "invalidDirection",
       "msg": "Position direction must be 0 (LONG) or 1 (SHORT)"
     },
     {
       "code": 6031,
-      "name": "PositionEmpty",
+      "name": "positionEmpty",
       "msg": "Position is empty; cannot close or modify"
     },
     {
       "code": 6032,
-      "name": "PositionDealsFull",
+      "name": "positionDealsFull",
       "msg": "Position deal list is full"
     },
     {
       "code": 6033,
-      "name": "InsufficientPositionSize",
+      "name": "insufficientPositionSize",
       "msg": "Insufficient available position size (after freeze)"
     },
     {
       "code": 6034,
-      "name": "LeverageTooLow",
+      "name": "leverageTooLow",
       "msg": "Leverage must be >= 1x (1e18)"
     },
     {
       "code": 6035,
-      "name": "LeverageTooHigh",
+      "name": "leverageTooHigh",
       "msg": "Leverage exceeds pair maximum"
     },
     {
       "code": 6036,
-      "name": "DeadlineExpired",
+      "name": "deadlineExpired",
       "msg": "Transaction deadline has expired"
     },
     {
       "code": 6037,
-      "name": "OrderAmountBelowMin",
+      "name": "orderAmountBelowMin",
       "msg": "Order amount is below the pair minimum"
     },
     {
       "code": 6038,
-      "name": "OrderTypeNotSupported",
+      "name": "orderTypeNotSupported",
       "msg": "Order type not supported (D5 only Market open)"
     },
     {
       "code": 6039,
-      "name": "PairNotTradable",
+      "name": "pairNotTradable",
       "msg": "Pair is paused or offline; trading disabled"
     },
     {
       "code": 6040,
-      "name": "DealSeqMismatch",
+      "name": "dealSeqMismatch",
       "msg": "DealRecord seq does not match SeqCounter.next_deal_seq"
     },
     {
       "code": 6041,
-      "name": "DirectionMismatch",
+      "name": "directionMismatch",
       "msg": "Position direction does not match the args.direction"
     },
     {
       "code": 6042,
-      "name": "UserLeverageMismatch",
+      "name": "userLeverageMismatch",
       "msg": "UserLeverage account belongs to a different (settle_mint, pair_id, owner)"
     },
     {
       "code": 6043,
-      "name": "PairConfigMismatch",
+      "name": "pairConfigMismatch",
       "msg": "Pair config does not match the requested pair_id"
     },
     {
       "code": 6044,
-      "name": "LiquidityInsufficient",
+      "name": "liquidityInsufficient",
       "msg": "Liquidity is not enough to fill the order"
     },
     {
       "code": 6045,
-      "name": "PositionDealListFull",
+      "name": "positionDealListFull",
       "msg": "Position deal list is at capacity; cannot append more deals"
     },
     {
       "code": 6046,
-      "name": "OrderNotPending",
+      "name": "orderNotPending",
       "msg": "LimitedOrder is not in a state that allows this action"
     },
     {
       "code": 6047,
-      "name": "OrderAlreadyTerminated",
+      "name": "orderAlreadyTerminated",
       "msg": "LimitedOrder has already been terminated (cancelled/completed/expired/liquidated)"
     },
     {
       "code": 6048,
-      "name": "OrderNotOwned",
+      "name": "orderNotOwned",
       "msg": "LimitedOrder does not belong to the caller"
     },
     {
       "code": 6049,
-      "name": "OrderSeqMismatch",
+      "name": "orderSeqMismatch",
       "msg": "LimitedOrder seq does not match SeqCounter.next_order_seq"
     },
     {
       "code": 6050,
-      "name": "OrderKindMismatch",
+      "name": "orderKindMismatch",
       "msg": "LimitedOrder kind / offset mismatch for this entry point"
     },
     {
       "code": 6051,
-      "name": "OpenTriggerPriceZero",
+      "name": "openTriggerPriceZero",
       "msg": "Stop-take OPEN requires trigger_price > 0"
     },
     {
       "code": 6052,
-      "name": "CloseTriggersAllZero",
+      "name": "closeTriggersAllZero",
       "msg": "Stop-take CLOSE requires gain_trigger > 0 OR loss_trigger > 0"
     },
     {
       "code": 6053,
-      "name": "OrderNotExpired",
+      "name": "orderNotExpired",
       "msg": "Order has not yet expired (now <= good_till)"
     },
     {
       "code": 6054,
-      "name": "TriggerPriceNotReached",
+      "name": "triggerPriceNotReached",
       "msg": "Trigger price condition not reached"
     },
     {
       "code": 6055,
-      "name": "RewardGasInsufficient",
+      "name": "rewardGasInsufficient",
       "msg": "reward_gas exceeds user available balance"
     },
     {
       "code": 6056,
-      "name": "TriggerConditionMismatch",
+      "name": "triggerConditionMismatch",
       "msg": "Trigger condition account is not paired with this LimitedOrder"
     },
     {
       "code": 6057,
-      "name": "NotOrderOwner",
+      "name": "notOrderOwner",
       "msg": "Caller is not the order owner (cancel) — use expire path instead"
     },
     {
       "code": 6058,
-      "name": "UnsupportedConditionalChain",
+      "name": "unsupportedConditionalChain",
       "msg": "STOP_TAKE_OPEN with conditional chain (limit sub-order / auto TP/SL) not supported in v1"
     },
     {
       "code": 6059,
-      "name": "SwitchboardAccountTooShort",
+      "name": "switchboardAccountTooShort",
       "msg": "Switchboard feed account data too short"
     },
     {
       "code": 6060,
-      "name": "SwitchboardDiscriminatorMismatch",
+      "name": "switchboardDiscriminatorMismatch",
       "msg": "Switchboard feed account discriminator mismatch"
     },
     {
       "code": 6061,
-      "name": "SwitchboardFeedHashMismatch",
+      "name": "switchboardFeedHashMismatch",
       "msg": "Switchboard feed_hash does not match registered hash"
     },
     {
       "code": 6062,
-      "name": "SwitchboardPriceInvalid",
+      "name": "switchboardPriceInvalid",
       "msg": "Switchboard price is <= 0"
     },
     {
       "code": 6063,
-      "name": "SwitchboardPriceTooStale",
+      "name": "switchboardPriceTooStale",
       "msg": "Switchboard price is stale (exceeds max_staleness_secs)"
     },
     {
       "code": 6064,
-      "name": "SwitchboardAccountMismatch",
+      "name": "switchboardAccountMismatch",
       "msg": "Switchboard feed account does not match registered account"
     },
     {
       "code": 6065,
-      "name": "AllOraclesUnavailable",
+      "name": "allOraclesUnavailable",
       "msg": "All configured oracles unavailable (Pyth + Switchboard both failed)"
     },
     {
       "code": 6066,
-      "name": "InvalidOracleMode",
+      "name": "invalidOracleMode",
       "msg": "Oracle mode value invalid"
     },
     {
       "code": 6067,
-      "name": "InvalidOracleSource",
+      "name": "invalidOracleSource",
       "msg": "Oracle source value invalid"
     },
     {
       "code": 6068,
-      "name": "OracleSourceUnsupported",
+      "name": "oracleSourceUnsupported",
       "msg": "Selected oracle source is not yet supported on Solana (e.g. Supra)"
     },
     {
       "code": 6069,
-      "name": "ChainlinkFeedIdZero",
+      "name": "chainlinkFeedIdZero",
       "msg": "Chainlink feed id is zero"
     },
     {
       "code": 6070,
-      "name": "ChainlinkVerifierMismatch",
+      "name": "chainlinkVerifierMismatch",
       "msg": "Chainlink verifier program account mismatch"
     },
     {
       "code": 6071,
-      "name": "ChainlinkNoReturnData",
+      "name": "chainlinkNoReturnData",
       "msg": "Chainlink verify returned no data"
     },
     {
       "code": 6072,
-      "name": "ChainlinkReportTooShort",
+      "name": "chainlinkReportTooShort",
       "msg": "Chainlink report too short"
     },
     {
       "code": 6073,
-      "name": "ChainlinkFeedIdMismatch",
+      "name": "chainlinkFeedIdMismatch",
       "msg": "Chainlink report feed id mismatch"
     },
     {
       "code": 6074,
-      "name": "ChainlinkPriceOverflow",
+      "name": "chainlinkPriceOverflow",
       "msg": "Chainlink benchmark price overflow / negative"
     },
     {
       "code": 6075,
-      "name": "ChainlinkPriceInvalid",
+      "name": "chainlinkPriceInvalid",
       "msg": "Chainlink benchmark price invalid (zero)"
     },
     {
       "code": 6076,
-      "name": "ChainlinkPriceStale",
+      "name": "chainlinkPriceStale",
       "msg": "Chainlink report is stale"
     },
     {
       "code": 6077,
-      "name": "ChainlinkAccountsMissing",
+      "name": "chainlinkAccountsMissing",
       "msg": "Chainlink oracle accounts missing in remaining_accounts (need 4)"
     },
     {
       "code": 6078,
-      "name": "MarketOrderDisabled",
+      "name": "marketOrderDisabled",
       "msg": "Market orders are disabled for this pair (global switch / per-pair override)"
     },
     {
       "code": 6079,
-      "name": "LimitOrderDisabled",
+      "name": "limitOrderDisabled",
       "msg": "Limit orders are disabled for this pair (global switch / per-pair override)"
     },
     {
       "code": 6080,
-      "name": "InvalidOrderSwitch",
+      "name": "invalidOrderSwitch",
       "msg": "Order switch value invalid (must be <= 0b11)"
     }
   ],
   "types": [
     {
-      "name": "AccountPosition",
+      "name": "accountPosition",
       "docs": [
         "Position 字段变化时的快照（开 / 平 / 清算 后）。",
         "",
@@ -6358,7 +6364,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
@@ -6366,7 +6372,7 @@
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -6393,7 +6399,7 @@
       }
     },
     {
-      "name": "AllOraclesFailed",
+      "name": "allOraclesFailed",
       "docs": [
         "双源同时挂时合约触发的告警事件（admin 应立即介入熔断 pair）。"
       ],
@@ -6401,7 +6407,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -6412,7 +6418,7 @@
       }
     },
     {
-      "name": "BalanceOfTaker",
+      "name": "balanceOfTaker",
       "docs": [
         "任一改动 UserAccount 的 ix 前后各发一次（stage=0 与 stage=10）。",
         "",
@@ -6426,23 +6432,23 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "deposit_amount",
+            "name": "depositAmount",
             "type": "u64"
           },
           {
-            "name": "available_amount",
+            "name": "availableAmount",
             "type": "u64"
           },
           {
-            "name": "margin_amount",
+            "name": "marginAmount",
             "type": "u64"
           },
           {
-            "name": "order_locked",
+            "name": "orderLocked",
             "type": "u64"
           },
           {
@@ -6463,24 +6469,24 @@
       }
     },
     {
-      "name": "CancelLimitOrderArgs",
+      "name": "cancelLimitOrderArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "ClosePositionArgs",
+      "name": "closePositionArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -6488,21 +6494,21 @@
             "type": "u8"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "要关的 DealRecord 的 deal_id（=perp_core 端 SeqCounter 分配的 seq）。"
             ],
             "type": "u64"
           },
           {
-            "name": "close_amount_e18",
+            "name": "closeAmountE18",
             "docs": [
               "关闭数量（1e18）；0 = full close（关 deal.remaining）。"
             ],
             "type": "u128"
           },
           {
-            "name": "order_type",
+            "name": "orderType",
             "docs": [
               "0 = Market（D7 唯一支持）；1 = Limit（D8）。"
             ],
@@ -6516,7 +6522,7 @@
             "type": "i64"
           },
           {
-            "name": "chainlink_report",
+            "name": "chainlinkReport",
             "docs": [
               "deal.oracle_source=Chainlink(3) 时的签名 Data Streams report bytes；其余源传空 vec。"
             ],
@@ -6526,19 +6532,19 @@
       }
     },
     {
-      "name": "CollectTradeFeeArgs",
+      "name": "collectTradeFeeArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "CreateLimitedOrder",
+      "name": "createLimitedOrder",
       "docs": [
         "限价单 / 条件单创建。",
         "",
@@ -6552,15 +6558,15 @@
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
@@ -6572,7 +6578,7 @@
             "type": "u8"
           },
           {
-            "name": "order_kind",
+            "name": "orderKind",
             "type": "u8"
           },
           {
@@ -6584,7 +6590,7 @@
             "type": "u128"
           },
           {
-            "name": "target_price",
+            "name": "targetPrice",
             "type": "u64"
           },
           {
@@ -6592,26 +6598,26 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "type": "u64"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "type": "u64"
           },
           {
-            "name": "start_time",
+            "name": "startTime",
             "type": "i64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "type": "i64"
           }
         ]
       }
     },
     {
-      "name": "CreateTriggerCondition",
+      "name": "createTriggerCondition",
       "docs": [
         "TriggerCondition 创建（伴随 stop_take_order）。",
         "",
@@ -6621,7 +6627,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
@@ -6629,30 +6635,30 @@
             "type": "u8"
           },
           {
-            "name": "open_limit_price",
+            "name": "openLimitPrice",
             "type": "u64"
           },
           {
-            "name": "gain_trigger_price",
+            "name": "gainTriggerPrice",
             "type": "u64"
           },
           {
-            "name": "gain_limit_price",
+            "name": "gainLimitPrice",
             "type": "u64"
           },
           {
-            "name": "loss_trigger_price",
+            "name": "lossTriggerPrice",
             "type": "u64"
           },
           {
-            "name": "loss_limit_price",
+            "name": "lossLimitPrice",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "DealRecord",
+      "name": "dealRecord",
       "docs": [
         "一笔已成交订单；deal_id 由 SeqCounter 全局递增。",
         "PDA seeds: [\"deal_record\", settle_mint, deal_id_le_bytes]"
@@ -6669,7 +6675,7 @@
             "type": "u8"
           },
           {
-            "name": "deal_id",
+            "name": "dealId",
             "docs": [
               "全局递增的成交 ID（由 SeqCounter 分配）。"
             ],
@@ -6683,14 +6689,14 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "交易对 ID。"
             ],
@@ -6732,7 +6738,7 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "docs": [
               "已扣手续费（结算币最小单位）。"
             ],
@@ -6758,35 +6764,35 @@
             "type": "u8"
           },
           {
-            "name": "matched_pool",
+            "name": "matchedPool",
             "docs": [
               "匹配的 LP/Pool 账户地址（用于平仓时回调）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "pool_type",
+            "name": "poolType",
             "docs": [
               "pool 类型1 = 公共池, 2 = 私有 LP。"
             ],
             "type": "u8"
           },
           {
-            "name": "opened_at",
+            "name": "openedAt",
             "docs": [
               "成交时间戳（unix sec）。"
             ],
             "type": "i64"
           },
           {
-            "name": "closed_at",
+            "name": "closedAt",
             "docs": [
               "关闭时间戳（unix sec；0 表示未关闭）。"
             ],
             "type": "i64"
           },
           {
-            "name": "fee_collected",
+            "name": "feeCollected",
             "docs": [
               "手续费是否已被 `collect_trade_fee` ix 切走（防双重 split）。",
               "默认 false；split_trade_fee 成功 CPI 后置为 true。"
@@ -6794,7 +6800,7 @@
             "type": "bool"
           },
           {
-            "name": "oracle_source",
+            "name": "oracleSource",
             "docs": [
               "开仓时生效的预言机源（0=Pyth 1=Switchboard 2=Supra 3=Chainlink）。",
               "仅作审计/索引记录 —— 平仓/清算按 pair **当前** 配置的源结算，不绑定本字段。"
@@ -6812,7 +6818,7 @@
       }
     },
     {
-      "name": "Deposited",
+      "name": "deposited",
       "type": {
         "kind": "struct",
         "fields": [
@@ -6821,7 +6827,7 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
@@ -6829,18 +6835,18 @@
             "type": "u64"
           },
           {
-            "name": "deposit_total",
+            "name": "depositTotal",
             "type": "u64"
           },
           {
-            "name": "available_after",
+            "name": "availableAfter",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "ErrorInfo",
+      "name": "errorInfo",
       "docs": [
         "trigger / expire 时遇到非致命错误（不 revert 整笔 tx）。",
         "",
@@ -6854,7 +6860,7 @@
             "type": "u32"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
@@ -6865,19 +6871,19 @@
       }
     },
     {
-      "name": "ExpireOrderArgs",
+      "name": "expireOrderArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "GlobalConfig",
+      "name": "globalConfig",
       "docs": [
         "perp_core 全局 singleton 配置。PDA seeds: [\"global_config\"]"
       ],
@@ -6900,70 +6906,70 @@
             "type": "pubkey"
           },
           {
-            "name": "risk_fund_authority",
+            "name": "riskFundAuthority",
             "docs": [
               "风险基金 vault authority（PDA），覆盖穿仓损失。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "platform_fee_authority",
+            "name": "platformFeeAuthority",
             "docs": [
               "平台交易费收款 authority。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "trade_fee_authority",
+            "name": "tradeFeeAuthority",
             "docs": [
               "普通交易费收款 authority（可累计后批量结算给做市方）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "liquidity_pool_program",
+            "name": "liquidityPoolProgram",
             "docs": [
               "liquidity_pool program ID（CPI 校验）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "treasury_program",
+            "name": "treasuryProgram",
             "docs": [
               "treasury program ID（CPI 校验）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率，1e9 精度（默认 1e8 = 10%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "docs": [
               "最小入金金额，1e9 精度（默认 1e6）。"
             ],
             "type": "u64"
           },
           {
-            "name": "to_platform_trade_fee_pct",
+            "name": "toPlatformTradeFeePct",
             "docs": [
               "划入平台账户的手续费比例，1e9 精度（默认 0.2 * 1e9 = 20%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "merge_remaining_fee_to_buyback",
+            "name": "mergeRemainingFeeToBuyback",
             "docs": [
               "true: 剩余手续费并入 buyback；false: 进入 trade_fee_authority。"
             ],
             "type": "bool"
           },
           {
-            "name": "order_switch",
+            "name": "orderSwitch",
             "docs": [
               "下单类型「全局总闸」bitmask（bit0=市价, bit1=限价；1=允许）。",
               "默认 `ORDER_SWITCH_ALL` (0b11) = 两类都开。各 pair 可用 `PairConfig.order_override_*` 覆盖。"
@@ -6981,7 +6987,7 @@
       }
     },
     {
-      "name": "GlobalConfigInitialized",
+      "name": "globalConfigInitialized",
       "type": {
         "kind": "struct",
         "fields": [
@@ -6990,18 +6996,18 @@
             "type": "pubkey"
           },
           {
-            "name": "liquidity_pool_program",
+            "name": "liquidityPoolProgram",
             "type": "pubkey"
           },
           {
-            "name": "treasury_program",
+            "name": "treasuryProgram",
             "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "GlobalConfigUpdated",
+      "name": "globalConfigUpdated",
       "type": {
         "kind": "struct",
         "fields": [
@@ -7017,7 +7023,7 @@
       }
     },
     {
-      "name": "InitGlobalConfigArgs",
+      "name": "initGlobalConfigArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -7029,42 +7035,42 @@
             "type": "pubkey"
           },
           {
-            "name": "risk_fund_authority",
+            "name": "riskFundAuthority",
             "docs": [
               "风险基金 vault 的授权地址（独立 PDA authority）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "platform_fee_authority",
+            "name": "platformFeeAuthority",
             "docs": [
               "平台手续费 vault 授权地址。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "trade_fee_authority",
+            "name": "tradeFeeAuthority",
             "docs": [
               "交易费 vault 授权地址（≠ platform）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "liquidity_pool_program",
+            "name": "liquidityPoolProgram",
             "docs": [
               "liquidity_pool program ID（用于 CPI `seeds::program` 校验）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "treasury_program",
+            "name": "treasuryProgram",
             "docs": [
               "treasury program ID（同上）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率（1e9 精度）；None → 用 GlobalConfig::DEFAULT_MAINTENANCE_MARGIN_RATE。"
             ],
@@ -7073,7 +7079,7 @@
             }
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "docs": [
               "最小入金额（base units）；None → 用默认。"
             ],
@@ -7082,7 +7088,7 @@
             }
           },
           {
-            "name": "to_platform_trade_fee_pct",
+            "name": "toPlatformTradeFeePct",
             "docs": [
               "平台抽成比例（1e9 精度）；None → 用默认。"
             ],
@@ -7091,7 +7097,7 @@
             }
           },
           {
-            "name": "merge_remaining_fee_to_buyback",
+            "name": "mergeRemainingFeeToBuyback",
             "docs": [
               "是否启用回购模块（v2 用；v1 直接传 false）。"
             ],
@@ -7101,26 +7107,26 @@
       }
     },
     {
-      "name": "InitSettleConfigArgs",
+      "name": "initSettleConfigArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率（1e9 精度）；0 = fallback 到 GlobalConfig。"
             ],
             "type": "u64"
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "docs": [
               "最小入金额（base units）；0 = fallback 到 GlobalConfig。"
             ],
             "type": "u64"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "docs": [
               "默认杠杆（1e9 精度，> 0）。"
             ],
@@ -7137,7 +7143,7 @@
       }
     },
     {
-      "name": "KeeperRegistry",
+      "name": "keeperRegistry",
       "docs": [
         "Keeper 白名单（trigger / liquidate / expire 调用方）。",
         "PDA seeds: [\"keeper_registry\"]"
@@ -7180,7 +7186,7 @@
       }
     },
     {
-      "name": "KeeperRegistryInitialized",
+      "name": "keeperRegistryInitialized",
       "type": {
         "kind": "struct",
         "fields": [
@@ -7192,7 +7198,7 @@
       }
     },
     {
-      "name": "KeeperToggled",
+      "name": "keeperToggled",
       "type": {
         "kind": "struct",
         "fields": [
@@ -7208,7 +7214,7 @@
       }
     },
     {
-      "name": "LimitedOrder",
+      "name": "limitedOrder",
       "docs": [
         "一笔挂单（LimitOpen / LimitClose / StopTake）；order_seq 由 SeqCounter 分配。",
         "PDA seeds: [\"limited_order\", settle_mint, order_seq_le_bytes]"
@@ -7225,7 +7231,7 @@
             "type": "u8"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "docs": [
               "全局递增序号（由 SeqCounter.alloc_order_seq() 分配）。"
             ],
@@ -7239,14 +7245,14 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "交易对。"
             ],
@@ -7267,7 +7273,7 @@
             "type": "u8"
           },
           {
-            "name": "order_kind",
+            "name": "orderKind",
             "docs": [
               "订单种类：",
               "- 1 = LimitOpen      —— 普通限价开仓（创建时冻结 margin+fee）",
@@ -7299,7 +7305,7 @@
             "type": "u128"
           },
           {
-            "name": "target_price",
+            "name": "targetPrice",
             "docs": [
               "目标价（1e9 精度 USD）。",
               "- LimitOpen / LimitClose：限价",
@@ -7316,35 +7322,35 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "docs": [
               "预先算好的开仓所需 trading_fee（base units）。"
             ],
             "type": "u64"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "docs": [
               "用户预付的 keeper 触发报酬（base units，settle_mint，即 USDC）。"
             ],
             "type": "u64"
           },
           {
-            "name": "start_time",
+            "name": "startTime",
             "docs": [
               "创建时间（unix sec）。"
             ],
             "type": "i64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "docs": [
               "截止时间（unix sec）。超过 keeper 调 expire_orders 清理。"
             ],
             "type": "i64"
           },
           {
-            "name": "pyth_feed_id",
+            "name": "pythFeedId",
             "docs": [
               "创建时快照的 Pyth feed_id —— trigger 时 oracle::read_price 校验用户传入的",
               "PriceUpdateV2 账户里的 feed_id 与此一致（防 keeper 传错 feed 攻击）。"
@@ -7357,7 +7363,7 @@
             }
           },
           {
-            "name": "snap_trading_fee_rate",
+            "name": "snapTradingFeeRate",
             "docs": [
               "创建时快照的 trading_fee_rate（1e9 精度）—— 用户挂单时的费率，trigger 时不再读 pair_config。"
             ],
@@ -7374,7 +7380,7 @@
       }
     },
     {
-      "name": "LimitedOrderHistory",
+      "name": "limitedOrderHistory",
       "docs": [
         "限价单 / 条件单状态变化（成交 / 取消 / 过期）。",
         "",
@@ -7388,15 +7394,15 @@
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
@@ -7408,7 +7414,7 @@
             "type": "u8"
           },
           {
-            "name": "order_kind",
+            "name": "orderKind",
             "type": "u8"
           },
           {
@@ -7423,7 +7429,7 @@
             "type": "u128"
           },
           {
-            "name": "target_price",
+            "name": "targetPrice",
             "type": "u64"
           },
           {
@@ -7431,11 +7437,11 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "type": "u64"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "type": "u64"
           },
           {
@@ -7446,12 +7452,12 @@
       }
     },
     {
-      "name": "LiquidateTakerArgs",
+      "name": "liquidateTakerArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7459,14 +7465,14 @@
             "type": "u8"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "要平的 DealRecord deal_id。"
             ],
             "type": "u64"
           },
           {
-            "name": "chainlink_report",
+            "name": "chainlinkReport",
             "docs": [
               "deal.oracle_source=Chainlink(3) 时的签名 Data Streams report bytes；其余源传空 vec。"
             ],
@@ -7476,7 +7482,7 @@
       }
     },
     {
-      "name": "LpAccount",
+      "name": "lpAccount",
       "docs": [
         "LP（做市方）账户。私有 holder=用户；公共 holder=escrow_authority（聚合公共池资金）。",
         "PDA seeds: [\"lp_account\", settle_mint, holder]"
@@ -7500,7 +7506,7 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 SPL mint。"
             ],
@@ -7514,21 +7520,21 @@
             "type": "u64"
           },
           {
-            "name": "available_amount",
+            "name": "availableAmount",
             "docs": [
               "可用余额（可继续接单 / 可 withdraw）。"
             ],
             "type": "u64"
           },
           {
-            "name": "locked_amount",
+            "name": "lockedAmount",
             "docs": [
               "已锁定保证金（MakerDeal 锁仓总额，含 margin + maintenance）。"
             ],
             "type": "u64"
           },
           {
-            "name": "maintenance_margin",
+            "name": "maintenanceMargin",
             "docs": [
               "维持保证金合计（locked_amount 中专门用于强平触发的部分）。"
             ],
@@ -7542,35 +7548,35 @@
             "type": "u64"
           },
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率（1e18 精度，例 10% = 1e17）；EVM 默认 0.2%（EVM 代码注释和值不一致，按值 10%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "add_margin_rate",
+            "name": "addMarginRate",
             "docs": [
               "强平时追加保证金的比例（1e18 精度，例 10% = 1e17）。"
             ],
             "type": "u64"
           },
           {
-            "name": "auto_add_margin",
+            "name": "autoAddMargin",
             "docs": [
               "自动追加保证金开关。"
             ],
             "type": "bool"
           },
           {
-            "name": "reject_order",
+            "name": "rejectOrder",
             "docs": [
               "拒绝接新单（暂停 maker 服务但保留已有头寸）。"
             ],
             "type": "bool"
           },
           {
-            "name": "last_time",
+            "name": "lastTime",
             "docs": [
               "最后操作时间戳。"
             ],
@@ -7587,7 +7593,7 @@
       }
     },
     {
-      "name": "LpPosition",
+      "name": "lpPosition",
       "docs": [
         "公共池 escrow 在某 (pair, direction) 的累计净仓位（公共路径才写）。",
         "PDA seeds: [\"lp_position\", settle_mint, pair_id_le_bytes, direction]"
@@ -7604,11 +7610,11 @@
             "type": "u8"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7643,12 +7649,12 @@
       }
     },
     {
-      "name": "MakeLimitCloseArgs",
+      "name": "makeLimitCloseArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7656,7 +7662,7 @@
             "type": "u8"
           },
           {
-            "name": "target_price",
+            "name": "targetPrice",
             "docs": [
               "限价（1e9 USD），必须 > 0。"
             ],
@@ -7670,15 +7676,15 @@
             "type": "u128"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "type": "u64"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "type": "i64"
           },
           {
@@ -7689,12 +7695,12 @@
       }
     },
     {
-      "name": "MakeLimitOrderArgs",
+      "name": "makeLimitOrderArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7702,7 +7708,7 @@
             "type": "u8"
           },
           {
-            "name": "target_price",
+            "name": "targetPrice",
             "docs": [
               "限价（1e9 USD），必须 > 0。"
             ],
@@ -7716,21 +7722,21 @@
             "type": "u128"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "docs": [
               "keeper 触发报酬（base units, settle_mint）。"
             ],
             "type": "u64"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "docs": [
               "客户端预读的 `SeqCounter.next_order_seq`，链上校验。"
             ],
             "type": "u64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "docs": [
               "截止时间（unix sec），必须 > now。"
             ],
@@ -7747,7 +7753,7 @@
       }
     },
     {
-      "name": "MakerDeal",
+      "name": "makerDeal",
       "docs": [
         "LP 接的 taker 对手单（与 perp_core::DealRecord 1:1，通过 taker_deal_seq 关联）。",
         "PDA seeds: [\"maker_deal\", settle_mint, taker_deal_seq_le_bytes]"
@@ -7764,7 +7770,7 @@
             "type": "u8"
           },
           {
-            "name": "taker_deal_seq",
+            "name": "takerDealSeq",
             "docs": [
               "对应 taker DealRecord.deal_id（perp_core 端的 deal_seq）。"
             ],
@@ -7778,14 +7784,14 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "交易对。"
             ],
@@ -7806,21 +7812,21 @@
             "type": "u128"
           },
           {
-            "name": "margin_amount",
+            "name": "marginAmount",
             "docs": [
               "已锁定保证金（base units，含 EVM 端 marginAmount）。"
             ],
             "type": "u64"
           },
           {
-            "name": "maintenance_margin",
+            "name": "maintenanceMargin",
             "docs": [
               "维持保证金（base units，EVM 端 maintenanceMargin；强平触发线）。"
             ],
             "type": "u64"
           },
           {
-            "name": "pub_pri_flag",
+            "name": "pubPriFlag",
             "docs": [
               "`pubPriFlag`：",
               "1 = 公共池路径（maker = escrow_authority）",
@@ -7830,14 +7836,14 @@
             "type": "u8"
           },
           {
-            "name": "move_price",
+            "name": "movePrice",
             "docs": [
               "移仓时的\"被替换价\"（1e9），用于事件溯源；普通路径写 0。"
             ],
             "type": "u64"
           },
           {
-            "name": "opened_at",
+            "name": "openedAt",
             "docs": [
               "创建时间戳（unix sec）。"
             ],
@@ -7861,7 +7867,7 @@
       }
     },
     {
-      "name": "OracleSourceUsed",
+      "name": "oracleSourceUsed",
       "docs": [
         "每笔交易实际用了哪个 oracle 源（链上审计 / 监控告警依赖）。",
         "",
@@ -7871,7 +7877,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7879,7 +7885,7 @@
             "type": "u8"
           },
           {
-            "name": "price_e18",
+            "name": "priceE18",
             "type": "u64"
           },
           {
@@ -7890,7 +7896,7 @@
       }
     },
     {
-      "name": "OrderHistory",
+      "name": "orderHistory",
       "docs": [
         "一笔订单（开 / 平 / 限价）的高层日志。",
         "",
@@ -7904,15 +7910,15 @@
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "docs": [
               "与 EVM 的 `orderID` 对应：D5 阶段直接复用 deal_seq（每笔成交即一个 order）。"
             ],
@@ -7923,7 +7929,7 @@
             "type": "u8"
           },
           {
-            "name": "order_type",
+            "name": "orderType",
             "type": "u8"
           },
           {
@@ -7931,7 +7937,7 @@
             "type": "u128"
           },
           {
-            "name": "cost_price",
+            "name": "costPrice",
             "docs": [
               "平仓时记录开仓均价；开仓为 0。"
             ],
@@ -7942,11 +7948,11 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "type": "u64"
           },
           {
-            "name": "limit_order_seq",
+            "name": "limitOrderSeq",
             "docs": [
               "来源 LimitedOrder seq（无来源 = u64::MAX）。"
             ],
@@ -7960,7 +7966,7 @@
       }
     },
     {
-      "name": "PairConfig",
+      "name": "pairConfig",
       "docs": [
         "交易对配置（如 BTC/USD），一个 pair_id 一份；oracle 账户在此注册。",
         "PDA seeds: [\"pair_config\", pair_id_le_bytes]"
@@ -7977,7 +7983,7 @@
             "type": "u8"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -7995,28 +8001,28 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee_rate",
+            "name": "tradingFeeRate",
             "docs": [
               "交易手续费率，1e9 精度（默认 1e6 = 0.1%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "min_order_amount",
+            "name": "minOrderAmount",
             "docs": [
               "单笔最小下单数量，1e9 精度（默认 1e7 = 0.01；保留 u128，与 amount 同域）。"
             ],
             "type": "u128"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "docs": [
               "该 pair 的默认杠杆（用户未单独设置时），1e9 精度。"
             ],
             "type": "u64"
           },
           {
-            "name": "lot_multi",
+            "name": "lotMulti",
             "docs": [
               "Lot multiplier，1e9 精度（默认 1e9；保留 u128，与 amount 同域）。"
             ],
@@ -8030,14 +8036,14 @@
             "type": "u8"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "docs": [
               "Keeper 触发限价/条件单的 reward（lamports）。"
             ],
             "type": "u64"
           },
           {
-            "name": "pyth_feed_id",
+            "name": "pythFeedId",
             "docs": [
               "Pyth feed ID（32 字节，全网唯一）— 防止账户被替换为其他 feed。",
               "**核心防护**：用户/keeper 自带 PriceUpdateV2 账户，合约通过 feed_id 校验该账户内容与本 pair 对应。"
@@ -8050,28 +8056,28 @@
             }
           },
           {
-            "name": "max_staleness_secs",
+            "name": "maxStalenessSecs",
             "docs": [
               "价格新鲜度上限（秒）。"
             ],
             "type": "u64"
           },
           {
-            "name": "max_confidence_bps",
+            "name": "maxConfidenceBps",
             "docs": [
               "confidence interval 上限，基点（默认 100 = 1%）。"
             ],
             "type": "u16"
           },
           {
-            "name": "switchboard_feed_account",
+            "name": "switchboardFeedAccount",
             "docs": [
               "Switchboard PullFeed 账户 Pubkey；Pubkey::default() 表示未配置 fallback。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "switchboard_feed_hash",
+            "name": "switchboardFeedHash",
             "docs": [
               "Switchboard feed_hash（IPFS job hash）—— 防账户替换。"
             ],
@@ -8083,14 +8089,14 @@
             }
           },
           {
-            "name": "switchboard_max_staleness_secs",
+            "name": "switchboardMaxStalenessSecs",
             "docs": [
               "Switchboard 价格新鲜度上限（秒）；0 = 复用 max_staleness_secs。"
             ],
             "type": "u64"
           },
           {
-            "name": "oracle_mode",
+            "name": "oracleMode",
             "docs": [
               "Oracle 工作模式：",
               "0 = PythOnly（默认，旧逻辑）",
@@ -8099,7 +8105,7 @@
             "type": "u8"
           },
           {
-            "name": "oracle_source",
+            "name": "oracleSource",
             "docs": [
               "当前生效的预言机源（admin 切换）：",
               "0 = Pyth, 1 = Switchboard, 2 = Supra(预留，Solana 暂不支持), 3 = Chainlink。",
@@ -8108,7 +8114,7 @@
             "type": "u8"
           },
           {
-            "name": "chainlink_feed_id",
+            "name": "chainlinkFeedId",
             "docs": [
               "Chainlink Data Streams feed ID（32 字节）—— 防账户/报告被替换为其它 feed。"
             ],
@@ -8120,7 +8126,7 @@
             }
           },
           {
-            "name": "order_override_mask",
+            "name": "orderOverrideMask",
             "docs": [
               "覆盖掩码 bitmask（bit0=市价, bit1=限价）。",
               "bit 置 1 = 该类用本 pair 的 `order_override_value` 覆盖全局；置 0 = 跟随全局。",
@@ -8129,7 +8135,7 @@
             "type": "u8"
           },
           {
-            "name": "order_override_value",
+            "name": "orderOverrideValue",
             "docs": [
               "覆盖值 bitmask（仅 `order_override_mask` 置位的 bit 生效）。1=允许 0=禁止。"
             ],
@@ -8146,12 +8152,12 @@
       }
     },
     {
-      "name": "PairRegistered",
+      "name": "pairRegistered",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -8159,7 +8165,7 @@
             "type": "string"
           },
           {
-            "name": "pyth_feed_id",
+            "name": "pythFeedId",
             "type": {
               "array": [
                 "u8",
@@ -8168,23 +8174,23 @@
             }
           },
           {
-            "name": "trading_fee_rate",
+            "name": "tradingFeeRate",
             "type": "u64"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "PairUpdated",
+      "name": "pairUpdated",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -8195,7 +8201,7 @@
       }
     },
     {
-      "name": "PoolConfig",
+      "name": "poolConfig",
       "docs": [
         "每结算币流动性池配置。PDA seeds: [\"pool_config\", settle_mint]"
       ],
@@ -8218,35 +8224,35 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "该池对应的结算币 SPL mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "vault_authority_bump",
+            "name": "vaultAuthorityBump",
             "docs": [
               "Pool vault authority PDA bump 缓存。"
             ],
             "type": "u8"
           },
           {
-            "name": "pool_type",
+            "name": "poolType",
             "docs": [
               "池类型：1=PUBLIC, 2=PRIVATE, 3=MIXED, 4=REFUSE。"
             ],
             "type": "u8"
           },
           {
-            "name": "escrow_authority",
+            "name": "escrowAuthority",
             "docs": [
               "公共池 escrow 管理员（仅 pool_type 涉及 PUBLIC 时使用）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "perp_core_program",
+            "name": "perpCoreProgram",
             "docs": [
               "允许通过 CPI 调用本 program 的 perp_core program ID（CPI guard）。"
             ],
@@ -8260,7 +8266,7 @@
             "type": "u8"
           },
           {
-            "name": "total_shares",
+            "name": "totalShares",
             "docs": [
               "公共池累计发行份额数（1e18 精度）。",
               "第一次 provide(public)：total_shares = amount；",
@@ -8269,7 +8275,7 @@
             "type": "u64"
           },
           {
-            "name": "total_locked_liquidity",
+            "name": "totalLockedLiquidity",
             "docs": [
               "全部 MakerDeal 占用的保证金合计（base units）。",
               "等于 Σ (maker_deal.margin_amount + maker_deal.maintenance_margin)。",
@@ -8278,7 +8284,7 @@
             "type": "u64"
           },
           {
-            "name": "private_min_provide_amount",
+            "name": "privateMinProvideAmount",
             "docs": [
               "私有池单笔最小入金（base units）；0 = 走默认 1 USDC。",
               "EVM 对应：`privateMinMintAmount`（EVM 初值 1e18）。"
@@ -8286,7 +8292,7 @@
             "type": "u64"
           },
           {
-            "name": "public_min_provide_amount",
+            "name": "publicMinProvideAmount",
             "docs": [
               "公共池单笔最小入金（base units）；0 = 走默认 1 USDC。",
               "EVM 没有此参数，但 require(_amount >= E18)，即同样的 1 USDC 等价。"
@@ -8304,7 +8310,7 @@
       }
     },
     {
-      "name": "Position",
+      "name": "position",
       "docs": [
         "用户在某 (settle_mint, pair_id, direction) 上的聚合仓位（direction: 0=LONG, 1=SHORT）。",
         "PDA seeds: [\"position\", settle_mint, pair_id_le_bytes, direction]"
@@ -8328,14 +8334,14 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 mint（用于区分多结算池）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "交易对 ID（与 PairConfig.pair_id 对应）。"
             ],
@@ -8381,7 +8387,7 @@
             "type": "u64"
           },
           {
-            "name": "deal_keys",
+            "name": "dealKeys",
             "docs": [
               "属于该仓位的 DealRecord PDA 地址列表，按开仓价格排序：",
               "- LONG: 升序（FIFO，先平最低价）",
@@ -8403,12 +8409,12 @@
       }
     },
     {
-      "name": "RegisterPairArgs",
+      "name": "registerPairArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "全局唯一交易对 ID（如 1 = BTC/USDC）。"
             ],
@@ -8429,28 +8435,28 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee_rate",
+            "name": "tradingFeeRate",
             "docs": [
               "单笔交易手续费率（1e9 精度，0 = 用 PairConfig::DEFAULT_TRADING_FEE_RATE）。"
             ],
             "type": "u64"
           },
           {
-            "name": "min_order_amount",
+            "name": "minOrderAmount",
             "docs": [
               "单笔最小开仓张数（1e9 精度，0 = 用默认；保留 u128，与 amount 同域）。"
             ],
             "type": "u128"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "docs": [
               "默认杠杆（1e9 精度，例 10x = 10e9）。用户首次开仓未设 UserLeverage 时取它。"
             ],
             "type": "u64"
           },
           {
-            "name": "lot_multi",
+            "name": "lotMulti",
             "docs": [
               "单笔最小增量（1e9 精度，0 = 用默认；保留 u128，与 amount 同域）。"
             ],
@@ -8464,14 +8470,14 @@
             "type": "u8"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "docs": [
               "keeper 触发本对挂单时领取的奖励（base units）。"
             ],
             "type": "u64"
           },
           {
-            "name": "pyth_feed_id",
+            "name": "pythFeedId",
             "docs": [
               "Pyth feed id（32 字节，决定喂哪条价格）。",
               "用户自带 PriceUpdateV2 账户调 trade ix；合约校验该账户内的 feed_id == 此字段。"
@@ -8484,28 +8490,28 @@
             }
           },
           {
-            "name": "max_staleness_secs",
+            "name": "maxStalenessSecs",
             "docs": [
               "价格最大过时秒数；超过则拒接报价。"
             ],
             "type": "u64"
           },
           {
-            "name": "max_confidence_bps",
+            "name": "maxConfidenceBps",
             "docs": [
               "价格置信区间上限（bps，0 = 用默认）。conf/price > max 则拒。"
             ],
             "type": "u16"
           },
           {
-            "name": "switchboard_feed_account",
+            "name": "switchboardFeedAccount",
             "docs": [
               "Switchboard PullFeed 账户 Pubkey；Pubkey::default() 表示无 fallback。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "switchboard_feed_hash",
+            "name": "switchboardFeedHash",
             "docs": [
               "Switchboard feed_hash（32 字节）。"
             ],
@@ -8517,28 +8523,28 @@
             }
           },
           {
-            "name": "switchboard_max_staleness_secs",
+            "name": "switchboardMaxStalenessSecs",
             "docs": [
               "Switchboard 价格新鲜度上限（0 = 复用 max_staleness_secs）。"
             ],
             "type": "u64"
           },
           {
-            "name": "oracle_mode",
+            "name": "oracleMode",
             "docs": [
               "0 = PythOnly（默认）；1 = AutoFallback。"
             ],
             "type": "u8"
           },
           {
-            "name": "oracle_source",
+            "name": "oracleSource",
             "docs": [
               "当前生效预言机源：0=Pyth 1=Switchboard 2=Supra(预留) 3=Chainlink。"
             ],
             "type": "u8"
           },
           {
-            "name": "chainlink_feed_id",
+            "name": "chainlinkFeedId",
             "docs": [
               "Chainlink Data Streams feed id（32 字节；oracle_source=Chainlink 时必填非 0）。"
             ],
@@ -8553,7 +8559,7 @@
       }
     },
     {
-      "name": "SeqCounter",
+      "name": "seqCounter",
       "docs": [
         "每结算币的 Deal / LimitedOrder seq 分配器。",
         "PDA seeds: [\"seq_counter\", settle_mint]"
@@ -8570,18 +8576,18 @@
             "type": "u8"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "next_deal_seq",
+            "name": "nextDealSeq",
             "docs": [
               "下一个可分配的 DealRecord seq。"
             ],
             "type": "u64"
           },
           {
-            "name": "next_order_seq",
+            "name": "nextOrderSeq",
             "docs": [
               "下一个可分配的 LimitedOrder seq。"
             ],
@@ -8598,7 +8604,7 @@
       }
     },
     {
-      "name": "SetAddressesArgs",
+      "name": "setAddressesArgs",
       "docs": [
         "全部可选字段；None = 保持原值。"
       ],
@@ -8606,7 +8612,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "new_admin",
+            "name": "newAdmin",
             "docs": [
               "新 admin 地址；设置后下一次调用必须由新地址签。"
             ],
@@ -8615,7 +8621,7 @@
             }
           },
           {
-            "name": "risk_fund_authority",
+            "name": "riskFundAuthority",
             "docs": [
               "风险基金 vault 的授权地址（独立于 perp_vault_authority；可放冷钱包 / 多签）。"
             ],
@@ -8624,7 +8630,7 @@
             }
           },
           {
-            "name": "platform_fee_authority",
+            "name": "platformFeeAuthority",
             "docs": [
               "平台手续费 vault 的授权地址。"
             ],
@@ -8633,7 +8639,7 @@
             }
           },
           {
-            "name": "trade_fee_authority",
+            "name": "tradeFeeAuthority",
             "docs": [
               "交易手续费 vault 的授权地址（≠ platform；多签拆分）。"
             ],
@@ -8642,7 +8648,7 @@
             }
           },
           {
-            "name": "liquidity_pool_program",
+            "name": "liquidityPoolProgram",
             "docs": [
               "liquidity_pool program ID — 用于 CPI 校验 `seeds::program`。"
             ],
@@ -8651,7 +8657,7 @@
             }
           },
           {
-            "name": "treasury_program",
+            "name": "treasuryProgram",
             "docs": [
               "treasury program ID — 同上。"
             ],
@@ -8660,7 +8666,7 @@
             }
           },
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率（1e9 精度，例 10% = 1e8）。0 < v ≤ 1e9。"
             ],
@@ -8669,7 +8675,7 @@
             }
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "docs": [
               "最小入金额（base units）。"
             ],
@@ -8678,7 +8684,7 @@
             }
           },
           {
-            "name": "to_platform_trade_fee_pct",
+            "name": "toPlatformTradeFeePct",
             "docs": [
               "平台抽成比例（1e9 精度，0 ≤ v ≤ 1e9）。",
               "`trading_fee × to_platform_trade_fee_pct / 1e9 → platform_fee_vault`。"
@@ -8688,7 +8694,7 @@
             }
           },
           {
-            "name": "merge_remaining_fee_to_buyback",
+            "name": "mergeRemainingFeeToBuyback",
             "docs": [
               "是否把剩余 fee 合并给回购模块（v2 启用；v1 仅占位）。"
             ],
@@ -8697,7 +8703,7 @@
             }
           },
           {
-            "name": "order_switch",
+            "name": "orderSwitch",
             "docs": [
               "下单类型「全局总闸」bitmask（bit0=市价, bit1=限价；1=允许）。必须 <= 0b11。",
               "这是一键关停所有 pair 某类下单的紧急开关（个别 pair 可再用 update_pair 覆盖）。"
@@ -8710,7 +8716,7 @@
       }
     },
     {
-      "name": "SettleConfig",
+      "name": "settleConfig",
       "docs": [
         "每结算币配置（USDC/USDT...），可覆盖 GlobalConfig 全局参数。",
         "PDA seeds: [\"settle_config\", settle_mint]"
@@ -8727,35 +8733,35 @@
             "type": "u8"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "结算币 SPL mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "vault_authority_bump",
+            "name": "vaultAuthorityBump",
             "docs": [
               "该结算币的金库 vault authority PDA 的 bump 缓存。"
             ],
             "type": "u8"
           },
           {
-            "name": "maintenance_margin_rate",
+            "name": "maintenanceMarginRate",
             "docs": [
               "维持保证金率（覆盖全局；0 表示走全局值），1e9 精度。"
             ],
             "type": "u64"
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "docs": [
               "最小入金金额（0 表示走全局值）。"
             ],
             "type": "u64"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "docs": [
               "默认杠杆（用户未单独设置时用此值），1e9 精度。"
             ],
@@ -8769,7 +8775,7 @@
             "type": "u8"
           },
           {
-            "name": "risk_fund_authority_bump",
+            "name": "riskFundAuthorityBump",
             "docs": [
               "risk_fund_vault 的 authority PDA bump 缓存（每个 settle_mint 一个独立 risk vault）。",
               "0 表示尚未 init_risk_fund_vault（清算路径因 vault 不存在 revert）。"
@@ -8787,32 +8793,32 @@
       }
     },
     {
-      "name": "SettleConfigInitialized",
+      "name": "settleConfigInitialized",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "type": "u64"
           },
           {
-            "name": "min_deposit_amount",
+            "name": "minDepositAmount",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "SettleVaultInitialized",
+      "name": "settleVaultInitialized",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
@@ -8823,36 +8829,36 @@
       }
     },
     {
-      "name": "StopTakeArgs",
+      "name": "stopTakeArgs",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Open",
+            "name": "open",
             "fields": [
               {
-                "name": "trigger_price",
+                "name": "triggerPrice",
                 "docs": [
                   "触发开仓的价格（必填 > 0）。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "open_limit_price",
+                "name": "openLimitPrice",
                 "docs": [
                   "0 = 触发后 Market 开；>0 = Limit 开。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "gain_trigger_price",
+                "name": "gainTriggerPrice",
                 "docs": [
                   "开仓后自动挂的 TP 触发价（0 = 不挂）。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "loss_trigger_price",
+                "name": "lossTriggerPrice",
                 "docs": [
                   "开仓后自动挂的 SL 触发价（0 = 不挂）。"
                 ],
@@ -8861,31 +8867,31 @@
             ]
           },
           {
-            "name": "Close",
+            "name": "close",
             "fields": [
               {
-                "name": "gain_trigger_price",
+                "name": "gainTriggerPrice",
                 "docs": [
                   "TP 触发价（0 = 不设 TP）。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "gain_limit_price",
+                "name": "gainLimitPrice",
                 "docs": [
                   "0 = TP 触发后 Market 平；>0 = Limit 平。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "loss_trigger_price",
+                "name": "lossTriggerPrice",
                 "docs": [
                   "SL 触发价（0 = 不设 SL）。"
                 ],
                 "type": "u64"
               },
               {
-                "name": "loss_limit_price",
+                "name": "lossLimitPrice",
                 "docs": [
                   "0 = SL 触发后 Market 平；>0 = Limit 平。"
                 ],
@@ -8897,12 +8903,12 @@
       }
     },
     {
-      "name": "StopTakeOrderArgs",
+      "name": "stopTakeOrderArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -8914,15 +8920,15 @@
             "type": "u128"
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "type": "u64"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "type": "i64"
           },
           {
@@ -8933,7 +8939,7 @@
             "name": "variant",
             "type": {
               "defined": {
-                "name": "StopTakeArgs"
+                "name": "stopTakeArgs"
               }
             }
           }
@@ -8941,12 +8947,12 @@
       }
     },
     {
-      "name": "TradeFuturesArgs",
+      "name": "tradeFuturesArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "交易对 ID（与 PairConfig.pair_id 对应）。"
             ],
@@ -8967,7 +8973,7 @@
             "type": "u128"
           },
           {
-            "name": "order_type",
+            "name": "orderType",
             "docs": [
               "0 = Market（D5 唯一支持值）；1 = Limit（D8 启用）。"
             ],
@@ -8981,14 +8987,14 @@
             "type": "u8"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "客户端预先读取 SeqCounter.next_deal_seq 后填入；handler 内会校验等于当前值。"
             ],
             "type": "u64"
           },
           {
-            "name": "good_till",
+            "name": "goodTill",
             "docs": [
               "限价 / 条件单的有效期 unix sec；Market 时被忽略。"
             ],
@@ -9002,7 +9008,7 @@
             "type": "i64"
           },
           {
-            "name": "chainlink_report",
+            "name": "chainlinkReport",
             "docs": [
               "oracle_source=Chainlink(3) 时的签名 Data Streams report bytes；其余源传空 vec。"
             ],
@@ -9012,7 +9018,7 @@
       }
     },
     {
-      "name": "TradeHistory",
+      "name": "tradeHistory",
       "docs": [
         "一笔具体 deal 的成交日志。",
         "",
@@ -9022,19 +9028,19 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "type": "u64"
           },
           {
-            "name": "trade_type",
+            "name": "tradeType",
             "type": "u8"
           },
           {
@@ -9046,7 +9052,7 @@
             "type": "u64"
           },
           {
-            "name": "trading_fee",
+            "name": "tradingFee",
             "type": "u64"
           },
           {
@@ -9065,7 +9071,7 @@
       }
     },
     {
-      "name": "TransactionHistory",
+      "name": "transactionHistory",
       "docs": [
         "资金流动事件（手续费扣除、保证金转移、profit/loss 等）。",
         "",
@@ -9075,7 +9081,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
@@ -9090,7 +9096,7 @@
             "type": "pubkey"
           },
           {
-            "name": "tx_type",
+            "name": "txType",
             "type": "u8"
           },
           {
@@ -9105,7 +9111,7 @@
       }
     },
     {
-      "name": "TreasuryConfig",
+      "name": "treasuryConfig",
       "docs": [
         "treasury 全局 singleton 配置。PDA seeds: [\"treasury_config\"]"
       ],
@@ -9128,42 +9134,42 @@
             "type": "pubkey"
           },
           {
-            "name": "common_commission_rate",
+            "name": "commonCommissionRate",
             "docs": [
               "普通邀请人佣金比例，1e9 精度（默认 1e8 = 10%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "top_commission_rate",
+            "name": "topCommissionRate",
             "docs": [
               "顶级代理人佣金比例，1e9 精度（默认 5e8 = 50%）。"
             ],
             "type": "u64"
           },
           {
-            "name": "platform_token_mint",
+            "name": "platformTokenMint",
             "docs": [
               "平台代币 mint（用于 buyback 销毁）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "dead_address",
+            "name": "deadAddress",
             "docs": [
               "销毁地址（dead address）— 接收回购的平台币。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "perp_core_program",
+            "name": "perpCoreProgram",
             "docs": [
               "允许通过 CPI 调用本 program 的 perp_core program ID（CPI guard）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "vault_authority_bump",
+            "name": "vaultAuthorityBump",
             "docs": [
               "treasury_vault_authority PDA 的 bump 缓存（每个 settle_mint 一个 vault）。",
               "注意：这里只缓存 default settle_mint 的；多 settle 时 D10 改成每 settle_mint 独立 config。"
@@ -9171,7 +9177,7 @@
             "type": "u8"
           },
           {
-            "name": "platform_fee_authority",
+            "name": "platformFeeAuthority",
             "docs": [
               "平台手续费收款 authority（perp_core 端 GlobalConfig.platform_fee_authority 同址）。",
               "CPI split 时部分手续费转到 platform_fee_vault（由这个 authority 拥有）。"
@@ -9179,14 +9185,14 @@
             "type": "pubkey"
           },
           {
-            "name": "trade_fee_authority",
+            "name": "tradeFeeAuthority",
             "docs": [
               "普通 trade_fee 收款 authority（与 perp_core GlobalConfig 同址）。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "to_platform_trade_fee_pct",
+            "name": "toPlatformTradeFeePct",
             "docs": [
               "平台手续费占比，1e9 精度（默认 0.2 * 1e9 = 20%）。",
               "与 perp_core::GlobalConfig.to_platform_trade_fee_pct 同义；treasury 也缓存一份避免 CPI 时再读取。"
@@ -9204,7 +9210,7 @@
       }
     },
     {
-      "name": "TriggerCondition",
+      "name": "triggerCondition",
       "docs": [
         "LimitedOrder 的触发条件（StopTake 必有；Limit 创建则 mean=0 表\"无条件\"）。",
         "PDA seeds: [\"trigger_cond\", settle_mint, order_seq_le_bytes]"
@@ -9221,7 +9227,7 @@
             "type": "u8"
           },
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "docs": [
               "关联的 LimitedOrder.order_seq（冗余字段，便于反查）。"
             ],
@@ -9240,23 +9246,23 @@
             "type": "u8"
           },
           {
-            "name": "open_limit_price",
+            "name": "openLimitPrice",
             "type": "u64"
           },
           {
-            "name": "gain_trigger_price",
+            "name": "gainTriggerPrice",
             "type": "u64"
           },
           {
-            "name": "gain_limit_price",
+            "name": "gainLimitPrice",
             "type": "u64"
           },
           {
-            "name": "loss_trigger_price",
+            "name": "lossTriggerPrice",
             "type": "u64"
           },
           {
-            "name": "loss_limit_price",
+            "name": "lossLimitPrice",
             "type": "u64"
           },
           {
@@ -9270,19 +9276,19 @@
       }
     },
     {
-      "name": "TriggerLimitCloseArgs",
+      "name": "triggerLimitCloseArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "docs": [
               "要触发的 LimitedOrder 的 order_seq。"
             ],
             "type": "u64"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "keeper 选定的要关的 DealRecord 的 deal_seq。",
               "v1 约定：`limited_order.amount <= deal.remaining`。"
@@ -9293,23 +9299,23 @@
       }
     },
     {
-      "name": "TriggerLimitOpenArgs",
+      "name": "triggerLimitOpenArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "客户端预读的 `SeqCounter.next_deal_seq`，链上校验。"
             ],
             "type": "u64"
           },
           {
-            "name": "chainlink_report",
+            "name": "chainlinkReport",
             "docs": [
               "oracle_source=Chainlink(3) 时的签名 Data Streams report bytes；其余源传空 vec。"
             ],
@@ -9319,23 +9325,23 @@
       }
     },
     {
-      "name": "TriggerStopTakeCloseArgs",
+      "name": "triggerStopTakeCloseArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "要平的 DealRecord deal_id（client 选定）。"
             ],
             "type": "u64"
           },
           {
-            "name": "close_amount_e18",
+            "name": "closeAmountE18",
             "docs": [
               "关闭数量（1e18）；0 = 关 deal.remaining。"
             ],
@@ -9345,16 +9351,16 @@
       }
     },
     {
-      "name": "TriggerStopTakeOpenArgs",
+      "name": "triggerStopTakeOpenArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "order_seq",
+            "name": "orderSeq",
             "type": "u64"
           },
           {
-            "name": "deal_seq",
+            "name": "dealSeq",
             "docs": [
               "客户端预读的 `SeqCounter.next_deal_seq`；与 trigger_limit_open 一样，本 ix 不再读 SeqCounter PDA。",
               "keeper SDK 负责传一个未占用的 seq（建议读 indexer 拿 max+1）。"
@@ -9362,7 +9368,7 @@
             "type": "u64"
           },
           {
-            "name": "chainlink_report",
+            "name": "chainlinkReport",
             "docs": [
               "oracle_source=Chainlink(3) 时的签名 Data Streams report bytes；其余源传空 vec。"
             ],
@@ -9372,19 +9378,19 @@
       }
     },
     {
-      "name": "UpdatePairArgs",
+      "name": "updatePairArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "pair_id",
+            "name": "pairId",
             "docs": [
               "目标 pair_id；用于 PDA 路由（不可改自身）。"
             ],
             "type": "u16"
           },
           {
-            "name": "trading_fee_rate",
+            "name": "tradingFeeRate",
             "docs": [
               "手续费率（1e9 精度，≤ 1e9）。"
             ],
@@ -9393,7 +9399,7 @@
             }
           },
           {
-            "name": "default_leverage",
+            "name": "defaultLeverage",
             "docs": [
               "默认杠杆（1e9 精度，> 0）。改动只影响未来首次开仓 — 已存的 UserLeverage 不变。"
             ],
@@ -9411,7 +9417,7 @@
             }
           },
           {
-            "name": "reward_gas",
+            "name": "rewardGas",
             "docs": [
               "keeper 报酬。"
             ],
@@ -9420,7 +9426,7 @@
             }
           },
           {
-            "name": "max_staleness_secs",
+            "name": "maxStalenessSecs",
             "docs": [
               "Pyth 价格最大过时秒数（> 0）。"
             ],
@@ -9429,7 +9435,7 @@
             }
           },
           {
-            "name": "max_confidence_bps",
+            "name": "maxConfidenceBps",
             "docs": [
               "Pyth 置信区间上限。"
             ],
@@ -9438,7 +9444,7 @@
             }
           },
           {
-            "name": "pyth_feed_id",
+            "name": "pythFeedId",
             "docs": [
               "切换 Pyth feed id（罕见；通常仅在 Pyth 重命名/迁移 feed 时使用）。"
             ],
@@ -9452,7 +9458,7 @@
             }
           },
           {
-            "name": "min_order_amount",
+            "name": "minOrderAmount",
             "docs": [
               "单笔最小张数。"
             ],
@@ -9461,7 +9467,7 @@
             }
           },
           {
-            "name": "switchboard_feed_account",
+            "name": "switchboardFeedAccount",
             "docs": [
               "切换 Switchboard PullFeed 账户。"
             ],
@@ -9470,7 +9476,7 @@
             }
           },
           {
-            "name": "switchboard_feed_hash",
+            "name": "switchboardFeedHash",
             "docs": [
               "切换 Switchboard feed_hash。"
             ],
@@ -9484,7 +9490,7 @@
             }
           },
           {
-            "name": "switchboard_max_staleness_secs",
+            "name": "switchboardMaxStalenessSecs",
             "docs": [
               "Switchboard staleness 阈值（0 = 复用 Pyth 的）。"
             ],
@@ -9493,7 +9499,7 @@
             }
           },
           {
-            "name": "oracle_mode",
+            "name": "oracleMode",
             "docs": [
               "切换 oracle 模式（0=PythOnly, 1=AutoFallback）。",
               "这是 admin 熔断 fallback 的紧急开关。"
@@ -9503,7 +9509,7 @@
             }
           },
           {
-            "name": "oracle_source",
+            "name": "oracleSource",
             "docs": [
               "切换当前生效预言机源（0=Pyth 1=Switchboard 2=Supra(预留) 3=Chainlink）。admin 主切换开关。"
             ],
@@ -9512,7 +9518,7 @@
             }
           },
           {
-            "name": "chainlink_feed_id",
+            "name": "chainlinkFeedId",
             "docs": [
               "切换 Chainlink Data Streams feed id。"
             ],
@@ -9526,7 +9532,7 @@
             }
           },
           {
-            "name": "order_override_mask",
+            "name": "orderOverrideMask",
             "docs": [
               "下单类型「单对覆盖掩码」bitmask（bit0=市价, bit1=限价）。必须 <= 0b11。",
               "bit 置 1 = 该类不再跟随全局总闸，改用 `order_override_value`；置 0 = 跟随全局。"
@@ -9536,7 +9542,7 @@
             }
           },
           {
-            "name": "order_override_value",
+            "name": "orderOverrideValue",
             "docs": [
               "单对覆盖值 bitmask（仅 mask 置位 bit 生效，1=允许 0=禁止）。必须 <= 0b11。"
             ],
@@ -9548,7 +9554,7 @@
       }
     },
     {
-      "name": "UserAccount",
+      "name": "userAccount",
       "docs": [
         "用户在某个结算币下的保证金账户。",
         "PDA seeds: [\"user_account\", settle_mint, owner]"
@@ -9572,42 +9578,42 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "docs": [
               "该账户对应的结算币 mint。"
             ],
             "type": "pubkey"
           },
           {
-            "name": "deposit_amount",
+            "name": "depositAmount",
             "docs": [
               "累计入金（不随 withdraw 增加；用于审计）。"
             ],
             "type": "u64"
           },
           {
-            "name": "available_amount",
+            "name": "availableAmount",
             "docs": [
               "当前可用余额（未冻结）。"
             ],
             "type": "u64"
           },
           {
-            "name": "margin_amount",
+            "name": "marginAmount",
             "docs": [
               "已用保证金（占用在已开仓头寸中）。"
             ],
             "type": "u64"
           },
           {
-            "name": "order_locked",
+            "name": "orderLocked",
             "docs": [
               "限价/条件单冻结部分。"
             ],
             "type": "u64"
           },
           {
-            "name": "last_time",
+            "name": "lastTime",
             "docs": [
               "最后操作时间戳（unix sec）。"
             ],
@@ -9624,7 +9630,7 @@
       }
     },
     {
-      "name": "UserAccountInitialized",
+      "name": "userAccountInitialized",
       "type": {
         "kind": "struct",
         "fields": [
@@ -9633,14 +9639,14 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "UserLeverage",
+      "name": "userLeverage",
       "docs": [
         "用户对某 (settle_mint, pair_id) 的自定义杠杆；不存在时取 PairConfig.default_leverage。",
         "PDA seeds: [\"user_leverage\", settle_mint, pair_id_le_bytes, owner]"
@@ -9661,11 +9667,11 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
-            "name": "pair_id",
+            "name": "pairId",
             "type": "u16"
           },
           {
@@ -9694,7 +9700,7 @@
       }
     },
     {
-      "name": "Withdrawn",
+      "name": "withdrawn",
       "type": {
         "kind": "struct",
         "fields": [
@@ -9703,7 +9709,7 @@
             "type": "pubkey"
           },
           {
-            "name": "settle_mint",
+            "name": "settleMint",
             "type": "pubkey"
           },
           {
@@ -9711,7 +9717,7 @@
             "type": "u64"
           },
           {
-            "name": "available_after",
+            "name": "availableAfter",
             "type": "u64"
           }
         ]
@@ -9720,12 +9726,12 @@
   ],
   "constants": [
     {
-      "name": "SEED_DEAL_RECORD",
+      "name": "seedDealRecord",
       "type": "bytes",
       "value": "[100, 101, 97, 108, 95, 114, 101, 99, 111, 114, 100]"
     },
     {
-      "name": "SEED_GLOBAL_CONFIG",
+      "name": "seedGlobalConfig",
       "docs": [
         "PDA seed prefixes（集中放，避免 magic strings 散落）。"
       ],
@@ -9733,54 +9739,54 @@
       "value": "[103, 108, 111, 98, 97, 108, 95, 99, 111, 110, 102, 105, 103]"
     },
     {
-      "name": "SEED_KEEPER_REGISTRY",
+      "name": "seedKeeperRegistry",
       "type": "bytes",
       "value": "[107, 101, 101, 112, 101, 114, 95, 114, 101, 103, 105, 115, 116, 114, 121]"
     },
     {
-      "name": "SEED_LIMITED_ORDER",
+      "name": "seedLimitedOrder",
       "type": "bytes",
       "value": "[108, 105, 109, 105, 116, 101, 100, 95, 111, 114, 100, 101, 114]"
     },
     {
-      "name": "SEED_PAIR_CONFIG",
+      "name": "seedPairConfig",
       "type": "bytes",
       "value": "[112, 97, 105, 114, 95, 99, 111, 110, 102, 105, 103]"
     },
     {
-      "name": "SEED_POSITION",
+      "name": "seedPosition",
       "type": "bytes",
       "value": "[112, 111, 115, 105, 116, 105, 111, 110]"
     },
     {
-      "name": "SEED_SEQ_COUNTER",
+      "name": "seedSeqCounter",
       "type": "bytes",
       "value": "[115, 101, 113, 95, 99, 111, 117, 110, 116, 101, 114]"
     },
     {
-      "name": "SEED_SETTLE_CONFIG",
+      "name": "seedSettleConfig",
       "type": "bytes",
       "value": "[115, 101, 116, 116, 108, 101, 95, 99, 111, 110, 102, 105, 103]"
     },
     {
-      "name": "SEED_TRIGGER_CONDITION",
+      "name": "seedTriggerCondition",
       "type": "bytes",
       "value": "[116, 114, 105, 103, 103, 101, 114, 95, 99, 111, 110, 100]"
     },
     {
-      "name": "SEED_USER_ACCOUNT",
+      "name": "seedUserAccount",
       "type": "bytes",
       "value": "[117, 115, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116]"
     },
     {
-      "name": "SEED_USER_LEVERAGE",
+      "name": "seedUserLeverage",
       "type": "bytes",
       "value": "[117, 115, 101, 114, 95, 108, 101, 118, 101, 114, 97, 103, 101]"
     },
     {
-      "name": "SEED_VAULT_AUTH",
+      "name": "seedVaultAuth",
       "type": "bytes",
       "value": "[118, 97, 117, 108, 116, 95, 97, 117, 116, 104]"
     }
   ]
-}
+};
