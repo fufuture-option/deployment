@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import TradePanel from "./TradePanel";
 import { web3 } from "@anchor-lang/core";
-import { getPhantom, makeCtx, withMint, withPair, Ctx } from "./solana";
-import * as actions from "./actions";
-import { fromUnits } from "./actions";
-import { PAIRS, PAIR_NAME, USDC_DECIMALS, RPC_URL, RPC_FALLBACK, settleLabel } from "./config";
+import { getPhantom, makeSignCtx, withMint, SignCtx, fromUnits } from "./ctx";
+import * as actions from "./index";
+import {
+  PAIRS,
+  USDC_DECIMALS,
+  RPC_URL,
+  RPC_FALLBACK,
+  settleLabel,
+  feedHexByPair,
+  pairNameById,
+} from "./config";
 import AdminPanel from "./AdminPanel";
 
 type Tab = "user" | "admin";
@@ -19,7 +26,10 @@ const rpcHost = (url: string) => {
 };
 
 export default function App() {
-  const [ctx, setCtx] = useState<Ctx | null>(null);
+  const [ctx, setCtx] = useState<SignCtx | null>(null);
+  // pairId/decimals 现在是显式 UI 状态（不再挂在 ctx 上）。
+  const [pairId, setPairId] = useState<number>(PAIRS[0].id);
+  const [decimals, setDecimals] = useState<number>(USDC_DECIMALS);
   const [addr, setAddr] = useState<string>("");
   const [tab, setTab] = useState<Tab>("user");
   const [price, setPrice] = useState<number | null>(null);
@@ -56,9 +66,11 @@ export default function App() {
   const [depAmt, setDepAmt] = useState("50");
   const [wdAmt, setWdAmt] = useState("10");
   // form: limit order
-  const [dir, setDir] = useState<0 | 1>(0);
+  const [dir, setDir] = useState<1 | 2>(1); // 1=LONG 2=SHORT (EVM 对齐)
   const [amount, setAmount] = useState("0.001");
-  const [reward, setReward] = useState("0.1");
+  // keeper 报酬：现为**原生 SOL**（对齐 EVM 的 msg.value），覆盖 keeper 触发成交 + 归集两笔 gas；
+  // 挂单时托管进订单 PDA，成交划给 keeper，撤单/过期则全额退回。默认 0.002 SOL（留余量）。
+  const [reward, setReward] = useState("0.002");
   const [goodTill, setGoodTill] = useState(60);
 
   // stable identity — otherwise it changes every render and any useCallback/effect
@@ -76,7 +88,7 @@ export default function App() {
   // live price (of the active pair; re-subscribes when the pair switches)
   useEffect(() => {
     let alive = true;
-    const feed = ctx?.pythFeedHex ?? PAIRS[0].pythFeedHex;
+    const feed = feedHexByPair(pairId);
     setPrice(null);
     const tick = () =>
       actions.fetchHermesPrice(feed).then((p) => alive && setPrice(p)).catch(() => {});
@@ -86,13 +98,13 @@ export default function App() {
       alive = false;
       clearInterval(t);
     };
-  }, [ctx?.pythFeedHex]);
+  }, [pairId]);
 
   const connect = async () => {
     try {
       const phantom = getPhantom();
       const { publicKey } = await phantom.connect();
-      const c = makeCtx(phantom);
+      const c = makeSignCtx(phantom);
       setCtx(c);
       setAddr(publicKey.toBase58());
       append(`✅ connected ${publicKey.toBase58()}`);
@@ -104,7 +116,7 @@ export default function App() {
     }
   };
 
-  const loadSettles = useCallback(async (c?: Ctx) => {
+  const loadSettles = useCallback(async (c?: SignCtx) => {
     const cc = c || ctx;
     if (!cc) return;
     try {
@@ -114,29 +126,29 @@ export default function App() {
     }
   }, [ctx]);
 
-  // switch active settle currency (collateral): rebuild ctx, reload balances/history.
+  // switch active settle currency (collateral): rebuild ctx + decimals, reload.
   const switchSettle = (mintB58: string) => {
     if (!ctx || mintB58 === ctx.mint.toBase58()) return;
     const row = settles.find((s) => s.mint === mintB58);
-    const c = withMint(ctx, new web3.PublicKey(mintB58), row ? row.decimals : USDC_DECIMALS);
+    const c = withMint(ctx, new web3.PublicKey(mintB58));
     setCtx(c);
-    append(`↔ 切换结算币 → ${c.settleName}`);
+    setDecimals(row ? row.decimals : USDC_DECIMALS);
+    append(`↔ 切换结算币 → ${settleLabel(c.mint.toBase58())}`);
     refresh(c);
     loadHistory(c);
   };
 
-  // switch active trading pair: rebuild ctx (TradePanel + price re-fetch via ctx change).
+  // switch active trading pair: just update pairId state (TradePanel + price re-fetch react to it).
   const switchPair = (idStr: string) => {
     if (!ctx) return;
     const pair = PAIRS.find((p) => String(p.id) === idStr);
-    if (!pair || pair.id === ctx.pairId) return;
-    const c = withPair(ctx, pair);
-    setCtx(c);
-    append(`↔ 切换交易对 → ${c.pairName}`);
-    refresh(c);
+    if (!pair || pair.id === pairId) return;
+    setPairId(pair.id);
+    append(`↔ 切换交易对 → ${pair.name}`);
+    refresh(ctx, pair.id);
   };
 
-  const refresh = useCallback(async (c?: Ctx) => {
+  const refresh = useCallback(async (c?: SignCtx, pid: number = pairId) => {
     const cc = c || ctx;
     if (!cc) return;
     try {
@@ -146,7 +158,7 @@ export default function App() {
         actions.getUsdcBalance(cc),
         actions.getLpInfo(cc),
         actions.getUserBalances(cc),
-        actions.getUserLeverage(cc),
+        actions.getUserLeverage(cc, pid),
         actions.getPublicPoolInfo(cc),
         actions.getInviteRelation(cc),
         actions.getCommission(cc),
@@ -161,9 +173,9 @@ export default function App() {
     } catch (e: any) {
       append(`⚠ refresh: ${e.message || e}`);
     }
-  }, [ctx]);
+  }, [ctx, pairId]);
 
-  const loadHistory = useCallback(async (c?: Ctx) => {
+  const loadHistory = useCallback(async (c?: SignCtx) => {
     const cc = c || ctx;
     if (!cc) return;
     setHistBusy(true);
@@ -193,17 +205,16 @@ export default function App() {
     }
   };
 
-  const fmt6 = (v: bigint | null) =>
-    v == null ? "—" : fromUnits(v, ctx?.mintDecimals ?? USDC_DECIMALS);
+  const fmt6 = (v: bigint | null) => (v == null ? "—" : fromUnits(v, decimals));
   const fmt9 = (v: bigint) => fromUnits(v, 9);
-  const settle = ctx?.settleName ?? "USDC";
+  const settle = ctx ? settleLabel(ctx.mint.toBase58()) : "USDC";
 
   return (
     <div className="wrap">
       <header>
         <h1>Future&nbsp;Solana — Limit Order Demo</h1>
         <div className="sub">
-          {ctx?.pairName ?? PAIR_NAME} · devnet · live Pyth&nbsp;
+          {pairNameById(pairId)} · devnet · live Pyth&nbsp;
           <b>{price ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "…"}</b>
         </div>
       </header>
@@ -218,7 +229,7 @@ export default function App() {
               <div className="small">RPC: {rpcHost(RPC_URL)} · gPA→{rpcHost(RPC_FALLBACK)}</div>
             </div>
             <label className="small">交易对&nbsp;
-              <select value={String(ctx.pairId)} onChange={(e) => switchPair(e.target.value)}>
+              <select value={String(pairId)} onChange={(e) => switchPair(e.target.value)}>
                 {PAIRS.map((p) => (
                   <option key={p.id} value={String(p.id)}>{p.name}</option>
                 ))}
@@ -226,7 +237,7 @@ export default function App() {
             </label>
             <label className="small">结算币&nbsp;
               <select value={ctx.mint.toBase58()} onChange={(e) => switchSettle(e.target.value)}>
-                {settles.length === 0 && <option value={ctx.mint.toBase58()}>{ctx.settleName}</option>}
+                {settles.length === 0 && <option value={ctx.mint.toBase58()}>{settleLabel(ctx.mint.toBase58())}</option>}
                 {settles.map((s) => (
                   <option key={s.mint} value={s.mint}>
                     {settleLabel(s.mint)}（{s.decimals} 位）
@@ -250,7 +261,7 @@ export default function App() {
         </nav>
       )}
 
-      {ctx && tab === "admin" && <AdminPanel ctx={ctx} append={append} />}
+      {ctx && tab === "admin" && <AdminPanel ctx={ctx} decimals={decimals} append={append} />}
 
       {ctx && tab === "user" && (
         <>
@@ -385,7 +396,7 @@ export default function App() {
             <h2>3 · Place limit order</h2>
             <p className="small">
               限价 = <b>下单时的 Pyth 最新价</b>(自动取,无需手填)。keeper 在 Pyth 价穿透该价时以该价成交。
-              <br />⚠ 下单前请先在上方「出入金」卡片<b>存入</b>保证金(可用余额要 ≥ 保证金+手续费+keeper 报酬)。
+              <br />⚠ 下单前请先在上方「出入金」卡片<b>存入</b>保证金(可用余额要 ≥ 保证金+手续费)。keeper 报酬为<b>原生 SOL</b>(钱包需备少量 SOL),覆盖 keeper <b>触发成交 + 归集手续费</b>两笔,挂单时托管、成交不了撤单则全额退回。
             </p>
             <div className="oracle-box">
               下单价(Pyth 最新价):
@@ -395,7 +406,7 @@ export default function App() {
               <label>交易杠杆 (x)
                 <input value={userLevX} onChange={(e) => setUserLevX(e.target.value)} />
               </label>
-              <button className="ghost" disabled={busy} onClick={() => run(`设置交易杠杆 ${userLevX}x`, () => actions.setUserLeverage(ctx, userLevX))}>
+              <button className="ghost" disabled={busy} onClick={() => run(`设置交易杠杆 ${userLevX}x`, () => actions.setUserLeverage(ctx, pairId, userLevX))}>
                 设置交易杠杆
               </button>
               <span className="small">
@@ -405,15 +416,15 @@ export default function App() {
             </div>
             <div className="formgrid">
               <label>Side
-                <select value={dir} onChange={(e) => setDir(Number(e.target.value) as 0 | 1)}>
-                  <option value={0}>LONG</option>
-                  <option value={1}>SHORT</option>
+                <select value={dir} onChange={(e) => setDir(Number(e.target.value) as 1 | 2)}>
+                  <option value={1}>LONG</option>
+                  <option value={2}>SHORT</option>
                 </select>
               </label>
               <label>Amount (BTC)
                 <input value={amount} onChange={(e) => setAmount(e.target.value)} />
               </label>
-              <label>Keeper reward ({settle})
+              <label>Keeper reward (SOL)
                 <input value={reward} onChange={(e) => setReward(e.target.value)} />
               </label>
               <label>Good-till (min)
@@ -424,10 +435,10 @@ export default function App() {
               disabled={busy}
               onClick={() =>
                 run("place limit order", () =>
-                  actions.placeLimitOrder(ctx, {
+                  actions.placeLimitOrder(ctx, pairId, {
                     direction: dir,
                     amountBtc: amount,
-                    rewardGasUsdc: reward,
+                    rewardGasSol: reward,
                     goodTillMinutes: goodTill,
                   })
                 )
@@ -477,6 +488,7 @@ export default function App() {
 
           <TradePanel
             ctx={ctx}
+            pairId={pairId}
             mark={price}
             userLev={userLev}
             busy={busy}

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import * as actions from "./actions";
-import { Ctx } from "./solana";
-// 合约名来自 ctx.pairName（随交易对切换）
+import * as actions from "./index";
+import { SignCtx } from "./ctx";
+import { pairNameById } from "./config";
+// 合约名来自 pairNameById(pairId)（随交易对切换）
 
 type Tab = "pos" | "orders" | "histOrders" | "histTrades" | "funds";
 
@@ -16,10 +17,11 @@ const f2 = (n: number) => (Number.isFinite(n) ? n.toLocaleString(undefined, { ma
 const f4 = (n: number) => (Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—");
 const pct = (n: number) => (Number.isFinite(n) ? n.toFixed(2) + "%" : "—");
 const ts = (t: number) => (t ? new Date(t * 1000).toLocaleString() : "—");
-const sideZh = (d: number) => (d === 0 ? "做多" : "做空");
+const sideZh = (d: number) => (d === 1 ? "做多" : "做空"); // 1=LONG 2=SHORT (EVM)
 
 interface Props {
-  ctx: Ctx;
+  ctx: SignCtx;
+  pairId: number; // active trading pair (passed explicitly, no longer on ctx)
   mark: number | null; // live mark price (human)
   userLev: number | null;
   busy: boolean;
@@ -28,7 +30,7 @@ interface Props {
   onRefresh: () => Promise<void> | void; // refresh App-level balances
 }
 
-export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, onRefresh }: Props) {
+export default function TradePanel({ ctx, pairId, mark, userLev, busy, setBusy, append, onRefresh }: Props) {
   const [tab, setTab] = useState<Tab>("pos");
   const [positions, setPositions] = useState<actions.MyPosition[]>([]);
   const [orders, setOrders] = useState<actions.OpenOrder[]>([]);
@@ -39,13 +41,16 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
 
   const loadPosOrders = useCallback(async () => {
     try {
-      const [p, o] = await Promise.all([actions.getMyPositions(ctx), actions.getMyOpenOrders(ctx)]);
+      const [p, o] = await Promise.all([
+        actions.getMyPositions(ctx, pairId),
+        actions.getMyOpenOrders(ctx, pairId),
+      ]);
       setPositions(p);
       setOrders(o);
     } catch (e: any) {
       append(`⚠ 加载持仓/委托: ${e.message || e}`);
     }
-  }, [ctx, append]);
+  }, [ctx, pairId, append]);
 
   useEffect(() => {
     loadPosOrders();
@@ -55,7 +60,7 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
     async (reset: boolean) => {
       setTradeBusy(true);
       try {
-        const { rows, nextBefore } = await actions.getTradeHistoryPaged(ctx, reset ? undefined : tradeBefore || undefined, 25);
+        const { rows, nextBefore } = await actions.getTradeHistoryPaged(ctx, pairId, reset ? undefined : tradeBefore || undefined, 25);
         setTrades((cur) => (reset ? rows : [...cur, ...rows]));
         setTradeBefore(nextBefore);
       } catch (e: any) {
@@ -64,7 +69,7 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
         setTradeBusy(false);
       }
     },
-    [ctx, tradeBefore, append]
+    [ctx, pairId, tradeBefore, append]
   );
 
   // action runner: busy + log + reload local + App refresh
@@ -88,7 +93,7 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
     const head = ["时间", "合约", "方向", "成交均价", "数量", "手续费", "已实现盈亏", "回报率", "仓位状态"];
     const lines = trades.map((t) => {
       const roi = t.amountBtc * t.costPrice > 0 ? (t.realizedPnl * lev) / (t.amountBtc * t.costPrice) * 100 : 0;
-      return [ts(t.time), ctx.pairName, sideZh(t.direction), t.price, t.amountBtc, t.feeUsdc, t.realizedPnl, roi.toFixed(2) + "%", actions.orderTypeLabel(t.orderType)].join(",");
+      return [ts(t.time), pairNameById(pairId), sideZh(t.direction), t.price, t.amountBtc, t.feeUsdc, t.realizedPnl, roi.toFixed(2) + "%", actions.orderTypeLabel(t.orderType)].join(",");
     });
     const csv = [head.join(","), ...lines].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -138,10 +143,10 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
             <tbody>
               {positions.map((p, i) => {
                 const m = mark ?? 0;
-                const pnl = (p.direction === 0 ? m - p.avgEntry : p.avgEntry - m) * p.sizeBtc;
+                const pnl = (p.direction === 1 ? m - p.avgEntry : p.avgEntry - m) * p.sizeBtc;
                 const roi = p.marginUsdc > 0 ? (pnl / p.marginUsdc) * 100 : 0;
                 const liq =
-                  p.direction === 0
+                  p.direction === 1
                     ? p.avgEntry - (p.marginUsdc * (1 - actions.MMR)) / p.sizeBtc
                     : p.avgEntry + (p.marginUsdc * (1 - actions.MMR)) / p.sizeBtc;
                 const notional = p.sizeBtc * m;
@@ -149,9 +154,9 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
                 return (
                   <tr key={i}>
                     <td>{i + 1}</td>
-                    <td>{ctx.pairName}</td>
+                    <td>{pairNameById(pairId)}</td>
                     <td>{f4(p.sizeBtc)}</td>
-                    <td style={{ color: p.direction === 0 ? "#3fb950" : "#f85149" }}>{sideZh(p.direction)}</td>
+                    <td style={{ color: p.direction === 1 ? "#3fb950" : "#f85149" }}>{sideZh(p.direction)}</td>
                     <td>${f2(p.avgEntry)}</td>
                     <td>{mark ? "$" + f2(m) : "—"}</td>
                     <td>${f2(liq)}</td>
@@ -163,7 +168,7 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
                     <td style={{ whiteSpace: "nowrap" }}>
                       <button
                         disabled={busy || !mark}
-                        onClick={() => act(`平仓 ${sideZh(p.direction)} ${f4(p.sizeBtc)}`, () => actions.closePosition(ctx, p, mark!))}
+                        onClick={() => act(`平仓 ${sideZh(p.direction)} ${f4(p.sizeBtc)}`, () => actions.closePosition(ctx, pairId, p, mark!))}
                       >
                         市价平仓
                       </button>{" "}
@@ -195,15 +200,15 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
                 <tr key={o.orderSeq.toString()}>
                   <td>{o.orderSeq.toString()}</td>
                   <td>{ts(o.startTime)}</td>
-                  <td>{ctx.pairName}</td>
+                  <td>{pairNameById(pairId)}</td>
                   <td>{ORDER_KIND_LABEL[o.orderKind] ?? o.orderKind}</td>
-                  <td style={{ color: o.direction === 0 ? "#3fb950" : "#f85149" }}>{sideZh(o.direction)}</td>
+                  <td style={{ color: o.direction === 1 ? "#3fb950" : "#f85149" }}>{sideZh(o.direction)}</td>
                   <td>${f2(Number(o.targetPrice1e9) / 1e9)}</td>
                   <td>${f2(Number(o.targetPrice1e9) / 1e9)}</td>
                   <td>{f4(Number(o.amount1e9) / 1e9)}</td>
                   <td>0</td>
                   <td>
-                    <button disabled={busy} onClick={() => act(`撤单 #${o.orderSeq}`, () => actions.cancelOrder(ctx, o.orderSeq, o.direction))}>
+                    <button disabled={busy} onClick={() => act(`撤单 #${o.orderSeq}`, () => actions.cancelOrder(ctx, pairId, o.orderSeq, o.direction, o.orderKind))}>
                       撤单
                     </button>
                   </td>
@@ -238,8 +243,8 @@ export default function TradePanel({ ctx, mark, userLev, busy, setBusy, append, 
                       <tr key={i}>
                         <td>{i + 1}</td>
                         <td>{ts(t.time)}</td>
-                        <td>{ctx.pairName}</td>
-                        <td style={{ color: t.direction === 0 ? "#3fb950" : "#f85149" }}>{sideZh(t.direction)}</td>
+                        <td>{pairNameById(pairId)}</td>
+                        <td style={{ color: t.direction === 1 ? "#3fb950" : "#f85149" }}>{sideZh(t.direction)}</td>
                         <td>${f2(t.price)}</td>
                         <td>{f4(t.amountBtc)}</td>
                         <td>{f4(t.feeUsdc)}</td>

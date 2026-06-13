@@ -43,8 +43,9 @@ export const userAccount = (owner: PublicKey, mint = USDC_MINT) =>
   find([enc("user_account"), mint.toBuffer(), owner.toBuffer()], PERP_CORE);
 export const userLeverage = (owner: PublicKey, pairId: number, mint = USDC_MINT) =>
   find([enc("user_leverage"), mint.toBuffer(), u16le(pairId), owner.toBuffer()], PERP_CORE);
-export const position = (pairId: number, direction: number, mint = USDC_MINT) =>
-  find([enc("position"), mint.toBuffer(), u16le(pairId), Buffer.from([direction])], PERP_CORE);
+// 审计 C-1：Position PDA seeds 必须含 owner（与链上一致），否则会读到/写到别人的共享仓位。
+export const position = (owner: PublicKey, pairId: number, direction: number, mint = USDC_MINT) =>
+  find([enc("position"), mint.toBuffer(), u16le(pairId), Buffer.from([direction]), owner.toBuffer()], PERP_CORE);
 export const limitedOrder = (orderSeq: bigint, mint = USDC_MINT) =>
   find([enc("limited_order"), mint.toBuffer(), u64le(orderSeq)], PERP_CORE);
 export const triggerCondition = (orderSeq: bigint, mint = USDC_MINT) =>

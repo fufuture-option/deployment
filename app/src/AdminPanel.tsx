@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { Ctx } from "./solana";
-import * as actions from "./actions";
-import { fromUnits } from "./actions";
-import { USDC_DECIMALS, PAIR_ID } from "./config";
+import { SignCtx, fromUnits } from "./ctx";
+import * as actions from "./index";
+import { USDC_DECIMALS, PAIR_ID, settleLabel } from "./config";
 
 const PAIR_STATUS: Record<number, string> = { 0: "正常", 1: "暂停", 2: "下线" };
 const POOL_TYPE: Record<number, string> = { 1: "PUBLIC", 2: "PRIVATE", 3: "MIXED", 4: "REFUSE" };
 const POOL_STATUS: Record<number, string> = { 0: "active", 1: "paused", 2: "offline" };
 
-export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: string) => void }) {
+export default function AdminPanel({
+  ctx,
+  decimals,
+  append,
+}: {
+  ctx: SignCtx;
+  decimals: number; // active settle-mint decimals (passed in; no longer on ctx)
+  append: (m: string) => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [amAdmin, setAmAdmin] = useState<boolean | null>(null);
   const [glob, setGlob] = useState<actions.GlobalCfg | null>(null);
@@ -86,7 +93,7 @@ export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: stri
       if (po) {
         setPoolStatus(po.status);
         setPoolType(po.poolType);
-        setPoolMin(fromUnits(po.privateMinProvide, ctx.mintDecimals));
+        setPoolMin(fromUnits(po.privateMinProvide, decimals));
       }
       // heavy reads (getProgramAccounts) — sequential + spaced (public devnet 429).
       const prs = await actions.listPairs(ctx);
@@ -157,7 +164,7 @@ export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: stri
           <Stat label="结算币" v={`${mints.length} 个`} />
           <Stat label="交易对" v={`${pairs.length} 个`} />
           <Stat label="做市账户" v={`${lps.length} 个`} />
-          <Stat label="当前结算币" v={ctx.settleName} />
+          <Stat label="当前结算币" v={settleLabel(ctx.mint.toBase58())} />
         </div>
         <div className="small mono" style={{ marginBottom: 6 }}>连接身份：{ctx.wallet.toBase58()}</div>
         {amAdmin == null ? (
@@ -434,16 +441,16 @@ export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: stri
 
       {/* ───── ④ 流动性池（当前结算币）───── */}
       <section className="card">
-        <h2>④ 流动性池 · {ctx.settleName}</h2>
+        <h2>④ 流动性池 · {settleLabel(ctx.mint.toBase58())}</h2>
         <p className="small">
-          当前结算币 <b>{ctx.settleName}</b> 的资金池与做市账户。要管理其它结算币的池，请在用户页顶部切换结算币。
+          当前结算币 <b>{settleLabel(ctx.mint.toBase58())}</b> 的资金池与做市账户。要管理其它结算币的池，请在用户页顶部切换结算币。
         </p>
         {pool ? (
           <div className="grid" style={{ margin: "12px 0" }}>
             <Stat label="池类型" v={POOL_TYPE[pool.poolType] ?? String(pool.poolType)} />
             <Stat label="状态" v={POOL_STATUS[pool.status] ?? String(pool.status)} />
-            <Stat label="私有最小入金" v={fmt(pool.privateMinProvide, ctx.mintDecimals)} />
-            <Stat label="总锁定流动性" v={fmt(pool.totalLockedLiquidity, ctx.mintDecimals)} />
+            <Stat label="私有最小入金" v={fmt(pool.privateMinProvide, decimals)} />
+            <Stat label="总锁定流动性" v={fmt(pool.totalLockedLiquidity, decimals)} />
           </div>
         ) : (
           <p className="small">该结算币的池未初始化（在 ② 添加结算币）。</p>
@@ -466,7 +473,7 @@ export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: stri
               <option value={2}>2 · offline</option>
             </select>
           </label>
-          <label>私有最小入金 ({ctx.settleName})
+          <label>私有最小入金 ({settleLabel(ctx.mint.toBase58())})
             <input value={poolMin} onChange={(e) => setPoolMin(e.target.value)} />
           </label>
         </div>
@@ -494,9 +501,9 @@ export default function AdminPanel({ ctx, append }: { ctx: Ctx; append: (m: stri
               {lps.map((l) => (
                 <tr key={l.holder}>
                   <td className="mono">{short(l.holder)}</td>
-                  <td>{fmt(l.amount, ctx.mintDecimals)}</td>
-                  <td>{fmt(l.available, ctx.mintDecimals)}</td>
-                  <td>{fmt(l.locked, ctx.mintDecimals)}</td>
+                  <td>{fmt(l.amount, decimals)}</td>
+                  <td>{fmt(l.available, decimals)}</td>
+                  <td>{fmt(l.locked, decimals)}</td>
                   <td>{l.leverageX}x</td>
                   <td>{l.rejectOrder ? "暂停" : "正常"}</td>
                 </tr>

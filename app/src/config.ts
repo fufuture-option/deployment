@@ -30,13 +30,24 @@ export interface PairOption {
 // The keeper settles each pair via its configured oracle; the frontend only needs the
 // Pyth feed for the display price + the make_limit_order target.
 export const PAIRS: PairOption[] = [
-  { id: 1, name: "BTC/USD", pythFeedHex: "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" },
-  { id: 2, name: "ETH/USD", pythFeedHex: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace" },
+  { id: 1, name: "BTC", pythFeedHex: "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43" },
+  { id: 2, name: "ETH", pythFeedHex: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace" },
 ];
-// Backward-compat defaults (= PAIRS[0]); active pair now flows through Ctx.
+// Backward-compat defaults (= PAIRS[0]); active pair now flows through an explicit pairId param.
 export const PAIR_ID = PAIRS[0].id;
 export const PAIR_NAME = PAIRS[0].name;
 export const PYTH_FEED_ID = PAIRS[0].pythFeedHex;
+
+// --- Pair lookup helpers (pairId is now passed explicitly, not carried on ctx) ---
+export const pairById = (id: number): PairOption | undefined => PAIRS.find((p) => p.id === id);
+export const pairNameById = (id: number): string => pairById(id)?.name ?? `pair${id}`;
+// Pyth feed for a pair's live price display + make_limit_order target. Throws if the
+// pair isn't in PAIRS (the user page only ever trades configured pairs).
+export const feedHexByPair = (id: number): string => {
+  const p = pairById(id);
+  if (!p) throw new Error(`pair ${id} 未在 PAIRS 配置 Pyth feed`);
+  return p.pythFeedHex;
+};
 // Hermes price endpoint (used only to show the live price for context)
 export const HERMES_URL = "https://hermes.pyth.network";
 

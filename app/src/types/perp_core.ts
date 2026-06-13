@@ -643,38 +643,38 @@ export type PerpCore = {
             "program": {
               "kind": "const",
               "value": [
-                9,
-                40,
-                118,
-                248,
-                39,
-                123,
-                173,
-                180,
-                187,
-                220,
-                253,
-                176,
-                116,
-                193,
-                202,
-                27,
-                138,
-                252,
-                93,
-                197,
-                226,
-                136,
-                174,
+                255,
+                6,
+                231,
+                244,
+                231,
                 159,
-                178,
-                156,
-                127,
+                5,
+                8,
+                8,
                 31,
-                251,
-                118,
-                135,
-                175
+                131,
+                255,
+                141,
+                169,
+                91,
+                177,
+                30,
+                40,
+                156,
+                45,
+                113,
+                98,
+                55,
+                149,
+                173,
+                69,
+                193,
+                25,
+                126,
+                184,
+                188,
+                117
               ]
             }
           }
@@ -711,6 +711,28 @@ export type PerpCore = {
           "name": "commissionAccount",
           "docs": [
             "commission_account（Option，taker 已绑定 inviter 时传，init_if_needed）。"
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "inviterInviteRelation",
+          "docs": [
+            "inviter A 的邀请关系（情况B：用于校验 A 的上级 B）。"
+          ],
+          "optional": true
+        },
+        {
+          "name": "topAgent",
+          "docs": [
+            "top agent 白名单标记 PDA。"
+          ],
+          "optional": true
+        },
+        {
+          "name": "topCommissionAccount",
+          "docs": [
+            "情况B 的 top agent 累计佣金账户（init_if_needed）。"
           ],
           "writable": true,
           "optional": true
@@ -1102,68 +1124,6 @@ export type PerpCore = {
               }
             ]
           }
-        },
-        {
-          "name": "vaultAuthority",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  97,
-                  117,
-                  116,
-                  104
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "vaultToken",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "keeperTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -4117,42 +4077,6 @@ export type PerpCore = {
           "optional": true
         },
         {
-          "name": "vaultToken",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "keeperTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -4494,48 +4418,6 @@ export type PerpCore = {
           "optional": true
         },
         {
-          "name": "vaultToken",
-          "docs": [
-            "Perp vault token —— reward_gas 从这里转出。"
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "keeperTokenAccount",
-          "docs": [
-            "Keeper 的 token account —— 接收 reward_gas。"
-          ],
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -4826,42 +4708,6 @@ export type PerpCore = {
           "name": "lpPosition",
           "writable": true,
           "optional": true
-        },
-        {
-          "name": "vaultToken",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "keeperTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -5200,42 +5046,6 @@ export type PerpCore = {
           "name": "lpPosition",
           "writable": true,
           "optional": true
-        },
-        {
-          "name": "vaultToken",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "settleMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "keeperTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -6348,8 +6158,43 @@ export type PerpCore = {
     },
     {
       "code": 6080,
+      "name": "stopTakeOrderDisabled",
+      "msg": "Stop-take (TP/SL) orders are disabled (global switch / per-pair override)"
+    },
+    {
+      "code": 6081,
       "name": "invalidOrderSwitch",
       "msg": "Order switch value invalid (must be <= 0b11)"
+    },
+    {
+      "code": 6082,
+      "name": "invalidTriggerDealSeq",
+      "msg": "Trigger-created deal_seq must be >= TRIGGER_DEAL_SEQ_BASE (high range)"
+    },
+    {
+      "code": 6083,
+      "name": "goodTillMustBeFuture",
+      "msg": "good_till must be in the future (good_till > now)"
+    },
+    {
+      "code": 6084,
+      "name": "withdrawBlockedByUnrealizedLoss",
+      "msg": "Withdraw blocked: available must cover amount + unrealized loss"
+    },
+    {
+      "code": 6085,
+      "name": "withdrawPnlAccountsMismatch",
+      "msg": "Withdraw PnL remaining_accounts must be groups of 3 [position, pair_config, price_update]"
+    },
+    {
+      "code": 6086,
+      "name": "withdrawPnlAccountsUnordered",
+      "msg": "Withdraw PnL positions must be passed in strictly increasing (pair_id, direction) order"
+    },
+    {
+      "code": 6087,
+      "name": "withdrawPnlAccountInvalid",
+      "msg": "Withdraw PnL remaining account is not a valid program-owned account"
     }
   ],
   "types": [
@@ -6971,8 +6816,8 @@ export type PerpCore = {
           {
             "name": "orderSwitch",
             "docs": [
-              "下单类型「全局总闸」bitmask（bit0=市价, bit1=限价；1=允许）。",
-              "默认 `ORDER_SWITCH_ALL` (0b11) = 两类都开。各 pair 可用 `PairConfig.order_override_*` 覆盖。"
+              "下单类型「全局总闸」bitmask（bit0=市价, bit1=限价, bit2=止盈止损/条件单；1=允许）。",
+              "默认 `ORDER_SWITCH_ALL` (0b111) = 三类都开。各 pair 可用 `PairConfig.order_override_*` 覆盖。"
             ],
             "type": "u8"
           },
@@ -7331,7 +7176,8 @@ export type PerpCore = {
           {
             "name": "rewardGas",
             "docs": [
-              "用户预付的 keeper 触发报酬（base units，settle_mint，即 USDC）。"
+              "用户预付的 keeper 触发报酬，**原生 SOL（lamports）**，托管在本订单 PDA 的 lamports 里",
+              "（对齐 EVM 的 `msg.value` ETH 报酬）。触发时划给 keeper；撤单 / 过期随 PDA 关闭退回。"
             ],
             "type": "u64"
           },
@@ -7914,6 +7760,14 @@ export type PerpCore = {
             "type": "u16"
           },
           {
+            "name": "pairName",
+            "docs": [
+              "EVM 对应 `OrderHistory.name`：交易对名称（来自 `PairConfig.name`，如 \"BTC/USD\"）。",
+              "缺 `pair_config` 上下文的发出点（trigger_limit_close / expire_order）填空串。"
+            ],
+            "type": "string"
+          },
+          {
             "name": "settleMint",
             "type": "pubkey"
           },
@@ -8313,7 +8167,8 @@ export type PerpCore = {
       "name": "position",
       "docs": [
         "用户在某 (settle_mint, pair_id, direction) 上的聚合仓位（direction: 0=LONG, 1=SHORT）。",
-        "PDA seeds: [\"position\", settle_mint, pair_id_le_bytes, direction]"
+        "PDA seeds: [\"position\", settle_mint, pair_id_le_bytes, direction, owner]",
+        "注意：seeds 必须包含 `owner`，否则全体用户会共享同一仓位账户（见审计 C-1）。"
       ],
       "type": {
         "kind": "struct",
@@ -9587,7 +9442,8 @@ export type PerpCore = {
           {
             "name": "depositAmount",
             "docs": [
-              "累计入金（不随 withdraw 增加；用于审计）。"
+              "权益基数：deposit 时 +amount；withdraw 时 -min(amount, deposit)；平仓/清算的 gain/loss/fee 也会调整。",
+              "用作清算风控的 coverage 基数（**会随提现与盈亏变化，并非只增的累计入金**）。"
             ],
             "type": "u64"
           },
@@ -9677,9 +9533,9 @@ export type PerpCore = {
           {
             "name": "leverage",
             "docs": [
-              "用户设置的杠杆（1e18 精度）。",
-              "例：10x = 10 * 1e18 = 10_000_000_000_000_000_000。",
-              "必须在 [1e18, PairConfig.max_leverage] 范围内。",
+              "用户设置的杠杆（**1e9 精度**，9dp 分支）。",
+              "例：10x = 10 * 1e9 = 10_000_000_000。",
+              "必须在 [1e9 (1x), pair_config.default_leverage] 范围内。",
               "",
               "**v2 重构候选：可降为 `u32` 或 `u16` + \"0.1x 单位\"** —— 当前 `compute_open_fees`",
               "把 leverage 直接除 1e18 取整数倍数使用（小数全丢），1e18 精度从未真正发挥。",
