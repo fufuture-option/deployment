@@ -1,15 +1,23 @@
+// =====================================================================
+// pdas.ts — PDA 推导（程序 ID 动态注入）
+//
+// req3：不再 import config 的 PERP_CORE/LIQUIDITY_POOL/TREASURY/USDC_MINT 常量，
+// 改由 createPdas(ids, defaultMint) 注入。SPL 的 TOKEN_PROGRAM / ASSOCIATED_TOKEN_PROGRAM
+// 是固定系统程序（非按部署变化），仍从 config 取。
+// ctx 在构建时调用 createPdas，得到一个绑定了程序 ID + 默认 mint 的 `pda` 对象（见 ctx.ts）。
+// =====================================================================
 import { web3 } from "@anchor-lang/core";
-import {
-  PERP_CORE,
-  LIQUIDITY_POOL,
-  TREASURY,
-  USDC_MINT,
-  TOKEN_PROGRAM,
-  ASSOCIATED_TOKEN_PROGRAM,
-} from "./config";
+import { TOKEN_PROGRAM, ASSOCIATED_TOKEN_PROGRAM } from "./config";
 
 const { PublicKey } = web3;
 type PublicKey = web3.PublicKey;
+
+// 注入的三套程序 ID（按部署/环境变化）。
+export interface ProgramIds {
+  perp: PublicKey;
+  lp: PublicKey;
+  treasury: PublicKey;
+}
 
 const enc = (s: string) => Buffer.from(s);
 const u16le = (n: number) => Buffer.from([n & 0xff, (n >> 8) & 0xff]);
@@ -18,67 +26,72 @@ const u64le = (n: bigint) => {
   b.writeBigUInt64LE(n);
   return b;
 };
+// orderSeq 可能是 BigNumber / bigint / number，统一转 bigint 写 8 字节。
+const u64leOf = (v: { toString(): string }) => u64le(BigInt(v.toString()));
 
 const find = (seeds: Buffer[], program: PublicKey) =>
   PublicKey.findProgramAddressSync(seeds, program)[0];
 
-// --- perp_core PDAs ---
-export const globalConfig = () => find([enc("global_config")], PERP_CORE);
-export const keeperRegistry = () => find([enc("keeper_registry")], PERP_CORE);
-export const settleConfig = (mint = USDC_MINT) =>
-  find([enc("settle_config"), mint.toBuffer()], PERP_CORE);
-export const seqCounter = (mint = USDC_MINT) =>
-  find([enc("seq_counter"), mint.toBuffer()], PERP_CORE);
-export const vaultToken = (mint = USDC_MINT) =>
-  find([enc("vault_token"), mint.toBuffer()], PERP_CORE);
-export const vaultAuthority = (mint = USDC_MINT) =>
-  find([enc("vault_auth"), mint.toBuffer()], PERP_CORE);
-export const riskVaultAuthority = (mint = USDC_MINT) =>
-  find([enc("risk_vault_auth"), mint.toBuffer()], PERP_CORE);
-export const riskVaultToken = (mint = USDC_MINT) =>
-  find([enc("risk_vault_token"), mint.toBuffer()], PERP_CORE);
-export const pairConfig = (pairId: number) =>
-  find([enc("pair_config"), u16le(pairId)], PERP_CORE);
-export const userAccount = (owner: PublicKey, mint = USDC_MINT) =>
-  find([enc("user_account"), mint.toBuffer(), owner.toBuffer()], PERP_CORE);
-export const userLeverage = (owner: PublicKey, pairId: number, mint = USDC_MINT) =>
-  find([enc("user_leverage"), mint.toBuffer(), u16le(pairId), owner.toBuffer()], PERP_CORE);
-// 审计 C-1：Position PDA seeds 必须含 owner（与链上一致），否则会读到/写到别人的共享仓位。
-export const position = (owner: PublicKey, pairId: number, direction: number, mint = USDC_MINT) =>
-  find([enc("position"), mint.toBuffer(), u16le(pairId), Buffer.from([direction]), owner.toBuffer()], PERP_CORE);
-export const limitedOrder = (orderSeq: bigint, mint = USDC_MINT) =>
-  find([enc("limited_order"), mint.toBuffer(), u64le(orderSeq)], PERP_CORE);
-export const triggerCondition = (orderSeq: bigint, mint = USDC_MINT) =>
-  find([enc("trigger_cond"), mint.toBuffer(), u64le(orderSeq)], PERP_CORE);
+// Build a PDA helper bound to the given program IDs + default settle mint.
+// mint args default to `defaultMint`; pass an explicit mint to override per-call.
+export function createPdas(ids: ProgramIds, defaultMint: PublicKey) {
+  const { perp, lp, treasury } = ids;
+  const m = (mint?: PublicKey) => mint ?? defaultMint;
+  return {
+    // --- perp_core ---
+    globalConfig: () => find([enc("global_config")], perp),
+    keeperRegistry: () => find([enc("keeper_registry")], perp),
+    settleConfig: (mint?: PublicKey) => find([enc("settle_config"), m(mint).toBuffer()], perp),
+    seqCounter: (mint?: PublicKey) => find([enc("seq_counter"), m(mint).toBuffer()], perp),
+    vaultToken: (mint?: PublicKey) => find([enc("vault_token"), m(mint).toBuffer()], perp),
+    vaultAuthority: (mint?: PublicKey) => find([enc("vault_auth"), m(mint).toBuffer()], perp),
+    riskVaultAuthority: (mint?: PublicKey) =>
+      find([enc("risk_vault_auth"), m(mint).toBuffer()], perp),
+    riskVaultToken: (mint?: PublicKey) => find([enc("risk_vault_token"), m(mint).toBuffer()], perp),
+    pairConfig: (pairId: number) => find([enc("pair_config"), u16le(pairId)], perp),
+    userAccount: (owner: PublicKey, mint?: PublicKey) =>
+      find([enc("user_account"), m(mint).toBuffer(), owner.toBuffer()], perp),
+    userLeverage: (owner: PublicKey, pairId: number, mint?: PublicKey) =>
+      find([enc("user_leverage"), m(mint).toBuffer(), u16le(pairId), owner.toBuffer()], perp),
+    // 审计 C-1：Position PDA seeds 必须含 owner（与链上一致）。
+    position: (owner: PublicKey, pairId: number, direction: number, mint?: PublicKey) =>
+      find(
+        [enc("position"), m(mint).toBuffer(), u16le(pairId), Buffer.from([direction]), owner.toBuffer()],
+        perp
+      ),
+    limitedOrder: (orderSeq: { toString(): string }, mint?: PublicKey) =>
+      find([enc("limited_order"), m(mint).toBuffer(), u64leOf(orderSeq)], perp),
+    triggerCondition: (orderSeq: { toString(): string }, mint?: PublicKey) =>
+      find([enc("trigger_cond"), m(mint).toBuffer(), u64leOf(orderSeq)], perp),
 
-// --- liquidity_pool PDAs ---
-export const poolConfig = (mint = USDC_MINT) =>
-  find([enc("pool_config"), mint.toBuffer()], LIQUIDITY_POOL);
-export const poolVault = (mint = USDC_MINT) =>
-  find([enc("pool_vault_token"), mint.toBuffer()], LIQUIDITY_POOL);
-export const poolVaultAuthority = (mint = USDC_MINT) =>
-  find([enc("pool_vault_auth"), mint.toBuffer()], LIQUIDITY_POOL);
-export const lpAccount = (holder: PublicKey, mint = USDC_MINT) =>
-  find([enc("lp_account"), mint.toBuffer(), holder.toBuffer()], LIQUIDITY_POOL);
-export const escrowAuthority = (mint = USDC_MINT) =>
-  find([enc("escrow_authority"), mint.toBuffer()], LIQUIDITY_POOL);
-export const publicShare = (owner: PublicKey, mint = USDC_MINT) =>
-  find([enc("public_share"), mint.toBuffer(), owner.toBuffer()], LIQUIDITY_POOL);
+    // --- liquidity_pool ---
+    poolConfig: (mint?: PublicKey) => find([enc("pool_config"), m(mint).toBuffer()], lp),
+    poolVault: (mint?: PublicKey) => find([enc("pool_vault_token"), m(mint).toBuffer()], lp),
+    poolVaultAuthority: (mint?: PublicKey) => find([enc("pool_vault_auth"), m(mint).toBuffer()], lp),
+    lpAccount: (holder: PublicKey, mint?: PublicKey) =>
+      find([enc("lp_account"), m(mint).toBuffer(), holder.toBuffer()], lp),
+    escrowAuthority: (mint?: PublicKey) => find([enc("escrow_authority"), m(mint).toBuffer()], lp),
+    publicShare: (owner: PublicKey, mint?: PublicKey) =>
+      find([enc("public_share"), m(mint).toBuffer(), owner.toBuffer()], lp),
 
-// --- treasury PDAs (referral / commission) ---
-export const inviteRelation = (invitee: PublicKey) =>
-  find([enc("invite"), invitee.toBuffer()], TREASURY);
-export const commissionAccount = (inviter: PublicKey, mint = USDC_MINT) =>
-  find([enc("commission"), inviter.toBuffer(), mint.toBuffer()], TREASURY);
-export const treasuryConfig = () => find([enc("treasury_config")], TREASURY);
-export const treasuryVault = (mint = USDC_MINT) =>
-  find([enc("treasury_vault_token"), mint.toBuffer()], TREASURY);
-export const treasuryVaultAuthority = (mint = USDC_MINT) =>
-  find([enc("treasury_vault_auth"), mint.toBuffer()], TREASURY);
+    // --- treasury (referral / commission) ---
+    inviteRelation: (invitee: PublicKey) => find([enc("invite"), invitee.toBuffer()], treasury),
+    commissionAccount: (inviter: PublicKey, mint?: PublicKey) =>
+      find([enc("commission"), inviter.toBuffer(), m(mint).toBuffer()], treasury),
+    treasuryConfig: () => find([enc("treasury_config")], treasury),
+    treasuryVault: (mint?: PublicKey) =>
+      find([enc("treasury_vault_token"), m(mint).toBuffer()], treasury),
+    treasuryVaultAuthority: (mint?: PublicKey) =>
+      find([enc("treasury_vault_auth"), m(mint).toBuffer()], treasury),
 
-// --- associated token account ---
-export const ata = (owner: PublicKey, mint = USDC_MINT) =>
-  find(
-    [owner.toBuffer(), TOKEN_PROGRAM.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_PROGRAM
-  );
+    // --- associated token account (SPL programs are fixed, not injected) ---
+    ata: (owner: PublicKey, mint?: PublicKey) =>
+      find(
+        [owner.toBuffer(), TOKEN_PROGRAM.toBuffer(), m(mint).toBuffer()],
+        ASSOCIATED_TOKEN_PROGRAM
+      ),
+  };
+}
+
+// The bound PDA helper type (what ctx.pda is).
+export type Pdas = ReturnType<typeof createPdas>;

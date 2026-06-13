@@ -2,21 +2,19 @@
 // ctx.ts — 基础设施层（被 reads-*/ops-* 共用）
 //
 // 两个上下文：
-//   PullCtx { connection, wallet, mint }                      — 只读，不含 Program
-//   SignCtx { phantom, connection, wallet, mint, perp,lp,treasury } — 写操作，含 Anchor Program
-// SignCtx 结构上是 PullCtx 的超集，所以写方法里可直接把 signCtx 当 PullCtx 传给读方法。
+//   PullCtx { connection, wallet, mint, programs, pda }                 — 只读
+//   SignCtx { phantom, connection, wallet, mint, perp,lp,treasury, programs, pda } — 写
+// SignCtx 结构上是 PullCtx 的超集；写方法里可直接把 signCtx 当 PullCtx 传给读方法。
 //
-// 读方法不依赖 Program：本文件用 IDL 现场构建 BorshCoder（perpCoder/lpCoder），
-// 读方法用它解码 getAccountInfo/getProgramAccounts 的原始字节、以及 EventParser 解析日志。
+// req1：数值统一用 ethers v5 `BigNumber`（对齐同事 SldDecimal/ethers 栈）。
+// req3：程序 ID（perp/lp/treasury）+ 默认 mint 动态注入 —— 经 builders 传入，绑定到 ctx.pda
+//        与 ctx.programs；config 里的常量只作为 builders 的默认值。
+// 读方法不依赖 Program：用 IDL 现场构建 BorshCoder（perpCoder/lpCoder）解码。
 // =====================================================================
 import { AnchorProvider, BN, BorshCoder, Program, utils, web3 } from "@anchor-lang/core";
-import {
-  RPC_URL,
-  RPC_FALLBACK,
-  PERP_CORE,
-  LIQUIDITY_POOL,
-  USDC_MINT,
-} from "./config";
+import { BigNumber } from "ethers";
+import { PERP_CORE, LIQUIDITY_POOL, TREASURY, USDC_MINT } from "./config";
+import { createPdas, Pdas, ProgramIds } from "./pdas";
 import perpIdl from "./idl/perp_core.json";
 import lpIdl from "./idl/liquidity_pool.json";
 import treasuryIdl from "./idl/treasury.json";
@@ -29,8 +27,9 @@ type Connection = web3.Connection;
 type PublicKey = web3.PublicKey;
 type TransactionInstruction = web3.TransactionInstruction;
 
-// Re-export the Anchor-generated program types + handy aliases.
+// Re-export the Anchor-generated program types + handy aliases + pda types.
 export type { PerpCore, LiquidityPool, Treasury };
+export type { Pdas, ProgramIds };
 export type PerpProgram = Program<PerpCore>;
 export type LpProgram = Program<LiquidityPool>;
 export type TreasuryProgram = Program<Treasury>;
@@ -77,6 +76,8 @@ export interface PullCtx {
   connection: Connection;
   wallet: PublicKey;
   mint: PublicKey; // active settle currency (collateral); defaults to USDC.
+  programs: ProgramIds; // injected program IDs (perp/lp/treasury)
+  pda: Pdas; // PDA helper bound to programs + mint
 }
 
 export interface SignCtx {
@@ -87,14 +88,25 @@ export interface SignCtx {
   perp: PerpProgram;
   lp: LpProgram;
   treasury: TreasuryProgram;
+  programs: ProgramIds;
+  pda: Pdas;
 }
+
+// builder 选项：覆盖默认 mint / 程序 ID（不传 = 用 config 默认）。
+export interface CtxOpts {
+  mint?: PublicKey;
+  programs?: Partial<ProgramIds>;
+}
+const resolvePrograms = (p?: Partial<ProgramIds>): ProgramIds => ({
+  perp: p?.perp ?? PERP_CORE,
+  lp: p?.lp ?? LIQUIDITY_POOL,
+  treasury: p?.treasury ?? TREASURY,
+});
 
 // ---------------------------------------------------------------------
 // Connection 构建（Alchemy 主 + 公共 fallback 兜 getProgramAccounts）
 // ---------------------------------------------------------------------
-// Build the primary (Alchemy) connection but route getProgramAccounts to the
-// public fallback — Alchemy's free tier blocks getProgramAccounts. Everything
-// else stays on the fast/high-limit primary.
+import { RPC_URL, RPC_FALLBACK } from "./config";
 export function makeConnection(): Connection {
   const primary = new Connection(RPC_URL, "confirmed");
   if (!RPC_FALLBACK || RPC_FALLBACK === RPC_URL) return primary;
@@ -102,7 +114,7 @@ export function makeConnection(): Connection {
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const routeToFallback = (method: "getProgramAccounts" | "getProgramAccountsWithOpts") => {
     const orig = (fallback as any)[method];
-    if (typeof orig !== "function") return; // method not present in this web3.js build
+    if (typeof orig !== "function") return;
     const fn = orig.bind(fallback);
     (primary as any)[method] = async (...args: any[]) => {
       let delay = 600;
@@ -113,7 +125,7 @@ export function makeConnection(): Connection {
           const is429 = /429|too many requests/i.test(String(e?.message || e));
           if (attempt >= 2 || !is429) throw e;
           await sleep(delay);
-          delay *= 2; // 600ms -> 1.2s -> 2.4s
+          delay *= 2;
         }
       }
     };
@@ -124,51 +136,58 @@ export function makeConnection(): Connection {
 }
 
 // ---------------------------------------------------------------------
-// 上下文 builders（同事也可在自己 wallet 层自行拼装这两个对象）
+// 上下文 builders（同事可传 opts 注入自己的程序 ID / mint；不传 = config 默认）
 // ---------------------------------------------------------------------
-// Build a SignCtx from a connected Phantom. Builds the 3 Anchor Programs (these are
-// what signCtx.perp/lp/treasury are). mint defaults to USDC (admin pins USDC; the
-// user-page settle selector passes another mint here / via withMint).
-export function makeSignCtx(phantom: Phantom, mint: PublicKey = USDC_MINT): SignCtx {
+// Patch idl.address so a (possibly overridden) program id is used (default = idl's own).
+const withAddr = (idl: any, addr: PublicKey) => ({ ...idl, address: addr.toBase58() });
+
+export function makeSignCtx(phantom: Phantom, opts?: CtxOpts): SignCtx {
   const connection = makeConnection();
+  const programs = resolvePrograms(opts?.programs);
+  const mint = opts?.mint ?? USDC_MINT;
   const provider = new AnchorProvider(connection, new PhantomWalletAdapter(phantom) as any, {
     commitment: "confirmed",
   });
-  // Type from types/*.ts; runtime IDL data from idl/*.json.
-  const perp = new Program<PerpCore>(perpIdl as PerpCore, provider);
-  const lp = new Program<LiquidityPool>(lpIdl as LiquidityPool, provider);
-  const treasury = new Program<Treasury>(treasuryIdl as Treasury, provider);
-  return { phantom, connection, wallet: phantom.publicKey!, mint, perp, lp, treasury };
+  const perp = new Program<PerpCore>(withAddr(perpIdl, programs.perp) as PerpCore, provider);
+  const lp = new Program<LiquidityPool>(withAddr(lpIdl, programs.lp) as LiquidityPool, provider);
+  const treasury = new Program<Treasury>(withAddr(treasuryIdl, programs.treasury) as Treasury, provider);
+  return {
+    phantom,
+    connection,
+    wallet: phantom.publicKey!,
+    mint,
+    perp,
+    lp,
+    treasury,
+    programs,
+    pda: createPdas(programs, mint),
+  };
 }
 
-// Build a read-only PullCtx (no Program needed). Reuse an existing connection when you
-// have one (e.g. derive a pull view from a signCtx for read calls inside a write flow).
-export function makePullCtx(
-  connection: Connection,
-  wallet: PublicKey,
-  mint: PublicKey = USDC_MINT
-): PullCtx {
-  return { connection, wallet, mint };
+export function makePullCtx(connection: Connection, wallet: PublicKey, opts?: CtxOpts): PullCtx {
+  const programs = resolvePrograms(opts?.programs);
+  const mint = opts?.mint ?? USDC_MINT;
+  return { connection, wallet, mint, programs, pda: createPdas(programs, mint) };
 }
 
-// Switch the active settle currency on an existing ctx (reuses connection/programs —
-// only the mint changes). Generic over PullCtx/SignCtx.
-export function withMint<T extends { mint: PublicKey }>(ctx: T, mint: PublicKey): T {
-  return { ...ctx, mint };
+// Switch the active settle currency (reuses connection/programs; rebuilds the mint-bound pda).
+export function withMint<T extends { mint: PublicKey; programs: ProgramIds; pda: Pdas }>(
+  ctx: T,
+  mint: PublicKey
+): T {
+  return { ...ctx, mint, pda: createPdas(ctx.programs, mint) };
 }
 
 // ---------------------------------------------------------------------
 // 发交易 + 确认
 // ---------------------------------------------------------------------
-// HTTP-poll confirmation (avoids relying on WS signatureSubscribe).
 export async function confirm(connection: Connection, sig: string, timeoutMs = 60000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const st = (await connection.getSignatureStatuses([sig])).value[0];
     if (st) {
       if (st.err) throw new Error("tx failed: " + JSON.stringify(st.err));
-      if (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized")
-        return;
+      if (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized") return;
     }
     await new Promise((r) => setTimeout(r, 1200));
   }
@@ -193,11 +212,7 @@ export const perpCoder = new BorshCoder(perpIdl as any);
 export const lpCoder = new BorshCoder(lpIdl as any);
 export const treasuryCoder = new BorshCoder(treasuryIdl as any);
 
-// The standalone BorshCoder decodes account fields with the IDL's raw snake_case keys
-// (pair_id, oracle_source, …) — unlike Anchor's `program.account.<x>.fetch()`, which
-// camelCases them. We camelize so all read code (and the colleague's Program-based
-// expectations) keep using camelCase (a.pairId). Recurses plain objects + arrays only;
-// BN / PublicKey / Buffer values pass through untouched.
+// snake_case → camelCase（standalone BorshCoder 解出来是 snake_case；递归，保留 BN/PublicKey/Buffer）
 const toCamel = (s: string) => s.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 export function camelizeKeys(v: any): any {
   if (Array.isArray(v)) return v.map(camelizeKeys);
@@ -209,8 +224,6 @@ export function camelizeKeys(v: any): any {
   return v;
 }
 
-// Fetch one account and Borsh-decode it (null if missing). `name` is the IDL account
-// name (PascalCase, e.g. "PoolConfig"); returned fields are camelCase (a.pairId).
 export async function fetchAcct<T = any>(
   connection: Connection,
   coder: BorshCoder,
@@ -221,8 +234,6 @@ export async function fetchAcct<T = any>(
   return ai ? (camelizeKeys(coder.accounts.decode(name, ai.data)) as T) : null;
 }
 
-// Equivalent of Anchor's `program.account.<x>.all()` without a Program: filter the
-// program's accounts by the account discriminator, then decode (camelCase) each.
 export async function allAccts<T = any>(
   connection: Connection,
   coder: BorshCoder,
@@ -240,47 +251,50 @@ export async function allAccts<T = any>(
 }
 
 // ---------------------------------------------------------------------
-// 共享小工具
+// 数值工具（req1：统一 ethers v5 BigNumber）
 // ---------------------------------------------------------------------
-// Anchor 1.0 strictly types `.accountsStrict/.accountsPartial` against a resolver
-// type that rejects explicitly passing "auto-resolvable" accounts. We pass the full,
-// devnet-verified account set and cast the literal to bypass that type friction.
-// Method names + args still get full type-checking from Program<...>.
+// Anchor 1.0 strictly types `.accountsStrict/.accountsPartial`; pass the full devnet-
+// verified account set and cast the literal to bypass that type friction.
 export const A = (o: Record<string, PublicKey | null>) => o as any;
 
-// decimal string -> base units (no float)
-export function toUnits(s: string, decimals: number): bigint {
+// decimal string -> base units (BigNumber, no float; truncates excess fraction digits)
+export function toUnits(s: string, decimals: number): BigNumber {
   s = (s || "").trim();
-  if (!s) return 0n;
+  if (!s) return BigNumber.from(0);
   const [i, f = ""] = s.split(".");
   const frac = (f + "0".repeat(decimals)).slice(0, decimals);
-  return BigInt(i || "0") * 10n ** BigInt(decimals) + BigInt(frac || "0");
+  const v = BigInt(i || "0") * 10n ** BigInt(decimals) + BigInt(frac || "0");
+  return BigNumber.from(v.toString());
 }
-export function fromUnits(v: bigint, decimals: number): string {
-  const neg = v < 0n;
-  if (neg) v = -v;
+export function fromUnits(v: BigNumber, decimals: number): string {
+  let big = BigInt(v.toString());
+  const neg = big < 0n;
+  if (neg) big = -big;
   const base = 10n ** BigInt(decimals);
-  const whole = v / base;
-  const frac = (v % base).toString().padStart(decimals, "0").replace(/0+$/, "");
+  const whole = big / base;
+  const frac = (big % base).toString().padStart(decimals, "0").replace(/0+$/, "");
   return (neg ? "-" : "") + whole.toString() + (frac ? "." + frac : "");
 }
 
-export const bn = (v: bigint) => new BN(v.toString());
-export const big = (v: any): bigint => BigInt(v.toString());
+// Anchor BN from anything stringifiable (BigNumber / bigint / number / string).
+export const bn = (v: BigNumber | bigint | number | string) => new BN(v.toString());
+// Wrap an Anchor-decoded value (BN/number/string) into a BigNumber.
+export const big = (v: any): BigNumber => BigNumber.from(v.toString());
 
-export const readU128LE = (b: Buffer, o: number): bigint => {
+// little-endian readers → BigNumber
+export const u64 = (b: Buffer, o: number): BigNumber =>
+  BigNumber.from(b.readBigUInt64LE(o).toString());
+export const readU128LE = (b: Buffer, o: number): BigNumber => {
   let v = 0n;
   for (let i = 0; i < 16; i++) v += BigInt(b[o + i]) << (8n * BigInt(i));
-  return v;
+  return BigNumber.from(v.toString());
 };
 
-// True if the account exists on chain. Accepts any ctx with a connection (Pull/Sign).
 export async function exists(ctx: { connection: Connection }, k: PublicKey): Promise<boolean> {
   return (await ctx.connection.getAccountInfo(k)) !== null;
 }
 
-// SPL Mint decimals (byte @ offset 44), cached per mint. signCtx only carries the mint
-// pubkey (per the agreed shape), so amount-scaling ops resolve decimals on demand here.
+// SPL Mint decimals (byte @ offset 44), cached per mint.
 const _decimalsCache = new Map<string, number>();
 export async function mintDecimals(connection: Connection, mint: PublicKey): Promise<number> {
   const key = mint.toBase58();
@@ -292,5 +306,3 @@ export async function mintDecimals(connection: Connection, mint: PublicKey): Pro
   _decimalsCache.set(key, d);
   return d;
 }
-
-export const PROGRAMS = { PERP_CORE, LIQUIDITY_POOL };

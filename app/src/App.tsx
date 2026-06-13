@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import TradePanel from "./TradePanel";
 import { web3 } from "@anchor-lang/core";
+import { BigNumber } from "ethers";
 import { getPhantom, makeSignCtx, withMint, SignCtx, fromUnits } from "./ctx";
 import * as actions from "./index";
 import {
@@ -38,7 +39,7 @@ export default function App() {
   const logBox = useRef<HTMLDivElement>(null);
 
   // state panel
-  const [usdc, setUsdc] = useState<bigint>(0n);
+  const [usdc, setUsdc] = useState<BigNumber>(BigNumber.from(0));
   const [lpInfo, setLpInfo] = useState<actions.LpInfo | null>(null);
   const [pubInfo, setPubInfo] = useState<actions.PublicPoolInfo | null>(null);
   const [bal, setBal] = useState<actions.UserBalances | null>(null);
@@ -205,8 +206,8 @@ export default function App() {
     }
   };
 
-  const fmt6 = (v: bigint | null) => (v == null ? "—" : fromUnits(v, decimals));
-  const fmt9 = (v: bigint) => fromUnits(v, 9);
+  const fmt6 = (v: BigNumber | null) => (v == null ? "—" : fromUnits(v, decimals));
+  const fmt9 = (v: BigNumber) => fromUnits(v, 9);
   const settle = ctx ? settleLabel(ctx.mint.toBase58()) : "USDC";
 
   return (
@@ -338,7 +339,7 @@ export default function App() {
 
           <section className="card">
             <h2>2 · 公有池（共享做市金库）</h2>
-            {pubInfo && (pubInfo.myShares > 0n || pubInfo.escrowAmount > 0n) ? (
+            {pubInfo && (pubInfo.myShares.gt(0) || pubInfo.escrowAmount.gt(0)) ? (
               <div className="grid" style={{ marginBottom: 12 }}>
                 <Stat label="我的估值" v={fmt6(pubInfo.myValue)} />
                 <Stat label="我的份额" v={fmt6(pubInfo.myShares)} />
@@ -361,10 +362,10 @@ export default function App() {
               <label>提取额 ({settle})
                 <input value={pubWdAmt} onChange={(e) => setPubWdAmt(e.target.value)} />
               </label>
-              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares <= 0n} onClick={() => run("公有池提取 (withdraw PUBLIC)", () => actions.withdrawPublicPool(ctx, { amountUsdc: pubWdAmt }))}>
+              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares.lte(0)} onClick={() => run("公有池提取 (withdraw PUBLIC)", () => actions.withdrawPublicPool(ctx, { amountUsdc: pubWdAmt }))}>
                 提取
               </button>
-              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares <= 0n} onClick={() => run("公有池全部提取", () => actions.withdrawPublicPool(ctx, { all: true }))}>
+              <button className="ghost" disabled={busy || !pubInfo || pubInfo.myShares.lte(0)} onClick={() => run("公有池全部提取", () => actions.withdrawPublicPool(ctx, { all: true }))}>
                 全部提取
               </button>
             </div>
@@ -432,12 +433,14 @@ export default function App() {
               </label>
             </div>
             <button
-              disabled={busy}
+              disabled={busy || !price}
               onClick={() =>
                 run("place limit order", () =>
                   actions.placeLimitOrder(ctx, pairId, {
                     direction: dir,
                     amountBtc: amount,
+                    // req2: 价格由调用方传入。demo 用实时 Pyth 显示价换算成 1e9。
+                    targetPrice: BigNumber.from(Math.round((price ?? 0) * 1e9)),
                     rewardGasSol: reward,
                     goodTillMinutes: goodTill,
                   })
@@ -475,11 +478,11 @@ export default function App() {
               )}
             </div>
             <div className="row" style={{ gap: 16, marginBottom: 8 }}>
-              <div className="small">可领返佣：<b style={{ color: "#3fb950" }}>{fmt6(commission?.unclaimed ?? 0n)} {settle}</b></div>
-              <div className="small">已领返佣：{fmt6(commission?.claimed ?? 0n)} {settle}</div>
+              <div className="small">可领返佣：<b style={{ color: "#3fb950" }}>{fmt6(commission?.unclaimed ?? BigNumber.from(0))} {settle}</b></div>
+              <div className="small">已领返佣：{fmt6(commission?.claimed ?? BigNumber.from(0))} {settle}</div>
             </div>
             <button
-              disabled={busy || !commission || commission.unclaimed === 0n}
+              disabled={busy || !commission || commission.unclaimed.isZero()}
               onClick={() => run("领取返佣", () => actions.claimCommission(ctx))}
             >
               领取返佣

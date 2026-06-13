@@ -6221,6 +6221,13 @@ export type PerpCore = {
             "type": "u16"
           },
           {
+            "name": "pairName",
+            "docs": [
+              "交易对名称（对齐 EVM `AccountPosition.name`）；trigger 等无 pair_config 上下文的发出点为空串 `\"\"`。"
+            ],
+            "type": "string"
+          },
+          {
             "name": "direction",
             "type": "u8"
           },
@@ -6405,6 +6412,13 @@ export type PerpCore = {
           {
             "name": "pairId",
             "type": "u16"
+          },
+          {
+            "name": "pairName",
+            "docs": [
+              "交易对名称（对齐 EVM `CreateLimitedOrder.name`），取自 `PairConfig.name`。"
+            ],
+            "type": "string"
           },
           {
             "name": "settleMint",
@@ -7244,6 +7258,13 @@ export type PerpCore = {
             "type": "u16"
           },
           {
+            "name": "pairName",
+            "docs": [
+              "交易对名称（对齐 EVM `LimitedOrderHistory.name`）；trigger/expire/cancel 无 pair_config 上下文为空串 `\"\"`。"
+            ],
+            "type": "string"
+          },
+          {
             "name": "settleMint",
             "type": "pubkey"
           },
@@ -7466,7 +7487,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "0 = LONG, 1 = SHORT。"
+              "1 = LONG, 2 = SHORT（对齐 EVM `Direct`，0 为无效）；从 perp_core 透传。"
             ],
             "type": "u8"
           },
@@ -7646,7 +7667,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "taker 方向（0 = LONG, 1 = SHORT）；maker 方向相反。"
+              "taker 方向（1 = LONG, 2 = SHORT，对齐 EVM）；maker 方向相反。"
             ],
             "type": "u8"
           },
@@ -7803,6 +7824,20 @@ export type PerpCore = {
           },
           {
             "name": "tradingFee",
+            "type": "u64"
+          },
+          {
+            "name": "leverage",
+            "docs": [
+              "开仓有效杠杆（1e9 精度，反推自 position_value/margin）；非开仓/取消路径填 0。对齐 EVM `OrderHistory.leverage`。"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "marginAmount",
+            "docs": [
+              "本笔占用保证金（base units）。对齐 EVM `OrderHistory.marginAmount`。"
+            ],
             "type": "u64"
           },
           {
@@ -9243,6 +9278,15 @@ export type PerpCore = {
               "目标 pair_id；用于 PDA 路由（不可改自身）。"
             ],
             "type": "u16"
+          },
+          {
+            "name": "name",
+            "docs": [
+              "显示名称（≤32 字节，对齐 EVM `name`）。后端要求**只传符号、不带 \"/USD\"**（如 \"BTC\"/\"ETH\"/\"SOL\"）。"
+            ],
+            "type": {
+              "option": "string"
+            }
           },
           {
             "name": "tradingFeeRate",

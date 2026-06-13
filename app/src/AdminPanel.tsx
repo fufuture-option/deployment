@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { BigNumber } from "ethers";
 import { SignCtx, fromUnits } from "./ctx";
 import * as actions from "./index";
 import { USDC_DECIMALS, PAIR_ID, settleLabel } from "./config";
@@ -55,9 +56,9 @@ export default function AdminPanel({
   const [poolType, setPoolType] = useState<number>(2);
   const [poolMin, setPoolMin] = useState("");
 
-  const fmt = (v: bigint, d: number) => fromUnits(v, d);
-  const lev = (v: bigint) => `${Number(v / 10n ** 7n) / 100}x`;
-  const pct = (v: bigint) => `${Number(v / 10n ** 5n) / 100}%`; // 1e9 -> %
+  const fmt = (v: BigNumber, d: number) => fromUnits(v, d);
+  const lev = (v: BigNumber) => `${Number(v.toString()) / 1e9}x`; // leverage 1e9 -> x
+  const pct = (v: BigNumber) => `${Number(v.toString()) / 1e7}%`; // rate 1e9 -> % (1% = 1e7)
   const sourceName = (s: number) => ["Pyth", "Switchboard", "Supra", "Chainlink"][s] ?? `#${s}`;
 
   // fetch one pair's full config into the edit form (light getAccountInfo).
@@ -67,8 +68,8 @@ export default function AdminPanel({
         const pr = await actions.getPairConfig(ctx, id);
         setPair(pr);
         if (pr) {
-          setPLev(String(Number(pr.defaultLeverage / 10n ** 7n) / 100));
-          setPFee(String(Number(pr.tradingFeeRate / 10n ** 5n) / 100));
+          setPLev(String(Number(pr.defaultLeverage.toString()) / 1e9));
+          setPFee(String(Number(pr.tradingFeeRate.toString()) / 1e7));
           setPReward(pr.rewardGas.toString());
           setPMinOrder(fromUnits(pr.minOrderAmount, 9));
           setPStatus(pr.status);

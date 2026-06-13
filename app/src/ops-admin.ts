@@ -1,16 +1,16 @@
 // =====================================================================
 // ops-admin.ts — 管理员「主动操作（签名合约）」方法
 //
-// 与 ops-user 相同的 SignCtx + Anchor Program 模式。写入需连接钱包 = GlobalConfig.admin
-// / PoolConfig.admin，否则链上 has_one/relation 校验拒绝交易。
+// PDA 走 ctx.pda（程序 ID 已注入）。金额经 toUnits→BigNumber→bn(BN)。
+// 写入需连接钱包 = GlobalConfig.admin / PoolConfig.admin。
 // =====================================================================
 import { web3 } from "@anchor-lang/core";
-import { SignCtx, sendIxs, toUnits, bn, A, exists, mintDecimals } from "./ctx";
-import * as pda from "./pdas";
+import { SignCtx, sendIxs, toUnits, bn, exists, mintDecimals } from "./ctx";
 import { TOKEN_PROGRAM } from "./config";
 
 const { PublicKey, SystemProgram } = web3;
 
+const A = (o: Record<string, web3.PublicKey | null>) => o as any;
 const blank = (s?: string) => s === undefined || s.trim() === "";
 
 // hex (with/without 0x, 64 chars) -> number[32] for a 32-byte feed id.
@@ -23,8 +23,7 @@ function hexTo32(hex: string): number[] {
 }
 
 // =====================================================================
-// update_pair: 只改传入的字段（其余 = None）。leverageX/feeRatePct 为人类单位
-// (10 -> 10x, 0.1 -> 0.1%)；minOrderBtc 为 BTC；rewardGas 为 lamports。
+// update_pair: 只改传入的字段（其余 = None）。leverageX/feeRatePct 人类单位。
 // =====================================================================
 export async function updatePair(
   ctx: SignCtx,
@@ -35,10 +34,10 @@ export async function updatePair(
     status?: number;
     rewardGas?: string;
     minOrderBtc?: string;
-    oracleSource?: number; // 0 Pyth 1 Switchboard 3 Chainlink (2 Supra rejected on-chain)
-    chainlinkFeedIdHex?: string; // required when switching to Chainlink
-    switchboardFeedAccountB58?: string; // required when switching to Switchboard (PullFeed pubkey)
-    switchboardFeedHashHex?: string; // required when switching to Switchboard (32B hex)
+    oracleSource?: number; // 0 Pyth 1 Switchboard 3 Chainlink
+    chainlinkFeedIdHex?: string;
+    switchboardFeedAccountB58?: string;
+    switchboardFeedHashHex?: string;
   }
 ): Promise<string> {
   const args = {
@@ -68,9 +67,9 @@ export async function updatePair(
     .updatePair(args as any)
     .accountsStrict(
       A({
-        globalConfig: pda.globalConfig(),
+        globalConfig: ctx.pda.globalConfig(),
         admin: ctx.wallet,
-        pairConfig: pda.pairConfig(pairId),
+        pairConfig: ctx.pda.pairConfig(pairId),
       })
     )
     .instruction();
@@ -78,9 +77,7 @@ export async function updatePair(
 }
 
 // =====================================================================
-// register_pair: 新建 PairConfig（pair_id 全局唯一，init — 重复注册同 id 被拒）。
-// 签名者须为 GlobalConfig.admin。leverageX/feeRatePct 人类单位；留空 fee/min -> 合约默认；
-// 留空 leverage -> 10x。
+// register_pair: 新建 PairConfig（pair_id 全局唯一）。
 // =====================================================================
 export async function registerPair(
   ctx: SignCtx,
@@ -90,7 +87,7 @@ export async function registerPair(
     feedHex: string;
     leverageX?: string;
     feeRatePct?: string;
-    minOrderAmount?: string; // base contract amount (e.g. "0.01")
+    minOrderAmount?: string;
     status?: number;
     maxStalenessSecs?: string;
   }
@@ -100,30 +97,30 @@ export async function registerPair(
   const args = {
     pairId: p.pairId,
     name: p.name.trim(),
-    multi: bn(0n), // default 1e9
-    tradingFeeRate: blank(p.feeRatePct) ? bn(0n) : bn(toUnits(p.feeRatePct!, 7)), // 0 = default 0.1%
-    minOrderAmount: blank(p.minOrderAmount) ? bn(0n) : bn(toUnits(p.minOrderAmount!, 9)),
-    defaultLeverage: blank(p.leverageX) ? bn(10n * 10n ** 9n) : bn(toUnits(p.leverageX!, 9)),
-    lotMulti: bn(0n), // default 1e9
+    multi: bn(0), // default 1e9
+    tradingFeeRate: blank(p.feeRatePct) ? bn(0) : bn(toUnits(p.feeRatePct!, 7)), // 0 = default 0.1%
+    minOrderAmount: blank(p.minOrderAmount) ? bn(0) : bn(toUnits(p.minOrderAmount!, 9)),
+    defaultLeverage: blank(p.leverageX) ? bn(toUnits("10", 9)) : bn(toUnits(p.leverageX!, 9)),
+    lotMulti: bn(0), // default 1e9
     status: p.status ?? 0,
-    rewardGas: bn(0n),
+    rewardGas: bn(0),
     pythFeedId: hexTo32(p.feedHex),
     maxStalenessSecs: bn(BigInt((p.maxStalenessSecs || "120").trim())),
     maxConfidenceBps: 0, // default 100 bps
     switchboardFeedAccount: PublicKey.default,
     switchboardFeedHash: new Array(32).fill(0),
-    switchboardMaxStalenessSecs: bn(0n),
+    switchboardMaxStalenessSecs: bn(0),
     oracleMode: 0, // PythOnly
-    oracleSource: 0, // Pyth by default; admin switches later via update_pair
+    oracleSource: 0, // Pyth by default
     chainlinkFeedId: new Array(32).fill(0),
   };
   const ix = await ctx.perp.methods
     .registerPair(args as any)
     .accountsStrict(
       A({
-        globalConfig: pda.globalConfig(),
+        globalConfig: ctx.pda.globalConfig(),
         admin: ctx.wallet,
-        pairConfig: pda.pairConfig(p.pairId),
+        pairConfig: ctx.pda.pairConfig(p.pairId),
         payer: ctx.wallet,
         systemProgram: SystemProgram.programId,
       })
@@ -133,10 +130,7 @@ export async function registerPair(
 }
 
 // =====================================================================
-// 新增结算币（collateral mint）：跨两程序 5 条 admin ix（幂等 — 已建则跳过）：
-//   perp_core: init_settle_config -> init_settle_vault -> init_risk_fund_vault
-//   liquidity_pool: init_pool_config -> init_pool_vault
-// perp ix 需 GlobalConfig.admin 签名；新池 admin 设为调用者。
+// 新增结算币（collateral mint）：跨两程序 5 条 admin ix（幂等）。
 // =====================================================================
 export async function addSettleCurrency(
   ctx: SignCtx,
@@ -151,27 +145,27 @@ export async function addSettleCurrency(
   }
   if (!(await exists(ctx, mint))) throw new Error("该 mint 在链上不存在 — 请先创建 SPL mint");
 
-  const lev = blank(opts?.defaultLeverageX) ? 10n * 10n ** 9n : toUnits(opts!.defaultLeverageX!, 9);
+  const lev = blank(opts?.defaultLeverageX) ? toUnits("10", 9) : toUnits(opts!.defaultLeverageX!, 9);
   const RENT = web3.SYSVAR_RENT_PUBKEY;
-  const escrow = pda.escrowAuthority(mint);
+  const escrow = ctx.pda.escrowAuthority(mint);
   let last = "";
 
   // perp 1) init_settle_config
-  if (!(await exists(ctx, pda.settleConfig(mint)))) {
+  if (!(await exists(ctx, ctx.pda.settleConfig(mint)))) {
     const ix = await ctx.perp.methods
       .initSettleConfig({
-        maintenanceMarginRate: bn(0n),
-        minDepositAmount: bn(0n),
+        maintenanceMarginRate: bn(0),
+        minDepositAmount: bn(0),
         defaultLeverage: bn(lev),
         status: 0,
       } as any)
       .accountsStrict(
         A({
-          globalConfig: pda.globalConfig(),
+          globalConfig: ctx.pda.globalConfig(),
           admin: ctx.wallet,
           settleMint: mint,
-          settleConfig: pda.settleConfig(mint),
-          vaultAuthority: pda.vaultAuthority(mint),
+          settleConfig: ctx.pda.settleConfig(mint),
+          vaultAuthority: ctx.pda.vaultAuthority(mint),
           payer: ctx.wallet,
           systemProgram: SystemProgram.programId,
         })
@@ -181,19 +175,19 @@ export async function addSettleCurrency(
   }
 
   // perp 2) init_settle_vault (vault_token + seq_counter)
-  if (!(await exists(ctx, pda.vaultToken(mint)))) {
+  if (!(await exists(ctx, ctx.pda.vaultToken(mint)))) {
     const ix = await ctx.perp.methods
       .initSettleVault()
       .accountsStrict(
         A({
-          globalConfig: pda.globalConfig(),
+          globalConfig: ctx.pda.globalConfig(),
           admin: ctx.wallet,
           payer: ctx.wallet,
           settleMint: mint,
-          settleConfig: pda.settleConfig(mint),
-          vaultAuthority: pda.vaultAuthority(mint),
-          vaultToken: pda.vaultToken(mint),
-          seqCounter: pda.seqCounter(mint),
+          settleConfig: ctx.pda.settleConfig(mint),
+          vaultAuthority: ctx.pda.vaultAuthority(mint),
+          vaultToken: ctx.pda.vaultToken(mint),
+          seqCounter: ctx.pda.seqCounter(mint),
           tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
           rent: RENT,
@@ -204,18 +198,18 @@ export async function addSettleCurrency(
   }
 
   // perp 3) init_risk_fund_vault
-  if (!(await exists(ctx, pda.riskVaultToken(mint)))) {
+  if (!(await exists(ctx, ctx.pda.riskVaultToken(mint)))) {
     const ix = await ctx.perp.methods
       .initRiskFundVault()
       .accountsStrict(
         A({
-          globalConfig: pda.globalConfig(),
+          globalConfig: ctx.pda.globalConfig(),
           admin: ctx.wallet,
           payer: ctx.wallet,
           settleMint: mint,
-          settleConfig: pda.settleConfig(mint),
-          riskVaultAuthority: pda.riskVaultAuthority(mint),
-          riskVaultToken: pda.riskVaultToken(mint),
+          settleConfig: ctx.pda.settleConfig(mint),
+          riskVaultAuthority: ctx.pda.riskVaultAuthority(mint),
+          riskVaultToken: ctx.pda.riskVaultToken(mint),
           tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
           rent: RENT,
@@ -226,7 +220,7 @@ export async function addSettleCurrency(
   }
 
   // lp 4) init_pool_config (MIXED, admin = caller)
-  if (!(await exists(ctx, pda.poolConfig(mint)))) {
+  if (!(await exists(ctx, ctx.pda.poolConfig(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolConfig({
         admin: ctx.wallet,
@@ -234,15 +228,15 @@ export async function addSettleCurrency(
         escrowAuthority: escrow,
         perpCoreProgram: ctx.perp.programId,
         status: 0,
-        privateMinProvideAmount: bn(0n),
-        publicMinProvideAmount: bn(0n),
+        privateMinProvideAmount: bn(0),
+        publicMinProvideAmount: bn(0),
       } as any)
       .accountsStrict(
         A({
           payer: ctx.wallet,
           settleMint: mint,
-          poolConfig: pda.poolConfig(mint),
-          vaultAuthority: pda.poolVaultAuthority(mint),
+          poolConfig: ctx.pda.poolConfig(mint),
+          vaultAuthority: ctx.pda.poolVaultAuthority(mint),
           systemProgram: SystemProgram.programId,
         })
       )
@@ -251,18 +245,18 @@ export async function addSettleCurrency(
   }
 
   // lp 5) init_pool_vault (+ escrow LpAccount)
-  if (!(await exists(ctx, pda.poolVault(mint)))) {
+  if (!(await exists(ctx, ctx.pda.poolVault(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolVault()
       .accountsStrict(
         A({
-          poolConfig: pda.poolConfig(mint),
+          poolConfig: ctx.pda.poolConfig(mint),
           admin: ctx.wallet,
           payer: ctx.wallet,
           settleMint: mint,
-          vaultAuthority: pda.poolVaultAuthority(mint),
-          poolVault: pda.poolVault(mint),
-          escrowLpAccount: pda.lpAccount(escrow, mint),
+          vaultAuthority: ctx.pda.poolVaultAuthority(mint),
+          poolVault: ctx.pda.poolVault(mint),
+          escrowLpAccount: ctx.pda.lpAccount(escrow, mint),
           tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
           rent: RENT,
@@ -278,8 +272,6 @@ export async function addSettleCurrency(
 
 // =====================================================================
 // 转移 perp_core GlobalConfig.admin（set_addresses(new_admin=...)）。
-// 签名者须为当前 admin（has_one）。单向：之后仅 newAdmin 能签 perp admin ix。
-// 不动 PoolConfig.admin（不可变）。
 // =====================================================================
 export async function transferAdmin(ctx: SignCtx, newAdminBase58: string): Promise<string> {
   const s = (newAdminBase58 || "").trim();
@@ -307,7 +299,7 @@ export async function transferAdmin(ctx: SignCtx, newAdminBase58: string): Promi
     .setAddresses(args as any)
     .accountsStrict(
       A({
-        globalConfig: pda.globalConfig(),
+        globalConfig: ctx.pda.globalConfig(),
         admin: ctx.wallet,
       })
     )
@@ -338,7 +330,7 @@ export async function updatePoolConfig(
       A({
         admin: ctx.wallet,
         settleMint: ctx.mint,
-        poolConfig: pda.poolConfig(ctx.mint),
+        poolConfig: ctx.pda.poolConfig(ctx.mint),
       })
     )
     .instruction();

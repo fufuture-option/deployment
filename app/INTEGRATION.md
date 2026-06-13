@@ -41,9 +41,10 @@ const pullCtx = makePullCtx(connection, wallet /*, mint?*/);
 按交易对作用域的方法，`pairId` 永远是 **ctx 之后第 1 个位置参数**：
 
 ```ts
-await placeLimitOrder(signCtx, pairId, { direction:1, amountBtc:"0.001", rewardGasSol:"0.002", goodTillMinutes:60 });
+// targetPrice 由你传入（BigNumber，1e9 精度）；orderSeq 等返回值也是 BigNumber。
+await placeLimitOrder(signCtx, pairId, { direction:1, amountBtc:"0.001", targetPrice, rewardGasSol:"0.002", goodTillMinutes:60 });
 await setUserLeverage(signCtx, pairId, "20");
-await cancelOrder(signCtx, pairId, orderSeq, direction, orderKind);
+await cancelOrder(signCtx, pairId, orderSeq /* BigNumber */, direction, orderKind);
 const positions = await getMyPositions(pullCtx, pairId);
 const trades    = await getTradeHistoryPaged(pullCtx, pairId, before, 25);
 ```
@@ -59,13 +60,31 @@ import { from } from "rxjs";
 public openOrderLimit(pairId:number, p) { return from(placeLimitOrder(this.signCtx, pairId, p)); }
 ```
 
+## 数值：统一 ethers v5 BigNumber（req1）
+
+所有合约数值（余额/持仓/委托/价格/份额 等的**接口字段、参数、返回值**）都是 **ethers v5 `BigNumber`**，直接喂 `SldDecimal.fromE18/fromOrigin` 即可。比较/运算用 `.lte/.gt/.isZero/.add/.mul/.div`。`toUnits(str, decimals)` 返回 BigNumber、`fromUnits(bn, decimals)` 返回字符串。内部传给合约的 Anchor `BN` 由 `bn()` 统一转换（接受 BigNumber/bigint/number/string）。demo 已加 `ethers@^5.x` 依赖；你项目本来就有。
+
+## 价格：placeLimitOrder 由调用方传 targetPrice（req2）
+
+`placeLimitOrder(signCtx, pairId, { ..., targetPrice })` 的 `targetPrice` 是 **BigNumber（1e9 精度）**，由你用自己的价格服务（如 `fu-price.service` 的 `getPriceData`）算好传入。**已删除** `reads-user` 里的 `fetchOraclePriceE9`（不再内部拉 Pyth）。`fetchHermesPrice`（仅 demo 显示用）保留，你可忽略。
+
+## 地址：程序 ID 动态注入（req3）
+
+`PERP_CORE/LIQUIDITY_POOL/TREASURY/USDC_MINT` 不再硬编码进 `pdas`/`reads`。改由 **builder 注入**：
+
+```ts
+makeSignCtx(phantom, { programs: { perp, lp, treasury }, mint });  // 不传 = 用 config 默认（demo 用）
+makePullCtx(connection, wallet, { programs, mint });
+```
+
+注入后挂在 `ctx.programs`（三个 PublicKey）与 `ctx.pda`（绑定了程序 ID + 默认 mint 的 PDA 工厂）；`reads` 的 `getProgramAccounts` 用 `ctx.programs.perp/lp`，所有 PDA 走 `ctx.pda.X(...)`。`config.ts` 仍导出这 4 个常量，仅作为 builder 默认值。`withMint(ctx, mint)` 会自动重建 `ctx.pda`。SPL 的 `TOKEN_PROGRAM`/`ASSOCIATED_TOKEN_PROGRAM` 是固定系统程序，未参与注入。
+
 ## 注意点
 
 - **金额参数是“人类可读字符串”**（如 `"20"`、`"0.001"`）。写操作内部用 `mintDecimals(connection, mint)`（读 mint 账户、带缓存）换算精度，所以 `signCtx` 只带 `mint` 不带 decimals。合约数量统一 1e9，USDC 6 位。
-- **预言机/限价**：`placeLimitOrder` 内部按 `pairId` 从 `config.PAIRS` 取 Pyth feed 拉最新价作限价；新交易对记得在 `config.PAIRS` 加一条。
-- **读取层已自动处理大小写**：standalone `BorshCoder` 解出来的账户字段是 snake_case、事件名是 PascalCase + 字段 snake_case；`ctx.ts` 的 `fetchAcct`/`allAccts` 和 `reads-user` 的 `normEvents` 已统一转成 camelCase（`a.pairId`/`ev.name==="orderHistory"`/`d.costPrice`），你拿到的就是 camelCase，无需自己转。
+- **读取层已自动处理大小写**：standalone `BorshCoder` 解出来的账户字段是 snake_case、事件名是 PascalCase + 字段 snake_case；`ctx.ts` 的 `fetchAcct`/`allAccts` 和 `reads-user` 的 `normEvents` 已统一转成 camelCase（`a.pairId`/`ev.name==="orderHistory"`/`d.costPrice`），你拿到的就是 camelCase。
 - **getProgramAccounts**：Alchemy 免费档封了 gPA，`ctx.ts` 的 `makeConnection` 已把 gPA 路由到公共 devnet 兜底；列表类读取（持仓/委托/`listPairs` 等）依赖它。你自管 connection 时注意同样处理。
-- **web3 版本**：上下文用的 `Connection`/`PublicKey` 来自 `@anchor-lang/core` 的 `web3`（即 `@solana/web3.js` 的再导出）。确保项目里 `@solana/web3.js` 单版本 hoist，避免两份副本导致类型不兼容。
+- **web3 版本**：上下文用的 `Connection`/`PublicKey` 来自 `@anchor-lang/core` 的 `web3`（即 `@solana/web3.js` 的再导出）。确保项目里 `@solana/web3.js` 单版本 hoist。
 
 ## 验证
 
