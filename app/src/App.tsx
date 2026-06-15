@@ -73,6 +73,8 @@ export default function App() {
   // 挂单时托管进订单 PDA，成交划给 keeper，撤单/过期则全额退回。默认 0.002 SOL（留余量）。
   const [reward, setReward] = useState("0.002");
   const [goodTill, setGoodTill] = useState(60);
+  // form: create market (permissionless) — any classic SPL token as settle currency
+  const [newMint, setNewMint] = useState("");
 
   // stable identity — otherwise it changes every render and any useCallback/effect
   // depending on it (e.g. AdminPanel.load) refires on every render → RPC 429 storm.
@@ -206,6 +208,14 @@ export default function App() {
     }
   };
 
+  // permissionless create-market: run the 6-step bundle, then reload the settle list
+  // so the new market shows up in the 结算币 selector immediately.
+  const onCreateMarket = async () => {
+    if (!ctx) return;
+    await run("创建市场 (无许可)", () => actions.createMarket(ctx, newMint));
+    await loadSettles();
+  };
+
   const fmt6 = (v: BigNumber | null) => (v == null ? "—" : fromUnits(v, decimals));
   const fmt9 = (v: BigNumber) => fromUnits(v, 9);
   const settle = ctx ? settleLabel(ctx.mint.toBase58()) : "USDC";
@@ -271,6 +281,29 @@ export default function App() {
             <Stat label="私有池本金" v={fmt6(lpInfo?.amount ?? null)} />
             <Stat label="可用(交易)" v={fmt6(bal?.available ?? null)} />
             <Stat label="挂单冻结" v={fmt6(bal?.orderLocked ?? null)} />
+          </section>
+
+          <section className="card">
+            <h2>＋ 创建市场（任意 SPL 代币当结算币 · 无许可）</h2>
+            <p className="small">
+              对齐 EVM「任何人都能开市场」：粘贴一个<b>经典 SPL 代币</b> mint，一键拉起该结算币的完整市场
+              （perp settle/vault/risk + treasury + 私有池，最多 6 次签名，幂等可重跑），随后即可用它交易<b>所有已上线的交易对</b>。
+              走<b>无许可路径</b>，合约自动套护栏：杠杆/保证金钳制、强制私有池、记录创建者。
+              <br />⚠ <b>不支持带 freeze authority 的代币</b>（USDC/USDT 这类合规稳定币请到「管理员」页用 admin 路径添加）。
+              建好后会出现在顶部「结算币」下拉里，选中即可交易。
+            </p>
+            <div className="row">
+              <input
+                className="mono"
+                style={{ flex: 1 }}
+                placeholder="SPL 代币 mint 地址（base58，需无 freeze authority）"
+                value={newMint}
+                onChange={(e) => setNewMint(e.target.value)}
+              />
+              <button disabled={busy || !newMint.trim()} onClick={onCreateMarket}>
+                创建市场
+              </button>
+            </div>
           </section>
 
           <section className="card">

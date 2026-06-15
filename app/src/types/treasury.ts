@@ -346,19 +346,22 @@ export type Treasury = {
           }
         },
         {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "treasuryConfig"
-          ]
-        },
-        {
           "name": "payer",
           "writable": true,
           "signer": true
         },
         {
           "name": "settleMint"
+        },
+        {
+          "name": "perpCoreVaultToken",
+          "docs": [
+            "传递性闸门：要求 perp_core 的 `vault_token` 已存在 —— 即该 settle 市场已经通过",
+            "perp_core 的「无许可开关 + freeze-authority 护栏」被合法创建。没有 settle 市场就建不出",
+            "treasury vault（无许可关停时拿不到 vault_token；freeze mint 在 init_settle_vault 已被拒）。",
+            "因此 treasury 端无需再读 flag / 重复 freeze 检查，鉴权完全继承自 perp_core。",
+            "CHECK（Anchor）：必须是 perp_core 名下 [\"vault_token\", settle_mint] 的已初始化 TokenAccount。"
+          ]
         },
         {
           "name": "vaultAuthority",
@@ -519,6 +522,120 @@ export type Treasury = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "setTokenTopAgent",
+      "docs": [
+        "Admin 设置 / 取消某地址在某 settle_mint 下的\"顶级代理（top agent）\"资格白名单。",
+        "对应 EVM `MarketAgent.setTokenTopAgent`；批量由 client 循环调用本指令。",
+        "Phase 1：仅白名单 PDA + 事件；返佣资金分账在 Phase 2 接入 split_trade_fee。"
+      ],
+      "discriminator": [
+        243,
+        142,
+        168,
+        122,
+        28,
+        52,
+        247,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "treasuryConfig",
+          "docs": [
+            "校验 admin —— 只有 treasury_config.admin 可设置 top agent。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "docs": [
+            "admin 签名 + 出 TopAgent PDA 首次创建的租金。"
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasuryConfig"
+          ]
+        },
+        {
+          "name": "settleMint",
+          "docs": [
+            "维度：结算币 mint（对应 EVM token 维度）。"
+          ]
+        },
+        {
+          "name": "topAgent",
+          "docs": [
+            "反复设 / 取消 → init_if_needed（首次创建，后续覆盖 approved）。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  112,
+                  95,
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              },
+              {
+                "kind": "arg",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "agent",
+          "type": "pubkey"
+        },
+        {
+          "name": "approval",
+          "type": "bool"
+        }
+      ]
     },
     {
       "name": "splitTradeFee",
@@ -762,6 +879,77 @@ export type Treasury = {
           }
         },
         {
+          "name": "inviterInviteRelation",
+          "docs": [
+            "inviter（A）自己的邀请关系 —— 用于校验 top agent 是 A 的直接上级 B（情况B）。",
+            "seeds = [\"invite\", A]，A = invite_relation.inviter；invite_relation 为 None 时占位回退到 taker。"
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  110,
+                  118,
+                  105,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "inviteRelation"
+              }
+            ]
+          }
+        },
+        {
+          "name": "topAgent",
+          "docs": [
+            "top agent 白名单标记 PDA。handler 手动校验 PDA 地址（seeds 含 agent 字段，无法在此约束）。",
+            "Anchor 仍校验 owner == treasury + discriminator == TopAgent。"
+          ],
+          "optional": true
+        },
+        {
+          "name": "topCommissionAccount",
+          "docs": [
+            "情况B（top == A 的上级 B）的累计佣金账户。情况A（top == A）时传 None（并入 commission_account）。",
+            "seeds = [\"commission\", top_agent.agent, settle_mint]。"
+          ],
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  109,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "topAgent"
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              }
+            ]
+          }
+        },
+        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -810,6 +998,19 @@ export type Treasury = {
       ]
     },
     {
+      "name": "topAgent",
+      "discriminator": [
+        108,
+        143,
+        141,
+        153,
+        53,
+        123,
+        239,
+        105
+      ]
+    },
+    {
       "name": "treasuryConfig",
       "discriminator": [
         124,
@@ -848,6 +1049,19 @@ export type Treasury = {
         219,
         167,
         0
+      ]
+    },
+    {
+      "name": "setTokenTopAgent",
+      "discriminator": [
+        242,
+        77,
+        183,
+        34,
+        129,
+        50,
+        81,
+        1
       ]
     },
     {
@@ -975,6 +1189,26 @@ export type Treasury = {
       "code": 6016,
       "name": "invalidPercentage",
       "msg": "Percentage (e.g. platform_fee_pct) must be <= 1e18"
+    },
+    {
+      "code": 6017,
+      "name": "topAgentZero",
+      "msg": "Top agent address cannot be the default (zero) Pubkey"
+    },
+    {
+      "code": 6018,
+      "name": "topAgentPdaMismatch",
+      "msg": "top_agent account is not the canonical TopAgent PDA for its agent"
+    },
+    {
+      "code": 6019,
+      "name": "topAgentNotInChain",
+      "msg": "top agent is not the inviter nor the inviter's direct upline"
+    },
+    {
+      "code": 6020,
+      "name": "topCommissionAccountMissing",
+      "msg": "top_commission_account is required when top agent differs from inviter"
     }
   ],
   "types": [
@@ -1214,6 +1448,36 @@ export type Treasury = {
       }
     },
     {
+      "name": "setTokenTopAgent",
+      "docs": [
+        "admin 设置 / 取消某地址在某结算币下的\"顶级代理（top agent）\"资格。",
+        "",
+        "EVM 对应：`MarketAgent.setTokenTopAgent(token, agent, approval)`（字段逐一对齐，",
+        "仅 `token`(address) → `settle_mint`(Pubkey)，并补 `timestamp`）。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "settleMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "approval",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "splitTradeFeeArgs",
       "type": {
         "kind": "struct",
@@ -1236,6 +1500,64 @@ export type Treasury = {
       }
     },
     {
+      "name": "topAgent",
+      "docs": [
+        "顶级代理（top agent）白名单标记 —— 每个 (settle_mint, agent) 组合一个 PDA。",
+        "",
+        "对应 EVM `MarketAgent.topAgentTokens[token][agent] = bool`：EVM 用二维 mapping，",
+        "Solana 无 map，故按 (settle_mint, agent) 组合键各开一个 PDA；`approved` 即 EVM 的 bool 值。",
+        "PDA seeds: [\"top_agent\", settle_mint, agent]"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "settleMint",
+            "docs": [
+              "结算币 mint（对应 EVM 的 token 维度）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "docs": [
+              "代理地址（对应 EVM 的 agent）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "approved",
+            "docs": [
+              "是否被授予顶级代理资格（对应 EVM 的 approval）。"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "updatedAt",
+            "docs": [
+              "最近一次设置时间（unix sec）。"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
       "name": "tradeFeeSplit",
       "docs": [
         "perp_core CPI 进来分一笔交易费。",
@@ -1243,6 +1565,8 @@ export type Treasury = {
         "字段对账 EVM `Perpetual.splitTradeFee` + `MarketAgent.addInviteRelationAndCalc`：",
         "- `inviter`：被绑定的邀请人；若 invitee 未绑定 → Pubkey::default()",
         "- `commission_to_inviter`：本笔进入 CommissionAccount 的金额（base units）",
+        "- `top_agent`：顶级代理地址（情况A=inviter 自己 / 情况B=inviter 的上级）；无 top agent → Pubkey::default()",
+        "- `commission_to_top_agent`：进入 top agent CommissionAccount 的金额（情况A 时并入 inviter 账户但本字段仍单独记额）",
         "- `to_platform`：转给 platform_fee 的金额（base units）",
         "- `to_trade_fee`：剩余转给 trade_fee 的金额（base units，原 EVM \"merge to buyback\" 路径）"
       ],
@@ -1267,6 +1591,14 @@ export type Treasury = {
           },
           {
             "name": "commissionToInviter",
+            "type": "u64"
+          },
+          {
+            "name": "topAgent",
+            "type": "pubkey"
+          },
+          {
+            "name": "commissionToTopAgent",
             "type": "u64"
           },
           {
@@ -1438,6 +1770,11 @@ export type Treasury = {
       "name": "seedInvite",
       "type": "bytes",
       "value": "[105, 110, 118, 105, 116, 101]"
+    },
+    {
+      "name": "seedTopAgent",
+      "type": "bytes",
+      "value": "[116, 111, 112, 95, 97, 103, 101, 110, 116]"
     },
     {
       "name": "seedTreasuryConfig",

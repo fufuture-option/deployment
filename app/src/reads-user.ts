@@ -4,18 +4,20 @@
 // req1：数值统一 ethers v5 BigNumber。req3：程序 ID 走 ctx.programs / PDA 走 ctx.pda。
 // 解码统一走 ctx.ts 的 perpCoder/lpCoder + EventParser；getProgramAccounts 用 ctx.programs.perp。
 // =====================================================================
-import { EventParser, web3 } from "@anchor-lang/core";
+import { EventParser, utils, web3 } from "@anchor-lang/core";
 import { BigNumber } from "ethers";
 import {
   PullCtx,
   perpCoder,
   lpCoder,
   fetchAcct,
+  allAccts,
   readU128LE,
   u64,
   fromUnits,
   big,
   camelizeKeys,
+  mintDecimals,
 } from "./ctx";
 import { HERMES_URL } from "./config";
 
@@ -130,12 +132,14 @@ export async function getMyPendingOrders(ctx: PullCtx): Promise<PendingOrder[]> 
 
 export interface MyDeal {
   dealSeq: BigNumber;
-  direction: number; // 0=LONG 1=SHORT (合约存储值)
+  pairId: number; // 所属交易对（pairId 省略时跨对查询需要）
+  direction: number; // 1=LONG 2=SHORT (合约存储值，EVM 对齐)
   size: BigNumber; // remaining contract size (1e9)
   entryPrice: BigNumber; // 1e9
 }
-// Active DealRecords (open positions) owned by the connected wallet on `pairId`.
-export async function getMyDeals(ctx: PullCtx, pairId: number): Promise<MyDeal[]> {
+// Active DealRecords (open positions) owned by the connected wallet. Pass `pairId`
+// to scope to one pair; omit to return deals across every pair (EVM getDeals 对齐)。
+export async function getMyDeals(ctx: PullCtx, pairId?: number): Promise<MyDeal[]> {
   const accts = await ctx.connection.getProgramAccounts(ctx.programs.perp, {
     filters: [{ dataSize: 229 }, { memcmp: { offset: 18, bytes: ctx.wallet.toBase58() } }],
   });
@@ -143,16 +147,19 @@ export async function getMyDeals(ctx: PullCtx, pairId: number): Promise<MyDeal[]
   for (const { account } of accts) {
     const d = account.data;
     if (d.length !== 229) continue;
-    if (d.readUInt16LE(82) !== pairId) continue; // this page's pair only
+    const pid = d.readUInt16LE(82);
+    if (pairId !== undefined && pid !== pairId) continue;
     const state = d[142];
     if (state !== 0 && state !== 1) continue; // Active / Partial
     const remaining = readU128LE(d, 126);
     if (remaining.isZero()) continue;
-    out.push({ dealSeq: u64(d, 10), direction: d[84], size: remaining, entryPrice: u64(d, 102) });
+    out.push({ dealSeq: u64(d, 10), pairId: pid, direction: d[84], size: remaining, entryPrice: u64(d, 102) });
   }
   out.sort((a, b) => cmp(a.dealSeq, b.dealSeq));
   return out;
 }
+// EVM 命名别名：taker 自己的成交/持仓记录。
+export const getDeals = getMyDeals;
 
 // =====================================================================
 // 专业交易面板 — 持仓 / 当前委托 / 历史成交
@@ -160,62 +167,68 @@ export async function getMyDeals(ctx: PullCtx, pairId: number): Promise<MyDeal[]
 export const MMR = 0.1; // maintenance margin rate (matches contract default 1e8 @ 1e9)
 
 export interface MyPosition {
-  direction: number; // 0 LONG 1 SHORT
+  pairId: number; // 所属交易对
+  direction: number; // 1=LONG 2=SHORT
   sizeBtc: number; // total size (human)
-  avgEntry: number; // weighted avg entry (human USD)
-  marginUsdc: number; // total occupied margin (human USDC)
+  avgEntry: number; // weighted avg entry (human USD) —— 聚合后的加权开仓均价
+  marginUsdc: number; // total occupied margin (human, settle-token units)
   deals: { seq: BigNumber; amount1e9: BigNumber }[]; // underlying deals (single-deal close)
 }
-// Aggregate the user's active DealRecords (on `pairId`) into positions per direction.
-export async function getMyPositions(ctx: PullCtx, pairId: number): Promise<MyPosition[]> {
+// Aggregate the user's active DealRecords into positions per (pair, direction).
+// Pass `pairId` to scope to one pair; omit to aggregate across every pair.
+export async function getMyPositions(ctx: PullCtx, pairId?: number): Promise<MyPosition[]> {
   const accts = await ctx.connection.getProgramAccounts(ctx.programs.perp, {
     filters: [{ dataSize: 229 }, { memcmp: { offset: 18, bytes: ctx.wallet.toBase58() } }],
   });
   const agg: Record<
-    number,
-    { size: BigNumber; value: BigNumber; margin: BigNumber; deals: { seq: BigNumber; amount1e9: BigNumber }[] }
+    string,
+    { pairId: number; direction: number; size: BigNumber; value: BigNumber; margin: BigNumber; deals: { seq: BigNumber; amount1e9: BigNumber }[] }
   > = {};
   for (const { account } of accts) {
     const d = account.data;
-    if (d.length !== 229 || d.readUInt16LE(82) !== pairId) continue;
+    if (d.length !== 229) continue;
+    const pid = d.readUInt16LE(82);
+    if (pairId !== undefined && pid !== pairId) continue;
     const state = d[142];
     if (state !== 0 && state !== 1) continue;
     const remaining = readU128LE(d, 126);
     if (remaining.isZero()) continue;
     const dir = d[84];
-    const a = (agg[dir] ||= { size: ZERO, value: ZERO, margin: ZERO, deals: [] });
+    const key = pid + ":" + dir;
+    const a = (agg[key] ||= { pairId: pid, direction: dir, size: ZERO, value: ZERO, margin: ZERO, deals: [] });
     a.size = a.size.add(remaining);
     a.value = a.value.add(remaining.mul(u64(d, 102))); // remaining(1e9) × entry(1e9)
     a.margin = a.margin.add(u64(d, 110));
     a.deals.push({ seq: u64(d, 10), amount1e9: remaining });
   }
-  return Object.keys(agg)
-    .map((k) => {
-      const dir = Number(k),
-        a = agg[dir];
+  return Object.values(agg)
+    .map((a) => {
       const avgEntry1e9 = a.size.gt(0) ? a.value.div(a.size) : ZERO; // 1e9 price
       return {
-        direction: dir,
+        pairId: a.pairId,
+        direction: a.direction,
         sizeBtc: Number(a.size.toString()) / 1e9,
         avgEntry: Number(avgEntry1e9.toString()) / 1e9,
         marginUsdc: Number(a.margin.toString()) / 1e6,
         deals: a.deals,
       };
     })
-    .sort((x, y) => x.direction - y.direction);
+    .sort((x, y) => x.pairId - y.pairId || x.direction - y.direction);
 }
 
 export interface OpenOrder {
+  pairId: number; // 所属交易对（pairId 省略时跨对查询需要）
   orderSeq: BigNumber;
   startTime: number;
   direction: number;
-  offset: number; // 0 open 1 close
+  offset: number; // 1 open 2 close (OFFSET_OPEN/OFFSET_CLOSE, EVM 对齐)
   orderKind: number; // 1 limit-open 2 limit-close 3 stop-take-open 4 stop-take-close
   amount1e9: BigNumber;
   targetPrice1e9: BigNumber;
 }
-// Pending/partial LimitedOrders (all kinds) for the connected wallet on `pairId`.
-export async function getMyOpenOrders(ctx: PullCtx, pairId: number): Promise<OpenOrder[]> {
+// Pending/partial LimitedOrders (all kinds) for the connected wallet. Pass `pairId`
+// to scope to one pair; omit to return open orders across every pair.
+export async function getMyOpenOrders(ctx: PullCtx, pairId?: number): Promise<OpenOrder[]> {
   const accts = await ctx.connection.getProgramAccounts(ctx.programs.perp, {
     filters: [{ dataSize: 260 }, { memcmp: { offset: 18, bytes: ctx.wallet.toBase58() } }],
   });
@@ -223,9 +236,11 @@ export async function getMyOpenOrders(ctx: PullCtx, pairId: number): Promise<Ope
   for (const { account } of accts) {
     const d = account.data;
     if (d.length !== 260) continue;
-    if (d.readUInt16LE(82) !== pairId) continue; // this pair only
+    const pid = d.readUInt16LE(82);
+    if (pairId !== undefined && pid !== pairId) continue;
     if (d[87] !== 1 && d[87] !== 2) continue; // PENDING / PARTIAL
     out.push({
+      pairId: pid,
       orderSeq: u64(d, 10),
       startTime: Number(d.readBigInt64LE(136)), // start_time @136
       direction: d[84],
@@ -236,6 +251,185 @@ export async function getMyOpenOrders(ctx: PullCtx, pairId: number): Promise<Ope
     });
   }
   return out.sort((a, b) => cmp(b.orderSeq, a.orderSeq));
+}
+
+// =====================================================================
+// 下单参数 / 风控率 / 开仓·提取上限（EVM getTradeParams / maintenanceMarginRate /
+// getMaxOpenAmount / getMaxWithdrawableAmount 对齐）
+// =====================================================================
+export interface TradeParams {
+  rewardGas: BigNumber; // keeper 预付（lamports，原生 SOL）
+  rewardGasSol: number; // 同上，人类可读 SOL
+  tradingFeeRate: BigNumber; // 1e9 (1% = 1e7)
+  minOrderAmount: BigNumber; // 1e9 (合约张数)
+  defaultLeverage: BigNumber; // 1e9
+}
+// 下单表单所需的链上参数（reward_gas 用于 make_limit_order 的 rewardGasSol）。
+export async function getTradeParams(ctx: PullCtx, pairId: number): Promise<TradeParams | null> {
+  const a: any = await fetchAcct(ctx.connection, perpCoder, "PairConfig", ctx.pda.pairConfig(pairId));
+  if (!a) return null;
+  const rewardGas = big(a.rewardGas);
+  return {
+    rewardGas,
+    rewardGasSol: Number(rewardGas.toString()) / 1e9,
+    tradingFeeRate: big(a.tradingFeeRate),
+    minOrderAmount: big(a.minOrderAmount),
+    defaultLeverage: big(a.defaultLeverage),
+  };
+}
+
+// 有效维持保证金率：SettleConfig 覆盖（>0）优先，否则回退 GlobalConfig（与合约一致）。
+export async function getMaintenanceMarginRate(
+  ctx: PullCtx
+): Promise<{ rate1e9: BigNumber; rate: number }> {
+  const sc: any = await fetchAcct(ctx.connection, perpCoder, "SettleConfig", ctx.pda.settleConfig(ctx.mint));
+  let r = sc ? big(sc.maintenanceMarginRate) : ZERO;
+  if (r.lte(0)) {
+    const gc: any = await fetchAcct(ctx.connection, perpCoder, "GlobalConfig", ctx.pda.globalConfig());
+    r = gc ? big(gc.maintenanceMarginRate) : ZERO;
+  }
+  return { rate1e9: r, rate: Number(r.toString()) / 1e9 };
+}
+
+// 最大可提取 = 交易账户可用余额（deposit − margin − order_locked）。
+export async function getMaxWithdrawableAmount(ctx: PullCtx): Promise<BigNumber> {
+  const b = await getUserBalances(ctx);
+  return b ? b.available : ZERO;
+}
+
+// 最大开仓张数（保证金约束口径）：可用余额 × 杠杆 ÷ 价格。`price` 为人类价格（USD）。
+// 未计入做市池可用流动性上限——撮合时合约会按每个 LP 的 available 再约束（前端可另叠加）。
+export async function getMaxOpenAmount(
+  ctx: PullCtx,
+  pairId: number,
+  price: number
+): Promise<{ maxSizeBtc: number; maxNotionalUsd: number }> {
+  const [bal, lev, dec] = await Promise.all([
+    getUserBalances(ctx),
+    getUserLeverage(ctx, pairId),
+    mintDecimals(ctx.connection, ctx.mint),
+  ]);
+  const available = bal ? Number(bal.available.toString()) / 10 ** dec : 0;
+  let leverage = lev ?? 0;
+  if (!leverage) {
+    const pc: any = await fetchAcct(ctx.connection, perpCoder, "PairConfig", ctx.pda.pairConfig(pairId));
+    leverage = pc ? Number(big(pc.defaultLeverage).toString()) / 1e9 : 1;
+  }
+  const maxNotionalUsd = available * leverage;
+  const maxSizeBtc = price > 0 ? maxNotionalUsd / price : 0;
+  return { maxSizeBtc, maxNotionalUsd };
+}
+
+// =====================================================================
+// 做市方接单记录（getMakerDeals）—— LP 程序 MakerDeal，按 maker 过滤
+// =====================================================================
+export interface MakerDealRow {
+  takerDealSeq: BigNumber; // 关联的 taker deal_seq（addMargin / closeDeal 的 key）
+  pairId: number;
+  direction: number; // 1=LONG 2=SHORT
+  size: BigNumber; // 接单张数 (1e9)
+  marginAmount: BigNumber; // 接单保证金 (base units)
+  maintenanceMargin: BigNumber;
+  pubPriFlag: number; // 1 公池 2 私池
+  movePrice: BigNumber;
+  openedAt: number;
+  locked: boolean;
+}
+// 连接钱包作为做市方（maker）已接的单。MakerDeal: maker @offset 18。
+export async function getMakerDeals(ctx: PullCtx, pairId?: number): Promise<MakerDealRow[]> {
+  const disc = lpCoder.accounts.accountDiscriminator("MakerDeal");
+  const accts = await ctx.connection.getProgramAccounts(ctx.programs.lp, {
+    filters: [
+      { memcmp: { offset: 0, bytes: utils.bytes.bs58.encode(disc) } },
+      { memcmp: { offset: 18, bytes: ctx.wallet.toBase58() } },
+    ],
+  });
+  const out: MakerDealRow[] = [];
+  for (const { account } of accts) {
+    const a: any = camelizeKeys(lpCoder.accounts.decode("MakerDeal", account.data));
+    if (pairId !== undefined && a.pairId !== pairId) continue;
+    out.push({
+      takerDealSeq: big(a.takerDealSeq),
+      pairId: a.pairId,
+      direction: a.direction,
+      size: big(a.size),
+      marginAmount: big(a.marginAmount),
+      maintenanceMargin: big(a.maintenanceMargin),
+      pubPriFlag: a.pubPriFlag,
+      movePrice: big(a.movePrice),
+      openedAt: Number(a.openedAt),
+      locked: a.locked,
+    });
+  }
+  return out.sort((x, y) => cmp(x.takerDealSeq, y.takerDealSeq));
+}
+
+// =====================================================================
+// 止盈止损条件（getTriggerConditions）—— 每个挂单一份 TriggerCondition
+// =====================================================================
+export interface TriggerCond {
+  orderSeq: BigNumber;
+  mean: number; // 触发方向语义（见枚举映射表）
+  openLimitPrice: BigNumber; // 1e9
+  gainTriggerPrice: BigNumber; // TP 触发价 1e9（0=未设）
+  gainLimitPrice: BigNumber;
+  lossTriggerPrice: BigNumber; // SL 触发价 1e9（0=未设）
+  lossLimitPrice: BigNumber;
+}
+const toTriggerCond = (a: any): TriggerCond => ({
+  orderSeq: big(a.orderSeq),
+  mean: a.mean,
+  openLimitPrice: big(a.openLimitPrice),
+  gainTriggerPrice: big(a.gainTriggerPrice),
+  gainLimitPrice: big(a.gainLimitPrice),
+  lossTriggerPrice: big(a.lossTriggerPrice),
+  lossLimitPrice: big(a.lossLimitPrice),
+});
+// 单个挂单的止盈止损条件（按 orderSeq）。
+export async function getTriggerCondition(
+  ctx: PullCtx,
+  orderSeq: BigNumber
+): Promise<TriggerCond | null> {
+  const a: any = await fetchAcct(
+    ctx.connection,
+    perpCoder,
+    "TriggerCondition",
+    ctx.pda.triggerCondition(orderSeq)
+  );
+  return a ? toTriggerCond(a) : null;
+}
+// 连接钱包当前所有挂单的止盈止损条件（pairId 可选）。
+export async function getTriggerConditions(ctx: PullCtx, pairId?: number): Promise<TriggerCond[]> {
+  const orders = await getMyOpenOrders(ctx, pairId);
+  const conds = await Promise.all(orders.map((o) => getTriggerCondition(ctx, o.orderSeq)));
+  return conds.filter((c): c is TriggerCond => c !== null);
+}
+
+// =====================================================================
+// 交易对（token）列表（getTokenList）—— 解码全部 PairConfig
+// =====================================================================
+export interface TokenInfo {
+  pairId: number;
+  name: string;
+  status: number; // 0 normal 1 paused 2 offline
+  oracleSource: number; // 0 Pyth 1 Switchboard 2 Supra(reserved) 3 Chainlink
+  minOrderAmount: BigNumber; // 1e9
+  defaultLeverage: BigNumber; // 1e9
+  tradingFeeRate: BigNumber; // 1e9
+}
+export async function getTokenList(ctx: PullCtx): Promise<TokenInfo[]> {
+  const all = await allAccts<any>(ctx.connection, perpCoder, ctx.programs.perp, "PairConfig");
+  return all
+    .map(({ account: a }) => ({
+      pairId: a.pairId,
+      name: a.name,
+      status: a.status,
+      oracleSource: a.oracleSource,
+      minOrderAmount: big(a.minOrderAmount),
+      defaultLeverage: big(a.defaultLeverage),
+      tradingFeeRate: big(a.tradingFeeRate),
+    }))
+    .sort((x, y) => x.pairId - y.pairId);
 }
 
 export interface TradeRow {
@@ -418,6 +612,49 @@ export async function getPublicPoolInfo(ctx: PullCtx): Promise<PublicPoolInfo> {
   const escrowAvailable = toBig((escrow as any)?.availableAmount);
   const myValue = totalShares.gt(0) ? myShares.mul(escrowAmount).div(totalShares) : ZERO;
   return { myShares, totalShares, escrowAmount, escrowAvailable, myValue };
+}
+
+// 用户持有的公池份额（getUserShareAmount）。
+export async function getUserShareAmount(ctx: PullCtx): Promise<BigNumber> {
+  return (await getPublicPoolInfo(ctx)).myShares;
+}
+
+// 公池份额单位净值（getShareNetValue）= escrowAmount / totalShares，放大 1e9。
+// 份额按入金 1:1 铸造时 ≈ 1e9；池子盈亏后随之偏离。
+export interface ShareNetValue {
+  totalShares: BigNumber;
+  escrowAmount: BigNumber; // 池子总资产（TVL，base units）
+  netValue1e9: BigNumber; // 单位份额净值 ×1e9
+}
+export async function getShareNetValue(ctx: PullCtx): Promise<ShareNetValue> {
+  const info = await getPublicPoolInfo(ctx);
+  const netValue1e9 = info.totalShares.gt(0)
+    ? info.escrowAmount.mul(BigNumber.from(10).pow(9)).div(info.totalShares)
+    : ZERO;
+  return { totalShares: info.totalShares, escrowAmount: info.escrowAmount, netValue1e9 };
+}
+
+// 当前池子流动性总和信息（getPoolAsset）—— PoolConfig + 公池 escrow 汇总。
+export interface PoolAsset {
+  poolType: number; // 1 PUBLIC 2 PRIVATE 3 MIXED 4 REFUSE
+  status: number; // 0 active 1 paused 2 offline
+  totalShares: BigNumber; // 公池份额总量
+  publicTvl: BigNumber; // 公池总资产（escrow amount）
+  publicAvailable: BigNumber; // 公池可用（未被接单占用）
+  totalLockedLiquidity: BigNumber; // 池子已锁定流动性（接单占用，跨私/公）
+}
+export async function getPoolAsset(ctx: PullCtx): Promise<PoolAsset | null> {
+  const cfg: any = await fetchAcct(ctx.connection, lpCoder, "PoolConfig", ctx.pda.poolConfig(ctx.mint));
+  if (!cfg) return null;
+  const info = await getPublicPoolInfo(ctx);
+  return {
+    poolType: cfg.poolType,
+    status: cfg.status,
+    totalShares: big(cfg.totalShares),
+    publicTvl: info.escrowAmount,
+    publicAvailable: info.escrowAvailable,
+    totalLockedLiquidity: big(cfg.totalLockedLiquidity),
+  };
 }
 
 // =====================================================================

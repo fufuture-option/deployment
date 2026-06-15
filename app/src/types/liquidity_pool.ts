@@ -273,9 +273,78 @@ export type LiquidityPool = {
       ]
     },
     {
+      "name": "initLpGlobalConfig",
+      "docs": [
+        "部署后一次性创建 LpGlobalConfig singleton（lp admin + 官方 perp_core program id）。",
+        "无许可建池要从这里取强制写入 PoolConfig 的 perp_core_program。"
+      ],
+      "discriminator": [
+        152,
+        189,
+        144,
+        37,
+        152,
+        229,
+        80,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lpGlobalConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "initLpGlobalConfigArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "initPoolConfig",
       "docs": [
-        "初始化某个结算币的 pool config（每个 settle_mint 一次）。"
+        "初始化某个结算币的 pool config（每个 settle_mint 一次）。",
+        "admin 路径（lp_global.admin 签名）：自定义 pool_type / escrow。",
+        "无许可路径（不传 admin）：强制 PRIVATE 池 + 官方 perp_core_program + 默认参数 + 记录 creator。"
       ],
       "discriminator": [
         229,
@@ -292,6 +361,45 @@ export type LiquidityPool = {
           "name": "payer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "lpGlobalConfig",
+          "docs": [
+            "lp 全局配置 —— 取官方 perp_core_program（强制写入）+ admin（判定模式）。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "docs": [
+            "admin 路径：签名且 == lp_global.admin（自定义 public/mixed 池）。无许可路径：传 None。"
+          ],
+          "signer": true,
+          "optional": true
         },
         {
           "name": "settleMint"
@@ -418,19 +526,22 @@ export type LiquidityPool = {
           }
         },
         {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "poolConfig"
-          ]
-        },
-        {
           "name": "payer",
           "writable": true,
           "signer": true
         },
         {
           "name": "settleMint"
+        },
+        {
+          "name": "perpCoreVaultToken",
+          "docs": [
+            "传递性闸门：要求 perp_core 的 `vault_token` 已存在 —— 即该 settle 市场已通过 perp_core 的",
+            "「无许可开关 + freeze-authority 护栏」被合法创建。没有它就建不出 pool_vault，因此 lp 端",
+            "无需重复 flag / freeze 检查；鉴权完全继承自 perp_core。用 `pool_config.perp_core_program`",
+            "（建池时已强制 = 官方 id）派生，杜绝伪造。",
+            "CHECK（Anchor）：必须是 perp_core 名下 [\"vault_token\", settle_mint] 的已初始化 TokenAccount。"
+          ]
         },
         {
           "name": "vaultAuthority",
@@ -660,10 +771,44 @@ export type LiquidityPool = {
       "accounts": [
         {
           "name": "keeper",
+          "docs": [
+            "调用方必须是池管理员（见审计 M-1：原先任意 signer 都能标记 LP 拒单）。",
+            "keeper 自动风控应以 admin 身份运行，或由 admin 委派。"
+          ],
           "signer": true
         },
         {
           "name": "settleMint"
+        },
+        {
+          "name": "poolConfig",
+          "docs": [
+            "池配置 —— 校验调用方 == admin。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              }
+            ]
+          }
         },
         {
           "name": "lpAccount",
@@ -1504,6 +1649,19 @@ export type LiquidityPool = {
       ]
     },
     {
+      "name": "lpGlobalConfig",
+      "discriminator": [
+        166,
+        217,
+        55,
+        31,
+        214,
+        254,
+        200,
+        85
+      ]
+    },
+    {
       "name": "lpPosition",
       "discriminator": [
         105,
@@ -1620,6 +1778,19 @@ export type LiquidityPool = {
         11,
         212,
         214
+      ]
+    },
+    {
+      "name": "lpGlobalConfigInitialized",
+      "discriminator": [
+        24,
+        44,
+        66,
+        67,
+        137,
+        181,
+        213,
+        48
       ]
     },
     {
@@ -2057,41 +2228,71 @@ export type LiquidityPool = {
       }
     },
     {
+      "name": "initLpGlobalConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "lp 管理员（admin 路径建 public/mixed 池）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "perpCoreProgram",
+            "docs": [
+              "官方 perp_core program id（无许可建池强制写入 PoolConfig.perp_core_program）。"
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "initPoolConfigArgs",
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "admin",
+            "docs": [
+              "admin 路径下设为 `pool_config.admin`（可委托给另一地址）。无许可路径忽略。"
+            ],
             "type": "pubkey"
           },
           {
             "name": "poolType",
+            "docs": [
+              "admin 路径有效（1..=4）。无许可路径强制 PRIVATE。"
+            ],
             "type": "u8"
           },
           {
             "name": "escrowAuthority",
-            "type": "pubkey"
-          },
-          {
-            "name": "perpCoreProgram",
+            "docs": [
+              "admin 路径有效。无许可路径强制 Pubkey::default()。"
+            ],
             "type": "pubkey"
           },
           {
             "name": "status",
+            "docs": [
+              "admin 路径有效（0..=2）。无许可路径强制 0（active）。"
+            ],
             "type": "u8"
           },
           {
             "name": "privateMinProvideAmount",
             "docs": [
-              "私有池单笔最小入金（base units）。0 → 走默认 1 USDC（与 EVM `privateMinMintAmount` 等价）。"
+              "私有池单笔最小入金（base units）。0 → 默认 1 USDC。无许可路径强制默认。"
             ],
             "type": "u64"
           },
           {
             "name": "publicMinProvideAmount",
             "docs": [
-              "公共池单笔最小入金（base units）。0 → 走默认 1 USDC。"
+              "公共池单笔最小入金（base units）。0 → 默认 1 USDC。无许可路径强制默认。"
             ],
             "type": "u64"
           }
@@ -2309,6 +2510,68 @@ export type LiquidityPool = {
       }
     },
     {
+      "name": "lpGlobalConfig",
+      "docs": [
+        "liquidity_pool 全局 singleton。PDA seeds: [\"lp_global_config\"]",
+        "",
+        "两个用途：",
+        "1. `admin` —— lp 管理员，走「admin 路径」创建 public/mixed 池（自定义 pool_type / escrow）。",
+        "2. `perp_core_program` —— 官方 perp_core program id。无许可建池时**强制**写进",
+        "`PoolConfig.perp_core_program`，使 `match_order` 的 `seeds::program` CPI guard 永远",
+        "指向真正的 perp_core，杜绝创建者伪造结算程序来操纵做市方资金。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "admin",
+            "docs": [
+              "liquidity_pool 管理员。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "perpCoreProgram",
+            "docs": [
+              "官方 perp_core program id（CPI guard 真源）。"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "升级预留。"
+            ],
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "lpGlobalConfigInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "perpCoreProgram",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "lpParamsUpdated",
       "type": {
         "kind": "struct",
@@ -2368,7 +2631,7 @@ export type LiquidityPool = {
           {
             "name": "direction",
             "docs": [
-              "0 = LONG, 1 = SHORT。"
+              "1 = LONG, 2 = SHORT（对齐 EVM `Direct`，0 为无效）；从 perp_core 透传。"
             ],
             "type": "u8"
           },
@@ -2444,7 +2707,7 @@ export type LiquidityPool = {
           {
             "name": "direction",
             "docs": [
-              "taker 方向（0 = LONG, 1 = SHORT）；maker 方向相反。"
+              "taker 方向（1 = LONG, 2 = SHORT，对齐 EVM）；maker 方向相反。"
             ],
             "type": "u8"
           },
@@ -2529,7 +2792,7 @@ export type LiquidityPool = {
           {
             "name": "takerDirection",
             "docs": [
-              "taker 方向（0=LONG, 1=SHORT）；maker 是相反方向。"
+              "taker 方向（1=LONG, 2=SHORT，对齐 EVM）；maker 是相反方向。"
             ],
             "type": "u8"
           },
@@ -2671,9 +2934,17 @@ export type LiquidityPool = {
             "type": "u64"
           },
           {
+            "name": "creator",
+            "docs": [
+              "创建者（对齐 EVM `pool.creator = msg.sender`）。",
+              "admin 路径 = lp_global.admin；无许可路径 = payer（同时也是 pool_config.admin，可自管私有池）。"
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "reserved",
             "docs": [
-              "升级预留。"
+              "升级预留（从 64 借 32 字节给 creator）。"
             ],
             "type": "bytes"
           }
@@ -2699,6 +2970,13 @@ export type LiquidityPool = {
           },
           {
             "name": "perpCoreProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "docs": [
+              "创建者（admin 路径 = lp_global.admin；无许可路径 = payer）。"
+            ],
             "type": "pubkey"
           }
         ]
@@ -2787,7 +3065,7 @@ export type LiquidityPool = {
     {
       "name": "publicShare",
       "docs": [
-        "用户在公共池的份额账户。net_value = escrow.amount × 1e18 / total_shares。",
+        "用户在公共池的份额账户。net_value(per share) = escrow.amount / total_shares（base units）。",
         "PDA seeds: [\"public_share\", settle_mint, holder]"
       ],
       "type": {
@@ -2818,7 +3096,7 @@ export type LiquidityPool = {
           {
             "name": "shares",
             "docs": [
-              "持有的份额数（1e18 精度，与 PoolConfig.total_shares 同精度）。"
+              "持有的份额数（u64，与 PoolConfig.total_shares 同口径；首充 1:1 = base units，非 1e18）。"
             ],
             "type": "u64"
           },

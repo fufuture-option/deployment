@@ -1261,6 +1261,9 @@ export type PerpCore = {
       "accounts": [
         {
           "name": "globalConfig",
+          "docs": [
+            "只读 — admin 路径校验 admin；无许可路径读 permissionless_markets 开关。"
+          ],
           "pda": {
             "seeds": [
               {
@@ -1286,10 +1289,11 @@ export type PerpCore = {
         },
         {
           "name": "admin",
+          "docs": [
+            "admin 路径：签名且 == global_config.admin。无许可路径：传 None。"
+          ],
           "signer": true,
-          "relations": [
-            "globalConfig"
-          ]
+          "optional": true
         },
         {
           "name": "payer",
@@ -1432,7 +1436,7 @@ export type PerpCore = {
         {
           "name": "globalConfig",
           "docs": [
-            "只读 — 校验 admin。"
+            "只读 — admin 路径校验 admin；无许可路径读 permissionless_markets 开关。"
           ],
           "pda": {
             "seeds": [
@@ -1459,10 +1463,12 @@ export type PerpCore = {
         },
         {
           "name": "admin",
+          "docs": [
+            "admin 路径：必须签名且 == global_config.admin（无护栏，可上 USDC/USDT）。",
+            "无许可路径：传 None（要求 permissionless_markets 开启 + 护栏）。"
+          ],
           "signer": true,
-          "relations": [
-            "globalConfig"
-          ]
+          "optional": true
         },
         {
           "name": "settleMint"
@@ -1566,6 +1572,9 @@ export type PerpCore = {
       "accounts": [
         {
           "name": "globalConfig",
+          "docs": [
+            "只读 — admin 路径校验 admin；无许可路径读 permissionless_markets 开关。"
+          ],
           "pda": {
             "seeds": [
               {
@@ -1591,10 +1600,12 @@ export type PerpCore = {
         },
         {
           "name": "admin",
+          "docs": [
+            "admin 路径：签名且 == global_config.admin（可上 USDC/USDT 等 freeze-authority mint）。",
+            "无许可路径：传 None（要求 permissionless 开启 + 拒绝 freeze-authority mint）。"
+          ],
           "signer": true,
-          "relations": [
-            "globalConfig"
-          ]
+          "optional": true
         },
         {
           "name": "payer",
@@ -5677,6 +5688,19 @@ export type PerpCore = {
       ]
     },
     {
+      "name": "setLeverage",
+      "discriminator": [
+        20,
+        66,
+        182,
+        54,
+        144,
+        116,
+        180,
+        50
+      ]
+    },
+    {
       "name": "settleConfigInitialized",
       "discriminator": [
         82,
@@ -5909,7 +5933,7 @@ export type PerpCore = {
     {
       "code": 6030,
       "name": "invalidDirection",
-      "msg": "Position direction must be 0 (LONG) or 1 (SHORT)"
+      "msg": "Position direction must be 1 (LONG) or 2 (SHORT)"
     },
     {
       "code": 6031,
@@ -6033,168 +6057,183 @@ export type PerpCore = {
     },
     {
       "code": 6055,
+      "name": "priceDeviationTooLarge",
+      "msg": "Fill price deviates too far from the current oracle price"
+    },
+    {
+      "code": 6056,
       "name": "rewardGasInsufficient",
       "msg": "reward_gas exceeds user available balance"
     },
     {
-      "code": 6056,
+      "code": 6057,
       "name": "triggerConditionMismatch",
       "msg": "Trigger condition account is not paired with this LimitedOrder"
     },
     {
-      "code": 6057,
+      "code": 6058,
       "name": "notOrderOwner",
       "msg": "Caller is not the order owner (cancel) — use expire path instead"
     },
     {
-      "code": 6058,
+      "code": 6059,
       "name": "unsupportedConditionalChain",
       "msg": "STOP_TAKE_OPEN with conditional chain (limit sub-order / auto TP/SL) not supported in v1"
     },
     {
-      "code": 6059,
+      "code": 6060,
       "name": "switchboardAccountTooShort",
       "msg": "Switchboard feed account data too short"
     },
     {
-      "code": 6060,
+      "code": 6061,
       "name": "switchboardDiscriminatorMismatch",
       "msg": "Switchboard feed account discriminator mismatch"
     },
     {
-      "code": 6061,
+      "code": 6062,
       "name": "switchboardFeedHashMismatch",
       "msg": "Switchboard feed_hash does not match registered hash"
     },
     {
-      "code": 6062,
+      "code": 6063,
       "name": "switchboardPriceInvalid",
       "msg": "Switchboard price is <= 0"
     },
     {
-      "code": 6063,
+      "code": 6064,
       "name": "switchboardPriceTooStale",
       "msg": "Switchboard price is stale (exceeds max_staleness_secs)"
     },
     {
-      "code": 6064,
+      "code": 6065,
       "name": "switchboardAccountMismatch",
       "msg": "Switchboard feed account does not match registered account"
     },
     {
-      "code": 6065,
+      "code": 6066,
       "name": "allOraclesUnavailable",
       "msg": "All configured oracles unavailable (Pyth + Switchboard both failed)"
     },
     {
-      "code": 6066,
+      "code": 6067,
       "name": "invalidOracleMode",
       "msg": "Oracle mode value invalid"
     },
     {
-      "code": 6067,
+      "code": 6068,
       "name": "invalidOracleSource",
       "msg": "Oracle source value invalid"
     },
     {
-      "code": 6068,
+      "code": 6069,
       "name": "oracleSourceUnsupported",
       "msg": "Selected oracle source is not yet supported on Solana (e.g. Supra)"
     },
     {
-      "code": 6069,
+      "code": 6070,
       "name": "chainlinkFeedIdZero",
       "msg": "Chainlink feed id is zero"
     },
     {
-      "code": 6070,
+      "code": 6071,
       "name": "chainlinkVerifierMismatch",
       "msg": "Chainlink verifier program account mismatch"
     },
     {
-      "code": 6071,
+      "code": 6072,
       "name": "chainlinkNoReturnData",
       "msg": "Chainlink verify returned no data"
     },
     {
-      "code": 6072,
+      "code": 6073,
       "name": "chainlinkReportTooShort",
       "msg": "Chainlink report too short"
     },
     {
-      "code": 6073,
+      "code": 6074,
       "name": "chainlinkFeedIdMismatch",
       "msg": "Chainlink report feed id mismatch"
     },
     {
-      "code": 6074,
+      "code": 6075,
       "name": "chainlinkPriceOverflow",
       "msg": "Chainlink benchmark price overflow / negative"
     },
     {
-      "code": 6075,
+      "code": 6076,
       "name": "chainlinkPriceInvalid",
       "msg": "Chainlink benchmark price invalid (zero)"
     },
     {
-      "code": 6076,
+      "code": 6077,
       "name": "chainlinkPriceStale",
       "msg": "Chainlink report is stale"
     },
     {
-      "code": 6077,
+      "code": 6078,
       "name": "chainlinkAccountsMissing",
       "msg": "Chainlink oracle accounts missing in remaining_accounts (need 4)"
     },
     {
-      "code": 6078,
+      "code": 6079,
       "name": "marketOrderDisabled",
       "msg": "Market orders are disabled for this pair (global switch / per-pair override)"
     },
     {
-      "code": 6079,
+      "code": 6080,
       "name": "limitOrderDisabled",
       "msg": "Limit orders are disabled for this pair (global switch / per-pair override)"
     },
     {
-      "code": 6080,
+      "code": 6081,
       "name": "stopTakeOrderDisabled",
       "msg": "Stop-take (TP/SL) orders are disabled (global switch / per-pair override)"
     },
     {
-      "code": 6081,
+      "code": 6082,
       "name": "invalidOrderSwitch",
       "msg": "Order switch value invalid (must be <= 0b11)"
     },
     {
-      "code": 6082,
+      "code": 6083,
       "name": "invalidTriggerDealSeq",
       "msg": "Trigger-created deal_seq must be >= TRIGGER_DEAL_SEQ_BASE (high range)"
     },
     {
-      "code": 6083,
+      "code": 6084,
       "name": "goodTillMustBeFuture",
       "msg": "good_till must be in the future (good_till > now)"
     },
     {
-      "code": 6084,
+      "code": 6085,
       "name": "withdrawBlockedByUnrealizedLoss",
       "msg": "Withdraw blocked: available must cover amount + unrealized loss"
     },
     {
-      "code": 6085,
+      "code": 6086,
       "name": "withdrawPnlAccountsMismatch",
       "msg": "Withdraw PnL remaining_accounts must be groups of 3 [position, pair_config, price_update]"
     },
     {
-      "code": 6086,
+      "code": 6087,
       "name": "withdrawPnlAccountsUnordered",
       "msg": "Withdraw PnL positions must be passed in strictly increasing (pair_id, direction) order"
     },
     {
-      "code": 6087,
+      "code": 6088,
       "name": "withdrawPnlAccountInvalid",
       "msg": "Withdraw PnL remaining account is not a valid program-owned account"
+    },
+    {
+      "code": 6089,
+      "name": "permissionlessDisabled",
+      "msg": "Permissionless market creation is disabled; caller must be admin"
+    },
+    {
+      "code": 6090,
+      "name": "freezeAuthorityNotAllowed",
+      "msg": "Settle mint has a freeze authority; not allowed for permissionless markets"
     }
   ],
   "types": [
@@ -6564,7 +6603,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "方向0 = LONG, 1 = SHORT。"
+              "方向1 = LONG, 2 = SHORT。"
             ],
             "type": "u8"
           },
@@ -6836,9 +6875,19 @@ export type PerpCore = {
             "type": "u8"
           },
           {
+            "name": "permissionlessMarkets",
+            "docs": [
+              "无许可建市总开关（kill-switch）。",
+              "true  = 任何人可创建「结算币市场」（带护栏：钳制风险参数 / 拒绝 freeze mint / 记录 creator）；",
+              "false = 仅 admin 白名单可创建（退回旧行为）。",
+              "**唯一真源**：treasury / liquidity_pool 在无许可路径上跨程序读取本字段。"
+            ],
+            "type": "bool"
+          },
+          {
             "name": "reserved",
             "docs": [
-              "升级预留 padding（从 64 借 1 字节给 order_switch）。"
+              "升级预留 padding（从 64 借给 order_switch + permissionless_markets）。"
             ],
             "type": "bytes"
           }
@@ -6961,6 +7010,15 @@ export type PerpCore = {
               "是否启用回购模块（v2 用；v1 直接传 false）。"
             ],
             "type": "bool"
+          },
+          {
+            "name": "permissionlessMarkets",
+            "docs": [
+              "无许可建市总开关。None → 默认 true（开放，admin 可随时用 set_addresses 关闭）。"
+            ],
+            "type": {
+              "option": "bool"
+            }
           }
         ]
       }
@@ -7120,7 +7178,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "0=LONG, 1=SHORT。"
+              "1=LONG, 2=SHORT。"
             ],
             "type": "u8"
           },
@@ -8189,9 +8247,17 @@ export type PerpCore = {
             "type": "u64"
           },
           {
+            "name": "creator",
+            "docs": [
+              "创建者（对齐 EVM `pool.creator = msg.sender`）。",
+              "admin 路径 = lp_global.admin；无许可路径 = payer（同时也是 pool_config.admin，可自管私有池）。"
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "reserved",
             "docs": [
-              "升级预留。"
+              "升级预留（从 64 借 32 字节给 creator）。"
             ],
             "type": "bytes"
           }
@@ -8201,7 +8267,7 @@ export type PerpCore = {
     {
       "name": "position",
       "docs": [
-        "用户在某 (settle_mint, pair_id, direction) 上的聚合仓位（direction: 0=LONG, 1=SHORT）。",
+        "用户在某 (settle_mint, pair_id, direction) 上的聚合仓位（direction: 1=LONG, 2=SHORT）。",
         "PDA seeds: [\"position\", settle_mint, pair_id_le_bytes, direction, owner]",
         "注意：seeds 必须包含 `owner`，否则全体用户会共享同一仓位账户（见审计 C-1）。"
       ],
@@ -8240,7 +8306,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "0 = LONG, 1 = SHORT。"
+              "1 = LONG, 2 = SHORT。"
             ],
             "type": "u8"
           },
@@ -8601,6 +8667,56 @@ export type PerpCore = {
             "type": {
               "option": "u8"
             }
+          },
+          {
+            "name": "permissionlessMarkets",
+            "docs": [
+              "无许可建市总开关（kill-switch）。true=任何人可建结算币市场；false=仅 admin。"
+            ],
+            "type": {
+              "option": "bool"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "setLeverage",
+      "docs": [
+        "用户为某 (settle_mint, pair_id) 修改杠杆。",
+        "",
+        "EVM 对应：`ICommon.setLeverage(sender, name, beforeLeverage, afterLeverage)`",
+        "（`sender`→`owner`，`name`→`pair_name`，并补 `settle_mint`/`pair_id` 多结算币维度）。"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "settleMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pairId",
+            "type": "u16"
+          },
+          {
+            "name": "pairName",
+            "type": "string"
+          },
+          {
+            "name": "beforeLeverage",
+            "docs": [
+              "改动前杠杆（1e9 精度）；首次设置（UserLeverage 新建）记 0，对齐 EVM beforeLeverage。"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "afterLeverage",
+            "type": "u64"
           }
         ]
       }
@@ -8673,9 +8789,17 @@ export type PerpCore = {
             "type": "u8"
           },
           {
+            "name": "creator",
+            "docs": [
+              "创建者（对齐 EVM `pool.creator = msg.sender`）。",
+              "admin 路径创建时 = admin；无许可路径创建时 = payer。仅作审计 / 索引 / 未来 creator-gated 操作。"
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "reserved",
             "docs": [
-              "升级预留。"
+              "升级预留（从 64 借 32 字节给 creator）。"
             ],
             "type": "bytes"
           }
@@ -8872,7 +8996,7 @@ export type PerpCore = {
           {
             "name": "direction",
             "docs": [
-              "0 = LONG / 1 = SHORT。"
+              "1 = LONG / 2 = SHORT。"
             ],
             "type": "u8"
           },

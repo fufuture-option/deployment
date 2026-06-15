@@ -72,6 +72,186 @@ export async function providePrivatePool(ctx: SignCtx, amountUsdc: string): Prom
   return sendIxs(ctx, [ix]);
 }
 
+// =====================================================================
+// createMarket — 无许可建市（任何人用任意经典 SPL 代币当结算币，对齐 EVM）。
+//
+// 走每个 program 的「无许可路径」(admin = null)，合约自动套护栏：钳制风险参数 /
+// 拒绝 freeze-authority mint / 强制官方 perp_core_program / 强制私有池 / 记录 creator。
+// 6 步（幂等，按需弹签名）：perp settle_config→vault→risk + treasury vault + lp pool_config→vault。
+// 前置：lp_global_config 已由管理员初始化（提供官方 perp_core_program）。
+// =====================================================================
+const POOL_TYPE_PRIVATE = 2;
+
+export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<string> {
+  let mint: web3.PublicKey;
+  try {
+    mint = new PublicKey((mintBase58 || "").trim());
+  } catch {
+    throw new Error("无效的 mint 地址");
+  }
+
+  // 1) 护栏预检：mint 必须存在 + 经典 SPL Token + 无 freeze authority（无许可路径合约会拒绝带 freeze 的）。
+  const ai = await ctx.connection.getAccountInfo(mint);
+  if (!ai) throw new Error("该 mint 在链上不存在 — 请先创建/确认 SPL mint");
+  if (!ai.owner.equals(TOKEN_PROGRAM))
+    throw new Error("仅支持经典 SPL Token（Token-2022 暂不支持）");
+  // SPL Mint 布局：freeze_authority 是 COption<Pubkey>，4 字节 tag @offset 46；tag≠0 = 有 freeze authority。
+  if (ai.data.length >= 50 && ai.data.readUInt32LE(46) !== 0)
+    throw new Error(
+      "该 mint 带 freeze authority（可冻结金库），无许可建市不允许。请换无 freeze 的代币，或让管理员在「管理员」页用 admin 路径添加（USDC/USDT 这类合规稳定币走管理员）。"
+    );
+
+  // 2) lp_global_config 必须已初始化（提供强制写入 PoolConfig 的官方 perp_core_program）。
+  if (!(await exists(ctx, ctx.pda.lpGlobalConfig())))
+    throw new Error("lp_global_config 尚未初始化 — 请让管理员先在「管理员」页一键初始化（init_lp_global_config）。");
+
+  const RENT = web3.SYSVAR_RENT_PUBKEY;
+  let last = "";
+
+  // perp 1) init_settle_config（无许可：admin=null → 钳制风险参数 + 记录 creator）
+  if (!(await exists(ctx, ctx.pda.settleConfig(mint)))) {
+    const ix = await ctx.perp.methods
+      .initSettleConfig({
+        maintenanceMarginRate: bn(0), // 无许可路径忽略 → 走全局默认
+        minDepositAmount: bn(0),
+        defaultLeverage: bn(toUnits("10", 9)), // 会被钳制到 MAX_PERMISSIONLESS_LEVERAGE
+        status: 0,
+      } as any)
+      .accountsStrict(
+        A({
+          globalConfig: ctx.pda.globalConfig(),
+          admin: null,
+          settleMint: mint,
+          settleConfig: ctx.pda.settleConfig(mint),
+          vaultAuthority: ctx.pda.vaultAuthority(mint),
+          payer: ctx.wallet,
+          systemProgram: SystemProgram.programId,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // perp 2) init_settle_vault（无许可：拒绝 freeze-authority mint）
+  if (!(await exists(ctx, ctx.pda.vaultToken(mint)))) {
+    const ix = await ctx.perp.methods
+      .initSettleVault()
+      .accountsStrict(
+        A({
+          globalConfig: ctx.pda.globalConfig(),
+          admin: null,
+          payer: ctx.wallet,
+          settleMint: mint,
+          settleConfig: ctx.pda.settleConfig(mint),
+          vaultAuthority: ctx.pda.vaultAuthority(mint),
+          vaultToken: ctx.pda.vaultToken(mint),
+          seqCounter: ctx.pda.seqCounter(mint),
+          tokenProgram: TOKEN_PROGRAM,
+          systemProgram: SystemProgram.programId,
+          rent: RENT,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // perp 3) init_risk_fund_vault（无许可；vault 初始为空）
+  if (!(await exists(ctx, ctx.pda.riskVaultToken(mint)))) {
+    const ix = await ctx.perp.methods
+      .initRiskFundVault()
+      .accountsStrict(
+        A({
+          globalConfig: ctx.pda.globalConfig(),
+          admin: null,
+          payer: ctx.wallet,
+          settleMint: mint,
+          settleConfig: ctx.pda.settleConfig(mint),
+          riskVaultAuthority: ctx.pda.riskVaultAuthority(mint),
+          riskVaultToken: ctx.pda.riskVaultToken(mint),
+          tokenProgram: TOKEN_PROGRAM,
+          systemProgram: SystemProgram.programId,
+          rent: RENT,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // treasury 4) init_treasury_vault（传递性闸门：要求 perp vault_token 已存在 → 上面 step2 已建）
+  if (!(await exists(ctx, ctx.pda.treasuryVault(mint)))) {
+    const ix = await ctx.treasury.methods
+      .initTreasuryVault()
+      .accountsStrict(
+        A({
+          treasuryConfig: ctx.pda.treasuryConfig(),
+          payer: ctx.wallet,
+          settleMint: mint,
+          perpCoreVaultToken: ctx.pda.vaultToken(mint),
+          vaultAuthority: ctx.pda.treasuryVaultAuthority(mint),
+          treasuryVault: ctx.pda.treasuryVault(mint),
+          platformFeeVault: ctx.pda.platformFeeVault(mint),
+          tradeFeeVault: ctx.pda.tradeFeeVault(mint),
+          tokenProgram: TOKEN_PROGRAM,
+          systemProgram: SystemProgram.programId,
+          rent: RENT,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // lp 5) init_pool_config（无许可 → 强制 PRIVATE 池 + 官方 perp_core_program + 记录 creator）
+  if (!(await exists(ctx, ctx.pda.poolConfig(mint)))) {
+    const ix = await ctx.lp.methods
+      .initPoolConfig({
+        admin: ctx.wallet, // 无许可路径忽略（pool_config.admin 强制 = payer）
+        poolType: POOL_TYPE_PRIVATE, // 无许可强制 PRIVATE
+        escrowAuthority: PublicKey.default, // 无许可强制 default
+        status: 0,
+        privateMinProvideAmount: bn(0),
+        publicMinProvideAmount: bn(0),
+      } as any)
+      .accountsStrict(
+        A({
+          payer: ctx.wallet,
+          lpGlobalConfig: ctx.pda.lpGlobalConfig(),
+          admin: null,
+          settleMint: mint,
+          poolConfig: ctx.pda.poolConfig(mint),
+          vaultAuthority: ctx.pda.poolVaultAuthority(mint),
+          systemProgram: SystemProgram.programId,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // lp 6) init_pool_vault（传递性闸门：perp vault_token 已存在；escrow = default）
+  if (!(await exists(ctx, ctx.pda.poolVault(mint)))) {
+    const ix = await ctx.lp.methods
+      .initPoolVault()
+      .accountsStrict(
+        A({
+          poolConfig: ctx.pda.poolConfig(mint),
+          payer: ctx.wallet,
+          settleMint: mint,
+          perpCoreVaultToken: ctx.pda.vaultToken(mint),
+          vaultAuthority: ctx.pda.poolVaultAuthority(mint),
+          poolVault: ctx.pda.poolVault(mint),
+          escrowLpAccount: ctx.pda.lpAccount(PublicKey.default, mint),
+          tokenProgram: TOKEN_PROGRAM,
+          systemProgram: SystemProgram.programId,
+          rent: RENT,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  if (!last) throw new Error("该市场已全部初始化，无需重复。");
+  return last;
+}
+
 export async function setLpParams(
   ctx: SignCtx,
   opts: { leverageX?: string; rejectOrder?: boolean }
@@ -100,6 +280,32 @@ export async function setLpParams(
         settleMint: ctx.mint,
         lpAccount: lpAcc,
         poolConfig: ctx.pda.poolConfig(ctx.mint),
+      })
+    )
+    .instruction();
+  return sendIxs(ctx, [ix]);
+}
+
+// 做市方手动追加某笔接单的保证金（EVM addMarginAmount）= lp.add_margin(taker_deal_seq, amount)。
+// 按 taker 的 deal_seq 定位 MakerDeal；amount 为人类字符串（结算币单位）。
+export async function addMakerMargin(
+  ctx: SignCtx,
+  takerDealSeq: BigNumber,
+  amountUsdc: string
+): Promise<string> {
+  const amount = toUnits(amountUsdc, await mintDecimals(ctx.connection, ctx.mint));
+  if (amount.lte(0)) throw new Error("amount must be > 0");
+  const lpAcc = ctx.pda.lpAccount(ctx.wallet, ctx.mint);
+  if (!(await exists(ctx, lpAcc))) throw new Error("私有池/做市账户不存在 — 你不是该笔的做市方。");
+  const ix = await ctx.lp.methods
+    .addMargin(bn(takerDealSeq), bn(amount))
+    .accountsStrict(
+      A({
+        maker: ctx.wallet,
+        settleMint: ctx.mint,
+        poolConfig: ctx.pda.poolConfig(ctx.mint),
+        lpAccount: lpAcc,
+        makerDeal: ctx.pda.makerDeal(takerDealSeq, ctx.mint),
       })
     )
     .instruction();
@@ -228,6 +434,93 @@ export async function placeLimitClose(
           userAccount: ua,
           position: ctx.pda.position(ctx.wallet, pairId, p.direction, ctx.mint),
           seqCounter: ctx.pda.seqCounter(ctx.mint),
+          limitedOrder: ctx.pda.limitedOrder(nextOrderSeq, ctx.mint),
+          triggerCondition: ctx.pda.triggerCondition(nextOrderSeq, ctx.mint),
+          systemProgram: SystemProgram.programId,
+        })
+      )
+      .instruction()
+  );
+
+  return sendIxs(ctx, ixs);
+}
+
+// =====================================================================
+// 2b. 止盈止损开仓（OCO）= stop_take_order(StopTakeArgs::Open)
+//
+// 触发开仓 + 可选自动挂 TP/SL。keeper 通过 trigger_stop_take_open 撮合。
+// triggerPrice 必填 >0；openLimitPrice 0=触发后市价开、>0=限价开；
+// gain/lossTriggerPrice 为开仓后自动挂的止盈/止损触发价（0=不挂）。
+// =====================================================================
+export interface OcoOpenParams {
+  direction: 1 | 2; // 1=LONG 2=SHORT
+  amountBtc: string;
+  triggerPrice: BigNumber; // 触发开仓价 (1e9)，必填 >0
+  openLimitPrice?: BigNumber; // 0/缺省=市价开；>0=限价开
+  gainTriggerPrice?: BigNumber; // 自动 TP 触发价 (1e9)，0/缺省=不挂
+  lossTriggerPrice?: BigNumber; // 自动 SL 触发价 (1e9)，0/缺省=不挂
+  rewardGasSol: string; // keeper 预付（原生 SOL）
+  goodTillMinutes: number;
+}
+export async function ocoTrade(ctx: SignCtx, pairId: number, p: OcoOpenParams): Promise<string> {
+  const ua = ctx.pda.userAccount(ctx.wallet, ctx.mint);
+  const ixs: web3.TransactionInstruction[] = [
+    ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
+  ];
+  if (!(await exists(ctx, ua))) {
+    ixs.push(
+      await ctx.perp.methods
+        .initializeUserAccount()
+        .accountsStrict(
+          A({
+            owner: ctx.wallet,
+            settleMint: ctx.mint,
+            settleConfig: ctx.pda.settleConfig(ctx.mint),
+            userAccount: ua,
+            systemProgram: SystemProgram.programId,
+          })
+        )
+        .instruction()
+    );
+  }
+
+  const nextOrderSeq = await getNextOrderSeq(ctx);
+  const amount = toUnits(p.amountBtc, 9);
+  const reward = toUnits(p.rewardGasSol, 9);
+  const goodTill = Math.floor(Date.now() / 1000) + p.goodTillMinutes * 60;
+  const Z = bn(0);
+
+  ixs.push(
+    await ctx.perp.methods
+      .stopTakeOrder({
+        pairId,
+        direction: p.direction,
+        amount: bn(amount),
+        rewardGas: bn(reward),
+        orderSeq: bn(nextOrderSeq),
+        goodTill: bn(goodTill),
+        deadline: bn(0),
+        // Anchor enum: { open: {...} }（变体名首字母小写，字段 camelCase）。
+        variant: {
+          open: {
+            triggerPrice: bn(p.triggerPrice),
+            openLimitPrice: p.openLimitPrice ? bn(p.openLimitPrice) : Z,
+            gainTriggerPrice: p.gainTriggerPrice ? bn(p.gainTriggerPrice) : Z,
+            lossTriggerPrice: p.lossTriggerPrice ? bn(p.lossTriggerPrice) : Z,
+          },
+        },
+      } as any)
+      .accountsStrict(
+        A({
+          owner: ctx.wallet,
+          settleMint: ctx.mint,
+          globalConfig: ctx.pda.globalConfig(),
+          settleConfig: ctx.pda.settleConfig(ctx.mint),
+          pairConfig: ctx.pda.pairConfig(pairId),
+          userAccount: ua,
+          seqCounter: ctx.pda.seqCounter(ctx.mint),
+          position: null, // 开仓时仓位尚不存在（IDL optional）；触发成交时由 keeper 创建
           limitedOrder: ctx.pda.limitedOrder(nextOrderSeq, ctx.mint),
           triggerCondition: ctx.pda.triggerCondition(nextOrderSeq, ctx.mint),
           systemProgram: SystemProgram.programId,
@@ -422,13 +715,25 @@ export async function setUserLeverage(
 // =====================================================================
 // 6. 撤单 / 市价平仓（批量 make_limit_close）
 // =====================================================================
+// 撤单：对齐 EVM「仅凭 orderSeq 取消」。pairId/direction/orderKind 内部按 orderSeq
+// 读 LimitedOrder 反查（平仓委托 orderKind===2 需要 Position 账户）。调用方若已持有这些
+// 字段（如 getMyOpenOrders 的返回行）可经 `hints` 传入省去一次 RPC。
 export async function cancelOrder(
   ctx: SignCtx,
-  pairId: number,
   orderSeq: BigNumber,
-  direction: number,
-  orderKind: number
+  hints?: { pairId: number; direction: number; orderKind: number }
 ): Promise<string> {
+  let pairId: number, direction: number, orderKind: number;
+  if (hints) {
+    ({ pairId, direction, orderKind } = hints);
+  } else {
+    const ai = await ctx.connection.getAccountInfo(ctx.pda.limitedOrder(orderSeq, ctx.mint));
+    if (!ai) throw new Error("委托不存在或已成交/撤销");
+    const d = ai.data; // LimitedOrder: pair_id u16 @82, direction @84, order_kind @86
+    pairId = d.readUInt16LE(82);
+    direction = d[84];
+    orderKind = d[86];
+  }
   return sendIxs(ctx, [
     await ctx.perp.methods
       .cancelLimitOrder({ orderSeq: bn(orderSeq) })

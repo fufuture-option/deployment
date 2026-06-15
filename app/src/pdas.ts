@@ -65,11 +65,15 @@ export function createPdas(ids: ProgramIds, defaultMint: PublicKey) {
       find([enc("trigger_cond"), m(mint).toBuffer(), u64leOf(orderSeq)], perp),
 
     // --- liquidity_pool ---
+    lpGlobalConfig: () => find([enc("lp_global_config")], lp),
     poolConfig: (mint?: PublicKey) => find([enc("pool_config"), m(mint).toBuffer()], lp),
     poolVault: (mint?: PublicKey) => find([enc("pool_vault_token"), m(mint).toBuffer()], lp),
     poolVaultAuthority: (mint?: PublicKey) => find([enc("pool_vault_auth"), m(mint).toBuffer()], lp),
     lpAccount: (holder: PublicKey, mint?: PublicKey) =>
       find([enc("lp_account"), m(mint).toBuffer(), holder.toBuffer()], lp),
+    // 做市方接单记录（按 taker 的 deal_seq 派生）—— addMargin / getMakerDeals 用。
+    makerDeal: (takerDealSeq: { toString(): string }, mint?: PublicKey) =>
+      find([enc("maker_deal"), m(mint).toBuffer(), u64leOf(takerDealSeq)], lp),
     escrowAuthority: (mint?: PublicKey) => find([enc("escrow_authority"), m(mint).toBuffer()], lp),
     publicShare: (owner: PublicKey, mint?: PublicKey) =>
       find([enc("public_share"), m(mint).toBuffer(), owner.toBuffer()], lp),
@@ -83,6 +87,10 @@ export function createPdas(ids: ProgramIds, defaultMint: PublicKey) {
       find([enc("treasury_vault_token"), m(mint).toBuffer()], treasury),
     treasuryVaultAuthority: (mint?: PublicKey) =>
       find([enc("treasury_vault_auth"), m(mint).toBuffer()], treasury),
+    platformFeeVault: (mint?: PublicKey) =>
+      find([enc("platform_vault"), m(mint).toBuffer()], treasury),
+    tradeFeeVault: (mint?: PublicKey) =>
+      find([enc("trade_fee_vault"), m(mint).toBuffer()], treasury),
 
     // --- associated token account (SPL programs are fixed, not injected) ---
     ata: (owner: PublicKey, mint?: PublicKey) =>

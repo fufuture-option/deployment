@@ -150,6 +150,21 @@ export async function addSettleCurrency(
   const escrow = ctx.pda.escrowAuthority(mint);
   let last = "";
 
+  // lp 0) init_lp_global_config（一次性；admin 模式建 MIXED 池要求 lp_global.admin == 签名者）
+  if (!(await exists(ctx, ctx.pda.lpGlobalConfig()))) {
+    const ix = await ctx.lp.methods
+      .initLpGlobalConfig({ admin: ctx.wallet, perpCoreProgram: ctx.perp.programId } as any)
+      .accountsStrict(
+        A({
+          payer: ctx.wallet,
+          lpGlobalConfig: ctx.pda.lpGlobalConfig(),
+          systemProgram: SystemProgram.programId,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
   // perp 1) init_settle_config
   if (!(await exists(ctx, ctx.pda.settleConfig(mint)))) {
     const ix = await ctx.perp.methods
@@ -219,14 +234,36 @@ export async function addSettleCurrency(
     last = await sendIxs(ctx, [ix]);
   }
 
-  // lp 4) init_pool_config (MIXED, admin = caller)
+  // treasury 4) init_treasury_vault（传递性闸门：perp vault_token 已存在 → step2 已建）
+  if (!(await exists(ctx, ctx.pda.treasuryVault(mint)))) {
+    const ix = await ctx.treasury.methods
+      .initTreasuryVault()
+      .accountsStrict(
+        A({
+          treasuryConfig: ctx.pda.treasuryConfig(),
+          payer: ctx.wallet,
+          settleMint: mint,
+          perpCoreVaultToken: ctx.pda.vaultToken(mint),
+          vaultAuthority: ctx.pda.treasuryVaultAuthority(mint),
+          treasuryVault: ctx.pda.treasuryVault(mint),
+          platformFeeVault: ctx.pda.platformFeeVault(mint),
+          tradeFeeVault: ctx.pda.tradeFeeVault(mint),
+          tokenProgram: TOKEN_PROGRAM,
+          systemProgram: SystemProgram.programId,
+          rent: RENT,
+        })
+      )
+      .instruction();
+    last = await sendIxs(ctx, [ix]);
+  }
+
+  // lp 5) init_pool_config (admin 模式 → MIXED 池；perp_core_program 不再是入参，强制取自 lp_global)
   if (!(await exists(ctx, ctx.pda.poolConfig(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolConfig({
         admin: ctx.wallet,
         poolType: 3, // MIXED
         escrowAuthority: escrow,
-        perpCoreProgram: ctx.perp.programId,
         status: 0,
         privateMinProvideAmount: bn(0),
         publicMinProvideAmount: bn(0),
@@ -234,6 +271,8 @@ export async function addSettleCurrency(
       .accountsStrict(
         A({
           payer: ctx.wallet,
+          lpGlobalConfig: ctx.pda.lpGlobalConfig(),
+          admin: ctx.wallet,
           settleMint: mint,
           poolConfig: ctx.pda.poolConfig(mint),
           vaultAuthority: ctx.pda.poolVaultAuthority(mint),
@@ -244,16 +283,16 @@ export async function addSettleCurrency(
     last = await sendIxs(ctx, [ix]);
   }
 
-  // lp 5) init_pool_vault (+ escrow LpAccount)
+  // lp 6) init_pool_vault (admin 已移除；传递性闸门：perp vault_token 已存在)
   if (!(await exists(ctx, ctx.pda.poolVault(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolVault()
       .accountsStrict(
         A({
           poolConfig: ctx.pda.poolConfig(mint),
-          admin: ctx.wallet,
           payer: ctx.wallet,
           settleMint: mint,
+          perpCoreVaultToken: ctx.pda.vaultToken(mint),
           vaultAuthority: ctx.pda.poolVaultAuthority(mint),
           poolVault: ctx.pda.poolVault(mint),
           escrowLpAccount: ctx.pda.lpAccount(escrow, mint),

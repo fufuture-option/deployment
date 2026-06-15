@@ -208,7 +208,7 @@ export default function TradePanel({ ctx, pairId, mark, userLev, busy, setBusy, 
                   <td>{f4(Number(o.amount1e9) / 1e9)}</td>
                   <td>0</td>
                   <td>
-                    <button disabled={busy} onClick={() => act(`撤单 #${o.orderSeq}`, () => actions.cancelOrder(ctx, pairId, o.orderSeq, o.direction, o.orderKind))}>
+                    <button disabled={busy} onClick={() => act(`撤单 #${o.orderSeq}`, () => actions.cancelOrder(ctx, o.orderSeq, { pairId: o.pairId, direction: o.direction, orderKind: o.orderKind }))}>
                       撤单
                     </button>
                   </td>
