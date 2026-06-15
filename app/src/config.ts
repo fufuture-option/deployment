@@ -51,11 +51,7 @@ export const feedHexByPair = (id: number): string => {
 // Hermes price endpoint (used only to show the live price for context)
 export const HERMES_URL = "https://hermes.pyth.network";
 
-// --- SPL / system ---
-export const TOKEN_PROGRAM = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-export const ASSOCIATED_TOKEN_PROGRAM = new PublicKey(
-  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-);
+// SPL TOKEN_PROGRAM / ASSOCIATED_TOKEN_PROGRAM 已移至 pdas.ts（就近 PDA 推导处定义）。
 
 export const E18 = 10n ** 18n;
 

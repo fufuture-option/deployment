@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import TradePanel from "./TradePanel";
 import { web3 } from "@anchor-lang/core";
 import { BigNumber } from "ethers";
-import { getPhantom, makeSignCtx, withMint, SignCtx, fromUnits } from "./ctx";
+import { getPhantom, makeSignCtx, withMint, SignCtx, fromUnits } from "./solana";
 import * as actions from "./index";
 import {
   PAIRS,

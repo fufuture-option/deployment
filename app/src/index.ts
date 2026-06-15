@@ -5,7 +5,7 @@
 //   reads-user / reads-admin（拉取，PullCtx）   ops-user / ops-admin（签名，SignCtx）
 // 以及基础设施 ctx / 配置 config / PDA pdas。
 // =====================================================================
-export * from "./ctx";
+export * from "./solana";
 export * from "./config";
 export * from "./reads-user";
 export * from "./reads-admin";

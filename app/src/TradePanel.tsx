@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as actions from "./index";
-import { SignCtx } from "./ctx";
+import { SignCtx } from "./solana";
 import { pairNameById } from "./config";
 // 合约名来自 pairNameById(pairId)（随交易对切换）
 

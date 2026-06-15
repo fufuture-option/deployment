@@ -7,8 +7,8 @@
 // =====================================================================
 import { web3 } from "@anchor-lang/core";
 import { BigNumber } from "ethers";
-import { SignCtx, sendIxs, toUnits, bn, exists, mintDecimals } from "./ctx";
-import { TOKEN_PROGRAM } from "./config";
+import { SignCtx, sendIxs, toUnits, bn, exists, mintDecimals } from "./solana";
+import { TOKEN_PROGRAM } from "./pdas";
 import { getNextOrderSeq, getPublicPoolInfo, MyPosition } from "./reads-user";
 
 const { PublicKey, SystemProgram, ComputeBudgetProgram } = web3;

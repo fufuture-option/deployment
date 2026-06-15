@@ -5,8 +5,8 @@
 // 写入需连接钱包 = GlobalConfig.admin / PoolConfig.admin。
 // =====================================================================
 import { web3 } from "@anchor-lang/core";
-import { SignCtx, sendIxs, toUnits, bn, exists, mintDecimals } from "./ctx";
-import { TOKEN_PROGRAM } from "./config";
+import { SignCtx, sendIxs, toUnits, bn, exists, mintDecimals } from "./solana";
+import { TOKEN_PROGRAM } from "./pdas";
 
 const { PublicKey, SystemProgram } = web3;
 

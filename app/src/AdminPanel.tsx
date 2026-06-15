@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { BigNumber } from "ethers";
-import { SignCtx, fromUnits } from "./ctx";
+import { SignCtx, fromUnits } from "./solana";
 import * as actions from "./index";
 import { USDC_DECIMALS, PAIR_ID, settleLabel } from "./config";
 

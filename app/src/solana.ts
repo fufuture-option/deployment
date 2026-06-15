@@ -1,5 +1,5 @@
 // =====================================================================
-// ctx.ts — 基础设施层（被 reads-*/ops-* 共用）
+// solana.ts — 基础设施层（被 reads-*/ops-* 共用）
 //
 // 两个上下文：
 //   PullCtx { connection, wallet, mint, programs, pda }                 — 只读
@@ -104,35 +104,13 @@ const resolvePrograms = (p?: Partial<ProgramIds>): ProgramIds => ({
 });
 
 // ---------------------------------------------------------------------
-// Connection 构建（Alchemy 主 + 公共 fallback 兜 getProgramAccounts）
+// Connection 构建（单节点：公共 devnet）
+// 已取消 Alchemy 主 + fallback 双节点分流；所有 RPC（含 getProgramAccounts）走同一节点。
+// 默认公共 devnet（RPC_FALLBACK），可经 VITE_RPC_FALLBACK 覆盖。
 // ---------------------------------------------------------------------
-import { RPC_URL, RPC_FALLBACK } from "./config";
+import { RPC_FALLBACK } from "./config";
 export function makeConnection(): Connection {
-  const primary = new Connection(RPC_URL, "confirmed");
-  if (!RPC_FALLBACK || RPC_FALLBACK === RPC_URL) return primary;
-  const fallback = new Connection(RPC_FALLBACK, "confirmed");
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const routeToFallback = (method: "getProgramAccounts" | "getProgramAccountsWithOpts") => {
-    const orig = (fallback as any)[method];
-    if (typeof orig !== "function") return;
-    const fn = orig.bind(fallback);
-    (primary as any)[method] = async (...args: any[]) => {
-      let delay = 600;
-      for (let attempt = 0; ; attempt++) {
-        try {
-          return await fn(...args);
-        } catch (e: any) {
-          const is429 = /429|too many requests/i.test(String(e?.message || e));
-          if (attempt >= 2 || !is429) throw e;
-          await sleep(delay);
-          delay *= 2;
-        }
-      }
-    };
-  };
-  routeToFallback("getProgramAccounts");
-  routeToFallback("getProgramAccountsWithOpts");
-  return primary;
+  return new Connection(RPC_FALLBACK, "confirmed");
 }
 
 // ---------------------------------------------------------------------

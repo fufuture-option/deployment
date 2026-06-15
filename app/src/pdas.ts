@@ -3,14 +3,19 @@
 //
 // req3：不再 import config 的 PERP_CORE/LIQUIDITY_POOL/TREASURY/USDC_MINT 常量，
 // 改由 createPdas(ids, defaultMint) 注入。SPL 的 TOKEN_PROGRAM / ASSOCIATED_TOKEN_PROGRAM
-// 是固定系统程序（非按部署变化），仍从 config 取。
-// ctx 在构建时调用 createPdas，得到一个绑定了程序 ID + 默认 mint 的 `pda` 对象（见 ctx.ts）。
+// 是固定系统程序（非按部署变化），直接在本文件定义（不再从 config 取）。
+// ctx 在构建时调用 createPdas，得到一个绑定了程序 ID + 默认 mint 的 `pda` 对象（见 solana.ts）。
 // =====================================================================
 import { web3 } from "@anchor-lang/core";
-import { TOKEN_PROGRAM, ASSOCIATED_TOKEN_PROGRAM } from "./config";
 
 const { PublicKey } = web3;
 type PublicKey = web3.PublicKey;
+
+// --- SPL / system（固定系统程序，非按部署变化）---
+export const TOKEN_PROGRAM = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+export const ASSOCIATED_TOKEN_PROGRAM = new PublicKey(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+);
 
 // 注入的三套程序 ID（按部署/环境变化）。
 export interface ProgramIds {

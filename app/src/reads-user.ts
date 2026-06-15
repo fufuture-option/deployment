@@ -2,7 +2,7 @@
 // reads-user.ts — 用户面板「拉取合约数据」方法（只读）
 //
 // req1：数值统一 ethers v5 BigNumber。req3：程序 ID 走 ctx.programs / PDA 走 ctx.pda。
-// 解码统一走 ctx.ts 的 perpCoder/lpCoder + EventParser；getProgramAccounts 用 ctx.programs.perp。
+// 解码统一走 solana.ts 的 perpCoder/lpCoder + EventParser；getProgramAccounts 用 ctx.programs.perp。
 // =====================================================================
 import { EventParser, utils, web3 } from "@anchor-lang/core";
 import { BigNumber } from "ethers";
@@ -18,7 +18,7 @@ import {
   big,
   camelizeKeys,
   mintDecimals,
-} from "./ctx";
+} from "./solana";
 import { HERMES_URL } from "./config";
 
 const { PublicKey } = web3;

@@ -6,7 +6,7 @@
 // =====================================================================
 import { web3 } from "@anchor-lang/core";
 import { BigNumber } from "ethers";
-import { PullCtx, perpCoder, lpCoder, fetchAcct, allAccts, big } from "./ctx";
+import { PullCtx, perpCoder, lpCoder, fetchAcct, allAccts, big } from "./solana";
 
 type PublicKey = web3.PublicKey;
 
