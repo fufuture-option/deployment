@@ -82,7 +82,7 @@ export async function providePrivatePool(ctx: SignCtx, amountUsdc: string): Prom
 // 前置：lp_global_config 已由管理员初始化（提供官方 perp_core_program）。
 // 建成后任何人可 providePublicPool 存币换份额、withdrawPublicPool 份额换币。
 // =====================================================================
-const POOL_TYPE_PUBLIC = 1;
+const POOL_TYPE_MIXED = 3; // 无许可建 MIXED（公私通用）；合约会忽略此 arg 并强制 MIXED，传它仅为可读性
 
 export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<string> {
   let mint: web3.PublicKey;
@@ -209,7 +209,7 @@ export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<st
     const ix = await ctx.lp.methods
       .initPoolConfig({
         admin: ctx.wallet, // 无许可路径忽略
-        poolType: POOL_TYPE_PUBLIC, // 无许可强制 PUBLIC
+        poolType: POOL_TYPE_MIXED, // 无许可强制 MIXED（公私通用）
         escrowAuthority: ctx.pda.escrowAuthority(mint), // 无许可强制此 PDA
         status: 0,
         privateMinProvideAmount: bn(0),
