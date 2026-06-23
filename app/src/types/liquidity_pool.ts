@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/liquidity_pool.json`.
  */
 export type LiquidityPool = {
-  "address": "2zRgfaNK4DCbbjHkd5pfaE9vwv9gnAP5DdeNDU8VWoTE",
+  "address": "51ernxJsRG3MQf1HWYozkqydTh1XJhRqRXq6v7fuDGcW",
   "metadata": {
     "name": "liquidityPool",
     "version": "0.1.0",
@@ -402,7 +402,10 @@ export type LiquidityPool = {
           "optional": true
         },
         {
-          "name": "settleMint"
+          "name": "settleMint",
+          "docs": [
+            "结算币 mint —— 反序列化为 Mint 以便无许可路径检查 freeze_authority（B5）。"
+          ]
         },
         {
           "name": "poolConfig",
@@ -465,6 +468,45 @@ export type LiquidityPool = {
               }
             ]
           }
+        },
+        {
+          "name": "escrowAuthority",
+          "docs": [
+            "公共池 escrow_authority —— 无私钥 PDA，仅 seed 校验后取 .key() 写入 PoolConfig。",
+            "无许可 PUBLIC 池的 escrow 聚合身份;与前端 pdas.ts [escrow_authority, mint] 同口径。"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
@@ -650,8 +692,7 @@ export type LiquidityPool = {
           }
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
@@ -1012,7 +1053,8 @@ export type LiquidityPool = {
     {
       "name": "provide",
       "docs": [
-        "LP 入金（private / public 由 `pool_side` 参数决定）。"
+        "LP 入金（private / public 由 `pool_side` 参数决定）。",
+        "`min_shares_out`：公共路径滑点保护，铸出份额 < 此值则回滚（0 = 不校验）；私有路径忽略。"
       ],
       "discriminator": [
         221,
@@ -1217,8 +1259,7 @@ export type LiquidityPool = {
           }
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
@@ -1233,6 +1274,139 @@ export type LiquidityPool = {
         {
           "name": "poolSide",
           "type": "u8"
+        },
+        {
+          "name": "minSharesOut",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setEscrowParams",
+      "docs": [
+        "协议（lp_global.admin）调整某公共池 escrow LpAccount 的风控参数（杠杆/维持保证金率/追加率/拒单）。",
+        "无私钥 escrow 无法自行调用 set_lp_params，故由协议代为治理（对齐\"协议保留紧急键\"）。"
+      ],
+      "discriminator": [
+        123,
+        249,
+        75,
+        28,
+        87,
+        238,
+        208,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "docs": [
+            "必须 == lp_global_config.admin。"
+          ],
+          "signer": true
+        },
+        {
+          "name": "lpGlobalConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "settleMint"
+        },
+        {
+          "name": "poolConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrowLpAccount",
+          "docs": [
+            "公共池 escrow LpAccount（holder == pool_config.escrow_authority）。"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "settleMint"
+              },
+              {
+                "kind": "account",
+                "path": "pool_config.escrow_authority",
+                "account": "poolConfig"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "setLpParamsArgs"
+            }
+          }
         }
       ]
     },
@@ -1398,7 +1572,8 @@ export type LiquidityPool = {
       "name": "withdrawLp",
       "docs": [
         "LP 出金（private / public 由 `pool_side` 参数决定）。",
-        "公共路径 `amount` 是销毁的份额数；私有路径 `amount` 是取出的 base units。"
+        "公共路径 `amount` 是销毁的份额数；私有路径 `amount` 是取出的 base units。",
+        "`min_amount_out`：公共路径滑点保护，实付 base units < 此值则回滚（0 = 不校验）；私有路径忽略。"
       ],
       "discriminator": [
         225,
@@ -1618,8 +1793,7 @@ export type LiquidityPool = {
           }
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "name": "tokenProgram"
         }
       ],
       "args": [
@@ -1630,6 +1804,10 @@ export type LiquidityPool = {
         {
           "name": "poolSide",
           "type": "u8"
+        },
+        {
+          "name": "minAmountOut",
+          "type": "u64"
         }
       ]
     }
@@ -1981,12 +2159,12 @@ export type LiquidityPool = {
     {
       "code": 6021,
       "name": "lpMaintenanceMarginRateOutOfRange",
-      "msg": "Maintenance margin rate must be ≤ 1e18 (100%)"
+      "msg": "Maintenance margin rate must be in (0, 1e9] (100%)"
     },
     {
       "code": 6022,
       "name": "lpAddMarginRateOutOfRange",
-      "msg": "Add margin rate must be ≤ 1e18 (100%)"
+      "msg": "Add margin rate must be in (0, 1e9] (100%)"
     },
     {
       "code": 6023,
@@ -2042,6 +2220,41 @@ export type LiquidityPool = {
       "code": 6033,
       "name": "mathOverflow",
       "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6034,
+      "name": "initialLiquidityTooLow",
+      "msg": "First public deposit is below the minimum initial liquidity (must exceed dead shares)"
+    },
+    {
+      "code": 6035,
+      "name": "zeroSharesMinted",
+      "msg": "Deposit would mint zero shares (share price too high / amount too small)"
+    },
+    {
+      "code": 6036,
+      "name": "zeroPayout",
+      "msg": "Redeem would pay out zero base units"
+    },
+    {
+      "code": 6037,
+      "name": "slippageExceeded",
+      "msg": "Slippage: minted shares / paid amount is below the caller-specified minimum"
+    },
+    {
+      "code": 6038,
+      "name": "poolHasOpenPositions",
+      "msg": "Public pool has open maker positions; redeem is blocked until flat"
+    },
+    {
+      "code": 6039,
+      "name": "freezeAuthorityNotAllowed",
+      "msg": "Permissionless public pools reject settle mints that carry a freeze authority"
+    },
+    {
+      "code": 6040,
+      "name": "notGlobalAdmin",
+      "msg": "Caller is not the lp global admin"
     }
   ],
   "types": [
@@ -2432,21 +2645,21 @@ export type LiquidityPool = {
           {
             "name": "leverage",
             "docs": [
-              "杠杆倍数（1e18 精度，例 10x = 10e18）；EVM 默认 10。"
+              "杠杆倍数（1e9 精度，例 10x = 10e9）；默认 10x。"
             ],
             "type": "u64"
           },
           {
             "name": "maintenanceMarginRate",
             "docs": [
-              "维持保证金率（1e18 精度，例 10% = 1e17）；EVM 默认 0.2%（EVM 代码注释和值不一致，按值 10%）。"
+              "维持保证金率（1e9 精度，例 10% = 1e8）；默认 10%。"
             ],
             "type": "u64"
           },
           {
             "name": "addMarginRate",
             "docs": [
-              "强平时追加保证金的比例（1e18 精度，例 10% = 1e17）。"
+              "强平时追加保证金的比例（1e9 精度，例 10% = 1e8）。"
             ],
             "type": "u64"
           },
@@ -2902,9 +3115,9 @@ export type LiquidityPool = {
           {
             "name": "totalShares",
             "docs": [
-              "公共池累计发行份额数（1e18 精度）。",
-              "第一次 provide(public)：total_shares = amount；",
-              "之后 share_net_value = escrow_amount * 1e18 / total_shares。"
+              "公共池累计发行份额数（**base-unit 口径，非 1e18**；首充 1:1 = 存入 base units）。",
+              "第一次 provide(public)：total_shares = amount（其中含 DEAD_SHARES 永久锁定）；",
+              "之后 share_net_value(per share) = escrow_amount / total_shares（纯比值，无定点常量）。"
             ],
             "type": "u64"
           },
@@ -3253,6 +3466,15 @@ export type LiquidityPool = {
     }
   ],
   "constants": [
+    {
+      "name": "seedEscrowAuthority",
+      "docs": [
+        "公共池 escrow_authority 的无私钥 PDA seed（[escrow_authority, settle_mint]）。",
+        "与前端 pdas.ts 的派生口径一致；公共池的 escrow 身份由本 program 派生，无人持私钥。"
+      ],
+      "type": "bytes",
+      "value": "[101, 115, 99, 114, 111, 119, 95, 97, 117, 116, 104, 111, 114, 105, 116, 121]"
+    },
     {
       "name": "seedLpAccount",
       "type": "bytes",

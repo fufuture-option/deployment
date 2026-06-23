@@ -276,6 +276,8 @@ export async function addSettleCurrency(
           settleMint: mint,
           poolConfig: ctx.pda.poolConfig(mint),
           vaultAuthority: ctx.pda.poolVaultAuthority(mint),
+          escrowAuthority: ctx.pda.escrowAuthority(mint),
+          tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
         })
       )
@@ -370,6 +372,42 @@ export async function updatePoolConfig(
         admin: ctx.wallet,
         settleMint: ctx.mint,
         poolConfig: ctx.pda.poolConfig(ctx.mint),
+      })
+    )
+    .instruction();
+  return sendIxs(ctx, [ix]);
+}
+
+// setEscrowParams — 协议(lp_global.admin)调整某公有池 escrow LpAccount 的风控参数。
+// 无私钥 escrow 无法自行 set_lp_params，故由协议代为治理（杠杆/维持保证金率/追加率/拒单；
+// None=不变）。leverage 1e9 精度(10x=10e9)，mmr/addMargin 1e9 精度(10%=1e8)。
+export async function setEscrowParams(
+  ctx: SignCtx,
+  opts: {
+    leverageE9?: string;
+    mmrE9?: string;
+    addMarginRateE9?: string;
+    autoAddMargin?: boolean;
+    rejectOrder?: boolean;
+  }
+): Promise<string> {
+  const args = {
+    leverage: blank(opts.leverageE9) ? null : bn(opts.leverageE9!),
+    maintenanceMarginRate: blank(opts.mmrE9) ? null : bn(opts.mmrE9!),
+    addMarginRate: blank(opts.addMarginRateE9) ? null : bn(opts.addMarginRateE9!),
+    autoAddMargin: opts.autoAddMargin ?? null,
+    rejectOrder: opts.rejectOrder ?? null,
+  };
+  const escrowAuth = ctx.pda.escrowAuthority(ctx.mint);
+  const ix = await ctx.lp.methods
+    .setEscrowParams(args as any)
+    .accountsStrict(
+      A({
+        admin: ctx.wallet,
+        lpGlobalConfig: ctx.pda.lpGlobalConfig(),
+        settleMint: ctx.mint,
+        poolConfig: ctx.pda.poolConfig(ctx.mint),
+        escrowLpAccount: ctx.pda.lpAccount(escrowAuth, ctx.mint),
       })
     )
     .instruction();

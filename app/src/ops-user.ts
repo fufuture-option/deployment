@@ -53,7 +53,7 @@ export async function providePrivatePool(ctx: SignCtx, amountUsdc: string): Prom
   }
 
   const ix = await ctx.lp.methods
-    .provide(bn(amount), POOL_SIDE_PRIVATE)
+    .provide(bn(amount), POOL_SIDE_PRIVATE, bn(0)) // 私有路径 min_shares_out 忽略
     .accountsPartial(
       A({
         provider: ctx.wallet,
@@ -73,14 +73,16 @@ export async function providePrivatePool(ctx: SignCtx, amountUsdc: string): Prom
 }
 
 // =====================================================================
-// createMarket — 无许可建市（任何人用任意经典 SPL 代币当结算币，对齐 EVM）。
+// createMarket — 无许可建市 + 开 PUBLIC 公有做市金库（任何人用任意经典 SPL 代币当结算币，对齐 EVM）。
 //
 // 走每个 program 的「无许可路径」(admin = null)，合约自动套护栏：钳制风险参数 /
-// 拒绝 freeze-authority mint / 强制官方 perp_core_program / 强制私有池 / 记录 creator。
+// 拒绝 freeze-authority mint / 强制官方 perp_core_program / 强制 PUBLIC 公有池 + escrow PDA /
+// pool_config.admin = lp_global.admin（治理归协议，创建者只记 creator）。
 // 6 步（幂等，按需弹签名）：perp settle_config→vault→risk + treasury vault + lp pool_config→vault。
 // 前置：lp_global_config 已由管理员初始化（提供官方 perp_core_program）。
+// 建成后任何人可 providePublicPool 存币换份额、withdrawPublicPool 份额换币。
 // =====================================================================
-const POOL_TYPE_PRIVATE = 2;
+const POOL_TYPE_PUBLIC = 1;
 
 export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<string> {
   let mint: web3.PublicKey;
@@ -200,13 +202,15 @@ export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<st
     last = await sendIxs(ctx, [ix]);
   }
 
-  // lp 5) init_pool_config（无许可 → 强制 PRIVATE 池 + 官方 perp_core_program + 记录 creator）
+  // lp 5) init_pool_config（无许可 → 强制 PUBLIC 公有池 + escrow PDA + admin=lp_global.admin + 记录 creator）
+  // 合约会忽略 args.poolType / args.escrowAuthority（强制 PUBLIC + [escrow_authority,mint] PDA）；
+  // 这里照传 PDA 仅为可读性。⚠ 带 freeze_authority 的 mint 会被合约拒绝（B5）。
   if (!(await exists(ctx, ctx.pda.poolConfig(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolConfig({
-        admin: ctx.wallet, // 无许可路径忽略（pool_config.admin 强制 = payer）
-        poolType: POOL_TYPE_PRIVATE, // 无许可强制 PRIVATE
-        escrowAuthority: PublicKey.default, // 无许可强制 default
+        admin: ctx.wallet, // 无许可路径忽略
+        poolType: POOL_TYPE_PUBLIC, // 无许可强制 PUBLIC
+        escrowAuthority: ctx.pda.escrowAuthority(mint), // 无许可强制此 PDA
         status: 0,
         privateMinProvideAmount: bn(0),
         publicMinProvideAmount: bn(0),
@@ -219,6 +223,8 @@ export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<st
           settleMint: mint,
           poolConfig: ctx.pda.poolConfig(mint),
           vaultAuthority: ctx.pda.poolVaultAuthority(mint),
+          escrowAuthority: ctx.pda.escrowAuthority(mint),
+          tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
         })
       )
@@ -226,7 +232,7 @@ export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<st
     last = await sendIxs(ctx, [ix]);
   }
 
-  // lp 6) init_pool_vault（传递性闸门：perp vault_token 已存在；escrow = default）
+  // lp 6) init_pool_vault（传递性闸门：perp vault_token 已存在；escrow = [escrow_authority,mint] PDA）
   if (!(await exists(ctx, ctx.pda.poolVault(mint)))) {
     const ix = await ctx.lp.methods
       .initPoolVault()
@@ -238,7 +244,7 @@ export async function createMarket(ctx: SignCtx, mintBase58: string): Promise<st
           perpCoreVaultToken: ctx.pda.vaultToken(mint),
           vaultAuthority: ctx.pda.poolVaultAuthority(mint),
           poolVault: ctx.pda.poolVault(mint),
-          escrowLpAccount: ctx.pda.lpAccount(PublicKey.default, mint),
+          escrowLpAccount: ctx.pda.lpAccount(ctx.pda.escrowAuthority(mint), mint),
           tokenProgram: TOKEN_PROGRAM,
           systemProgram: SystemProgram.programId,
           rent: RENT,
@@ -321,8 +327,11 @@ export interface LimitOrderParams {
   targetPrice: BigNumber; // 限价（1e9 精度）—— 由调用方提供（req2：不再内部取 Pyth）
   rewardGasSol: string; // keeper reward in 原生 SOL（挂单预付，撤单/过期退回）
   goodTillMinutes: number;
+  // true = 市价开仓（order_kind=5，走 make_market_order）：keeper 扫到即触发、不判价格穿越，
+  // 合约按触发时实时价成交；targetPrice 此时仅作滑点参考价（受合约 5% 偏离守卫约束）。
+  fillAsMarket?: boolean;
 }
-
+// TODO：增加order type2 标识
 // 限价开仓 = initialize_user_account (if needed) + make_limit_order。
 // 限价由 p.targetPrice 传入（1e9 精度），不再内部拉 Pyth。
 export async function placeLimitOrder(
@@ -358,18 +367,21 @@ export async function placeLimitOrder(
   const reward = toUnits(p.rewardGasSol, 9); // 原生 SOL（lamports，9 位小数）
   const goodTill = Math.floor(Date.now() / 1000) + p.goodTillMinutes * 60;
 
+  // make_market_order(kind=5) 与 make_limit_order(kind=1) 账户/args 完全一致，仅指令名不同。
+  const openArgs = {
+    pairId,
+    direction: p.direction,
+    targetPrice: bn(p.targetPrice),
+    amount: bn(amount),
+    rewardGas: bn(reward),
+    orderSeq: bn(nextOrderSeq),
+    goodTill: bn(goodTill),
+    deadline: bn(0),
+  };
   ixs.push(
-    await ctx.perp.methods
-      .makeLimitOrder({
-        pairId,
-        direction: p.direction,
-        targetPrice: bn(p.targetPrice),
-        amount: bn(amount),
-        rewardGas: bn(reward),
-        orderSeq: bn(nextOrderSeq),
-        goodTill: bn(goodTill),
-        deadline: bn(0),
-      })
+    await (p.fillAsMarket
+      ? ctx.perp.methods.makeMarketOrder(openArgs) // 市价开仓：trigger 不判穿越、按实时价成交
+      : ctx.perp.methods.makeLimitOrder(openArgs))
       .accountsStrict(
         A({
           owner: ctx.wallet,
@@ -401,6 +413,8 @@ export async function placeLimitClose(
     targetPrice: BigNumber;
     rewardGasSol: string;
     goodTillMinutes: number;
+    // true = 市价平仓（order_kind=6，走 make_market_close）：trigger 不判穿越、按实时价结算。
+    fillAsMarket?: boolean;
   }
 ): Promise<string> {
   const ua = ctx.pda.userAccount(ctx.wallet, ctx.mint);
@@ -412,18 +426,21 @@ export async function placeLimitClose(
   const reward = toUnits(p.rewardGasSol, 9);
   const goodTill = Math.floor(Date.now() / 1000) + p.goodTillMinutes * 60;
 
+  // make_market_close(kind=6) 与 make_limit_close(kind=2) 账户/args 完全一致，仅指令名不同。
+  const closeArgs = {
+    pairId,
+    direction: p.direction,
+    targetPrice: bn(p.targetPrice),
+    amount: bn(p.amount1e9),
+    rewardGas: bn(reward),
+    orderSeq: bn(nextOrderSeq),
+    goodTill: bn(goodTill),
+    deadline: bn(0),
+  };
   ixs.push(
-    await ctx.perp.methods
-      .makeLimitClose({
-        pairId,
-        direction: p.direction,
-        targetPrice: bn(p.targetPrice),
-        amount: bn(p.amount1e9),
-        rewardGas: bn(reward),
-        orderSeq: bn(nextOrderSeq),
-        goodTill: bn(goodTill),
-        deadline: bn(0),
-      })
+    await (p.fillAsMarket
+      ? ctx.perp.methods.makeMarketClose(closeArgs) // 市价平仓：trigger 不判穿越、按实时价结算
+      : ctx.perp.methods.makeLimitClose(closeArgs))
       .accountsStrict(
         A({
           owner: ctx.wallet,
@@ -446,13 +463,15 @@ export async function placeLimitClose(
 }
 
 // =====================================================================
-// 2b. 止盈止损开仓（OCO）= stop_take_order(StopTakeArgs::Open)
+// 2b. 止盈止损「开仓」条件单 = stop_take_order(StopTakeArgs::Open)
 //
 // 触发开仓 + 可选自动挂 TP/SL。keeper 通过 trigger_stop_take_open 撮合。
 // triggerPrice 必填 >0；openLimitPrice 0=触发后市价开、>0=限价开；
 // gain/lossTriggerPrice 为开仓后自动挂的止盈/止损触发价（0=不挂）。
+// ⚠ 注意：EVM 的 `ocoTrade` 是给「持仓」挂 TP/SL（= CLOSE 变体），对应
+//   evm-compat.ocoTrade → placeStopTakeClose；本函数是 OPEN 变体，勿混。
 // =====================================================================
-export interface OcoOpenParams {
+export interface StopTakeOpenParams {
   direction: 1 | 2; // 1=LONG 2=SHORT
   amountBtc: string;
   triggerPrice: BigNumber; // 触发开仓价 (1e9)，必填 >0
@@ -462,7 +481,11 @@ export interface OcoOpenParams {
   rewardGasSol: string; // keeper 预付（原生 SOL）
   goodTillMinutes: number;
 }
-export async function ocoTrade(ctx: SignCtx, pairId: number, p: OcoOpenParams): Promise<string> {
+export async function placeStopTakeOpen(
+  ctx: SignCtx,
+  pairId: number,
+  p: StopTakeOpenParams
+): Promise<string> {
   const ua = ctx.pda.userAccount(ctx.wallet, ctx.mint);
   const ixs: web3.TransactionInstruction[] = [
     ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 }),
@@ -521,6 +544,75 @@ export async function ocoTrade(ctx: SignCtx, pairId: number, p: OcoOpenParams): 
           userAccount: ua,
           seqCounter: ctx.pda.seqCounter(ctx.mint),
           position: null, // 开仓时仓位尚不存在（IDL optional）；触发成交时由 keeper 创建
+          limitedOrder: ctx.pda.limitedOrder(nextOrderSeq, ctx.mint),
+          triggerCondition: ctx.pda.triggerCondition(nextOrderSeq, ctx.mint),
+          systemProgram: SystemProgram.programId,
+        })
+      )
+      .instruction()
+  );
+
+  return sendIxs(ctx, ixs);
+}
+
+// 持仓止盈止损（OCO）= stop_take_order(StopTakeArgs::Close)。对齐 EVM ocoTrade。
+// 给一笔已有持仓挂 TP/SL：gain/lossTriggerPrice 触发价(1e9，0=不设该腿)；
+// gain/lossLimitPrice 0=触发后市价平、>0=限价平（⚠ 合约 v1 仅市价平，limit 字段已存但 trigger 暂按市价）。
+// 至少 gain 或 loss 一条腿的 trigger > 0。close 路径必传 position 账户。
+export async function placeStopTakeClose(
+  ctx: SignCtx,
+  pairId: number,
+  p: {
+    direction: number; // 持仓方向 1=LONG 2=SHORT
+    amount1e9: BigNumber; // 平仓数量 (1e9)
+    gainTriggerPrice: BigNumber;
+    gainLimitPrice: BigNumber;
+    lossTriggerPrice: BigNumber;
+    lossLimitPrice: BigNumber;
+    rewardGasSol: string;
+    goodTillMinutes: number;
+  }
+): Promise<string> {
+  const ua = ctx.pda.userAccount(ctx.wallet, ctx.mint);
+  const ixs: web3.TransactionInstruction[] = [
+    ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
+  ];
+  const nextOrderSeq = await getNextOrderSeq(ctx);
+  const reward = toUnits(p.rewardGasSol, 9);
+  const goodTill = Math.floor(Date.now() / 1000) + p.goodTillMinutes * 60;
+
+  ixs.push(
+    await ctx.perp.methods
+      .stopTakeOrder({
+        pairId,
+        direction: p.direction,
+        amount: bn(p.amount1e9),
+        rewardGas: bn(reward),
+        orderSeq: bn(nextOrderSeq),
+        goodTill: bn(goodTill),
+        deadline: bn(0),
+        // Anchor enum: { close: {...} }（变体名首字母小写，字段 camelCase）。
+        variant: {
+          close: {
+            gainTriggerPrice: bn(p.gainTriggerPrice),
+            gainLimitPrice: bn(p.gainLimitPrice),
+            lossTriggerPrice: bn(p.lossTriggerPrice),
+            lossLimitPrice: bn(p.lossLimitPrice),
+          },
+        },
+      } as any)
+      .accountsStrict(
+        A({
+          owner: ctx.wallet,
+          settleMint: ctx.mint,
+          globalConfig: ctx.pda.globalConfig(),
+          settleConfig: ctx.pda.settleConfig(ctx.mint),
+          pairConfig: ctx.pda.pairConfig(pairId),
+          userAccount: ua,
+          seqCounter: ctx.pda.seqCounter(ctx.mint),
+          // close 路径必传仓位（合约用它做 TP/SL 方向校验）。
+          position: ctx.pda.position(ctx.wallet, pairId, p.direction, ctx.mint),
           limitedOrder: ctx.pda.limitedOrder(nextOrderSeq, ctx.mint),
           triggerCondition: ctx.pda.triggerCondition(nextOrderSeq, ctx.mint),
           systemProgram: SystemProgram.programId,
@@ -605,7 +697,7 @@ export async function providePublicPool(ctx: SignCtx, amountUsdc: string): Promi
   if (amount.lte(0)) throw new Error("入金额必须 > 0");
   const escrowAuth = ctx.pda.escrowAuthority(ctx.mint);
   const ix = await ctx.lp.methods
-    .provide(bn(amount), POOL_SIDE_PUBLIC)
+    .provide(bn(amount), POOL_SIDE_PUBLIC, bn(0)) // min_shares_out=0（不设滑点下限；前端可后续接入）
     .accountsPartial(
       A({
         provider: ctx.wallet,
@@ -644,7 +736,7 @@ export async function withdrawPublicPool(
   }
   const escrowAuth = ctx.pda.escrowAuthority(ctx.mint);
   const ix = await ctx.lp.methods
-    .withdrawLp(bn(shares), POOL_SIDE_PUBLIC)
+    .withdrawLp(bn(shares), POOL_SIDE_PUBLIC, bn(0)) // min_amount_out=0（不设滑点下限）
     .accountsPartial(
       A({
         holder: ctx.wallet,
@@ -668,7 +760,7 @@ export async function withdrawLp(ctx: SignCtx, amountUsdc: string): Promise<stri
   const amount = toUnits(amountUsdc, await mintDecimals(ctx.connection, ctx.mint));
   if (amount.lte(0)) throw new Error("amount must be > 0");
   const ix = await ctx.lp.methods
-    .withdrawLp(bn(amount), POOL_SIDE_PRIVATE)
+    .withdrawLp(bn(amount), POOL_SIDE_PRIVATE, bn(0)) // 私有路径 min_amount_out 忽略
     .accountsPartial(
       A({
         holder: ctx.wallet,
@@ -721,13 +813,17 @@ export async function setUserLeverage(
 export async function cancelOrder(
   ctx: SignCtx,
   orderSeq: BigNumber,
-  hints?: { pairId: number; direction: number; orderKind: number }
+  hints?: { pairId: number; direction: number; orderKind: number; mint?: web3.PublicKey }
 ): Promise<string> {
+  // ⚠ 撤单的所有账户必须按"这笔单自己的结算币"派生 —— 当前委托是跨币查询(getMyOpenOrders
+  // 按 taker 过滤、含各结算币的单)，不能用 ctx.mint(界面当前选中的币)，否则会算出
+  // 别的 mint 的 limited_order PDA → 链上 AccountNotInitialized → "委托不存在"。
+  const mint = hints?.mint ?? ctx.mint;
   let pairId: number, direction: number, orderKind: number;
   if (hints) {
     ({ pairId, direction, orderKind } = hints);
   } else {
-    const ai = await ctx.connection.getAccountInfo(ctx.pda.limitedOrder(orderSeq, ctx.mint));
+    const ai = await ctx.connection.getAccountInfo(ctx.pda.limitedOrder(orderSeq, mint));
     if (!ai) throw new Error("委托不存在或已成交/撤销");
     const d = ai.data; // LimitedOrder: pair_id u16 @82, direction @84, order_kind @86
     pairId = d.readUInt16LE(82);
@@ -740,13 +836,13 @@ export async function cancelOrder(
       .accountsStrict(
         A({
           owner: ctx.wallet,
-          settleMint: ctx.mint,
-          settleConfig: ctx.pda.settleConfig(ctx.mint),
-          userAccount: ctx.pda.userAccount(ctx.wallet, ctx.mint),
+          settleMint: mint,
+          settleConfig: ctx.pda.settleConfig(mint),
+          userAccount: ctx.pda.userAccount(ctx.wallet, mint),
           position:
-            orderKind === 2 ? ctx.pda.position(ctx.wallet, pairId, direction, ctx.mint) : null,
-          limitedOrder: ctx.pda.limitedOrder(orderSeq, ctx.mint),
-          triggerCondition: ctx.pda.triggerCondition(orderSeq, ctx.mint),
+            orderKind === 2 ? ctx.pda.position(ctx.wallet, pairId, direction, mint) : null,
+          limitedOrder: ctx.pda.limitedOrder(orderSeq, mint),
+          triggerCondition: ctx.pda.triggerCondition(orderSeq, mint),
           systemProgram: SystemProgram.programId,
         })
       )
