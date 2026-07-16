@@ -47,8 +47,20 @@
 | rpc             | https://api.elastos.io/pg                  |
 | browser         | https://pgp.elastos.io/                    |
 | oracle          | PGP                                        |
-| price fee       | 0.0 Pros                                   |
-| limitOrder fee  | 0.02 Pros                                  |
+| price fee       | 0.0 PGP                                    |
+| limitOrder fee  | 0.02 PGP                                   |
+
+| 链名称           | Anubis                                     |                                       
+|-----------------|--------------------------------------------|
+| ProxyFactory    | 0x036b36d28b0Eb8afc04AcCc6B6358ca8ae427A04 |
+| Broker          | 0x9A19df84dA16e04D3ed83f0cd66dfA7a8D0c36F0 |
+| chain id        | 6714                                       |
+| rpc             | https://rpc.anubispace.org                 |
+| browser         | https://browser.anubispace.org             |
+| oracle          | Anubis                                     |
+| price fee       | 0.0 DAI                                    |
+| limitOrder fee  | 0.02 DAI                                   |
+
 
 ### 获取所有系统合约地址信息
 
