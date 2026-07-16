@@ -1,0 +1,1 @@
+{"root":["./src/adminpanel.tsx","./src/app.tsx","./src/actions.ts","./src/config.ts","./src/main.tsx","./src/pdas.ts","./src/solana.ts","./src/vite-env.d.ts","./src/types/liquidity_pool.ts","./src/types/perp_core.ts"],"version":"5.9.3"}
