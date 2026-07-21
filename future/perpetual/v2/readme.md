@@ -62,6 +62,17 @@
 | limitOrder fee  | 0.02 DAI                                   |
 
 
+| 链名称           | ENI                                        |                                       
+|-----------------|--------------------------------------------|
+| ProxyFactory    | 0xe2935a857b9Be615C8F82f9d0b218d90e67B7458 |
+| Broker          | 0xb4f984861c4cFbE4fC47ce032CCefF966643057d |
+| chain id        | 173                                        |
+| rpc             | https://jp.enirpc.com                      |
+| browser         | https://scan.eniac.network/                |
+| oracle          | FuFuture                                   |
+| price fee       | 0.0 EGas                                   |
+| limitOrder fee  | 0.2 EGas                                   |
+
 ### 获取所有系统合约地址信息
 
 - 函数名称：marketAgent
