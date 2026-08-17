@@ -311,18 +311,18 @@
 
   LP2Account 结构说明：
 
-  | 序号   | 参数                    | 类型        | 描述                          |
-  |-------|-------------------------|-----------|-----------------------------|
-  | 1     | holder                  | address   | 用户地址                        |
-  | 2     | amount                  | uint256   | 期初资产数量，包含未结算盈亏              |
-  | 3     | availableAmount         | uint256   | 可用数量。可用来接单金额                |
-  | 4     | lockedAmount            | uint256   | 已接接单数量，属于冻结数量               |
-  | 5     | maintenanceMargin       | uint256   | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户 |
-  | 6     | leverage                | uint256   | 用户自定义杠杠倍数。                  |
-  | 7     | maintenanceMarginRate   | uint256   | 用户自定义维持保证金比例。               |
-  | 8     | addMarginRate           | uint256   | 用户自动追加保证金比例                 |
-  | 8     | autoAddMargin           | bool      | 爆仓时候，是否自动追加保证金              |      
-  | 10    | isRejectOrder           | bool      | 表示接单状态。 true 为拒绝接单，Fasle 可以接单 |
+  | 序号   | 参数              | 类型        | 描述                                                   |
+  |-------|-------------------|-----------|--------------------------------------------------------|
+  | 1     | holder            | address   | 用户地址                                               |
+  | 2     | amount            | uint256   | 期初资产数量，包含未结算盈亏                           |
+  | 3     | availableAmount   | uint256   | 可用数量。可用来接单金额                               |
+  | 4     | lockedAmount      | uint256   | 已接接单数量，属于冻结数量                             |
+  | 5     | maintenanceMargin | uint256   | 爆仓时候，转入风险保证金账号，未爆仓，结算时候返回用户 |
+  | 6     | leverage          | uint256   | 用户自定义杠杠倍数。                                   |
+  | 7     | initAmount        | uint256   | 交易前账号初始值                                       |
+  | 8     | reserve           | uint256   | 占位                                                   |
+  | 8     | autoAddMargin     | bool      | 爆仓时候，是否自动追加保证金                           |      
+  | 10    | isRejectOrder     | bool      | 表示接单状态。 true 为拒绝接单，Fasle 可以接单         |
 
 ### 获取单个接单成交记录
 
@@ -816,21 +816,21 @@
 
   Deal 结构说明
 
-  | 序号  | 参数         | 类型     | 描述                                  |
-  |-----|------------|----------|-------------------------------------| 
-  | 1   | token      | address  | token 地址                            |
-  | 2   | taker      | address  | 挂单钱包地址                              |
-  | 3   | direct     | uint256  | 多空方向 1 多单，2空单                       |
-  | 4   | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
-  | 5   | offset     | uint256  | 值为 1 开仓 2 平仓                        |
-  | 6   | orderID    | uint256  | 值为 1 开仓 2 平仓                        |
-  | 7   | name       | string   | 交易对名称 BTC ETH                       | 
-  | 8   | amount     | uint256  | 成交数量                                |
-  | 9   | price      | uint256  | 成交价格                                |
-  | 10  | leverage   | uint256  | 杠杆倍数                                |
-  | 11  | margin     | uint256  | 成交保证金                               | 
-  | 12  | tradingFee | uint256  | 成交手续费                               |
-  | 13  | timestamp  | uint256  | 成交时间                                |
+  | 序号 | 参数       | 类型     | 描述                                                   |
+  |------|------------|----------|--------------------------------------------------------| 
+  | 1    | token      | address  | token 地址                                             |
+  | 2    | taker      | address  | 挂单钱包地址                                           |
+  | 3    | direct     | uint256  | 多空方向 1 多单，2空单                                 |
+  | 4    | state      | uint256  | 订单状态 1 挂当中  2 部分成交 3 平仓 4 爆仓 5 协议平仓 |
+  | 5    | fundingFee | uint256  | 资金费                                                 |
+  | 6    | name       | string   | 交易对名称 BTC ETH                                     | 
+  | 7    | amount     | uint256  | 成交数量                                               |
+  | 8    | price      | uint256  | 成交价格                                               |
+  | 9    | leverage   | uint256  | 杠杆倍数                                               |
+  | 10   | margin     | uint256  | 成交保证金                                             | 
+  | 11   | tradingFee | uint256  | 成交手续费                                             |
+  | 12   | reserve    | uint256  | 占位                                                   |
+  | 13   | timestamp  | uint256  | 成交时间                                               |
 
 ### 查询持仓数据信息
 
