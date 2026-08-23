@@ -608,9 +608,35 @@
       | 13 | limitOrderId  | uint256  | 挂单订单号，市价成交为 uint256.max |
       | 14 | timestamp     | uint256  | 订单成交时间                  |
 
+    - 关联事件 市价单发 event TradeHistory(
+      address token,
+      uint256 orderID,
+      uint256 dealID,
+      TradeType tradeType,
+      uint256 amount,
+      uint256 price,
+      uint256 tradingFee,
+      uint256 profit,
+      uint256 loss,
+      uint256 timestamp
+      );
+
+      | 序号 | 参数       | 类型       | 描述           |
+      |------|------------|----------|----------------|
+      | 1    | token      | address  | 结算token地址  |
+      | 2    | orderID    | uint256  | 成交单号       |
+      | 3    | dealID     | uint256  | 成交单ID       |
+      | 4    | tradeType  | TradeType  | 平仓类型       |
+      | 5    | amount     | uint256  | 成交数量       |
+      | 6    | price      | uint256  | 开平成交价格   |  
+      | 7    | tradingFee | uint256  | 手续费         |
+      | 8    | profit     | uint256  | 平仓盈利       |
+      | 9    | loss       | uint256  | 平仓亏损       |
+      | 10   | timestamp  | uint256  | 订单成交时间   |
+    
 ```
   OrderBook 合约发出
-  orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
+  TradeType 取值范围： 0-无效 1-市价开, 2-限价开, 3-全平, 4-部分平仓
 ```
 
 - 私池接单事件 event LockPoolMargin(

@@ -542,14 +542,17 @@
 
   AccountInfo 结构说明
 
-  | 序号 | 参数              | 类型     | 描述           |
-  |------|-------------------|----------|----------------|
-  | 1    | depositAmount     | uint256  | 期初资产金额   |
-  | 2    | availableAmount   | uint256  | 用户可用资金   |
-  | 3    | marginAmount      | uint256  | 已用保证金     |
-  | 4    | orderLocked       | uint256  | 占用清算资金   |
-  | 5    | fundingCost       | uint256  | 资金费         | 
-  | 6    | initDepositAmount | uint256  | 交易前初始资金 |
+  | 序号 | 参数                   | 类型     | 描述             |
+  |------|------------------------|----------|------------------|
+  | 1    | depositAmount          | uint256  | 期初资产金额     |
+  | 2    | availableAmount        | uint256  | 用户可用资金     |
+  | 3    | marginAmount           | uint256  | 已用保证金       |
+  | 4    | orderLocked            | uint256  | 占用清算资金     |
+  | 5    | fundingCost            | uint256  | 资金费           | 
+  | 6    | initDepositAmount      | uint256  | 交易前初始资金   |
+  | 7    | displayDepositAmount   | uint256  | (UI)期初资产金额 |
+  | 8    | displayAvailableAmount | uint256  | (UI)用户可用资金 |
+
 
 ### 获取维持保证金率
 
@@ -574,31 +577,73 @@
   | 9  | deadline    | uint256 | 订单有效时间                     |  
   | 10 | priceUpdate | bytes   | 价格认证加密byte，限价无意义，可为空       |
 
-    - 关联事件 市价单发 event OrderHistory (address indexed taker, string name, address token, uint256 orderID, Direct
-      direction, OrderType orderType, uint256 amount, uint256 costPrice, uint256 price, uint256 tradingFee, uint256
-      leverage, uint256 marginAmount, uint256 limitOrderId, uint256 timestamp
-      );
+- 关联事件 市价单发 event OrderHistory (address indexed taker, string name, address token, uint256 orderID, Direct
+  direction, OrderType orderType, uint256 amount, uint256 costPrice, uint256 price, uint256 tradingFee, uint256
+  leverage, uint256 marginAmount, uint256 limitOrderId, uint256 timestamp
+  );
 
-      | 序号 | 参数            | 类型       | 描述                      |
-      |----|---------------|----------|-------------------------|
-      | 1  | taker         | address  | 成交订单钱包地址                |
-      | 2  | name          | string   | 订单交易对名称                 |
-      | 3  | token         | address  | 结算token地址               |
-      | 4  | orderID       | uint256  | 成交单号                    |
-      | 5  | direction     | uint256  | 多空方向， 1 多，2 空           |
-      | 6  | orderType     | uint256  | 市价开 1 ，限价开 2            |
-      | 7  | amount        | uint256  | 成交数量                    |
-      | 8  | costPrice     | uint256  | 成本价                     |
-      | 9  | price         | uint256  | 成交价格 为零                 |  
-      | 10 | tradingFee    | uint256  | 手续费                     |
-      | 11 | leverage      | uint256  | 杠杠倍数                    |
-      | 12 | marginAmount  | uint256  | 保证金                     |
-      | 13 | limitOrderId  | uint256  | 挂单订单号，市价成交为 uint256.max |
-      | 14 | timestamp     | uint256  | 订单成交时间                  |
+  | 序号 | 参数            | 类型       | 描述                      |
+  |----|---------------|----------|-------------------------|
+  | 1  | taker         | address  | 成交订单钱包地址                |
+  | 2  | name          | string   | 订单交易对名称                 |
+  | 3  | token         | address  | 结算token地址               |
+  | 4  | orderID       | uint256  | 成交单号                    |
+  | 5  | direction     | uint256  | 多空方向， 1 多，2 空           |
+  | 6  | orderType     | uint256  | 市价开 1 ，限价开 2            |
+  | 7  | amount        | uint256  | 成交数量                    |
+  | 8  | costPrice     | uint256  | 成本价                     |
+  | 9  | price         | uint256  | 成交价格 为零                 |  
+  | 10 | tradingFee    | uint256  | 手续费                     |
+  | 11 | leverage      | uint256  | 杠杠倍数                    |
+  | 12 | marginAmount  | uint256  | 保证金                     |
+  | 13 | limitOrderId  | uint256  | 挂单订单号，市价成交为 uint256.max |
+  | 14 | timestamp     | uint256  | 订单成交时间                  |
 
 ```
   OrderBook 合约发出
   orderType 取值范围： 0-无效 1-市价开 2-限价开 3-平仓 4-Taker 爆仓 5-Maker 爆仓 6-结束止盈止损 7-撤单
+```
+- 关联事件 市价单发 event TradeHistory(
+     string name,
+     address token,
+     address taker,
+     uint256 dealID,
+     uint256 FundingFee,
+     Direct direction,
+     TradeType tradeType,
+     uint256 amount,
+     uint256 costPrice,
+     uint256 dealPrice,
+     uint256 tradingFee,
+     uint256 leverage,
+     uint256 marginAmount,
+     uint256 profit,
+     uint256 loss,
+     uint256 timestamp
+   );
+
+   | 序号 | 参数          | 类型      | 描述                  |
+   |------|---------------|-----------|-----------------------|
+   | 1    | name          | string    | 订单交易对名称        |
+   | 2    | token         | address   | 结算token地址         |
+   | 3    | taker         | address   | 成交订单钱包地址      |
+   | 4    | dealID        | uint256   | 成交单号              |
+   | 5    | FundingFee    | uint256   | 资金费                |
+   | 6    | direction     | uint256   | 多空方向， 1 多，2 空 |
+   | 7    | tradeType     | TradeType | 平仓类型              |
+   | 8    | amount        | uint256   | 成交数量              |
+   | 9    | costPrice     | uint256   | 成本价                |
+   | 10   | dealPrice     | uint256   | 成交价格 为零         |  
+   | 11   | tradingFee    | uint256   | 手续费                |
+   | 12   | leverage      | uint256   | 杠杠倍数              |
+   | 13   | marginAmount  | uint256   | 保证金                |
+   | 14   | profit        | uint256   | 平仓盈利              |
+   | 15   | loss          | uint256   | 平仓亏损              |
+   | 16   | timestamp     | uint256   | 订单成交时间          |
+
+```
+  OrderBook 合约发出
+  TradeType 取值范围： 0-无效 1-市价开, 2-限价开, 3-全平, 4-部分平仓
 ```
 
 - 私池接单事件 event LockPoolMargin (uint256 dealID, address token, address maker, Direct direct, uint256 size, uint256
