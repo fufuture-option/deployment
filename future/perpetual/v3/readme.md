@@ -667,24 +667,39 @@
 该事件由私池发出
 ```
 
-- 私池接单事件 event ClosedMakerDeal (uint256 dealID, address token, address maker,  
-  Direct direct, uint256 size, uint256 price, uint256 makerID, uint256 makerGain, uint256 makerLoss, uint256 closeFlag,
-  uint256 closeType  
+- 私池接单事件 event ClosedMakerDeal (
+    uint256 dealID,  
+    address token,
+    address maker,  
+    Direct direct, 
+    uint256 dealSize,  
+    uint256 dealPrice, 
+    uint256 makerDealID,  
+    uint256 makerGain, 
+    uint256 makerLoss, 
+    uint256 makerDealSize,
+    uint256 makerDealPrice, 
+    uint256 makerDealMargin, 
+    DealState makerDealState,  
+    uint256 closeType  //1-private normal 2-private force 3-public normal  4-public force 5-move pool
   );
 
-| 序号 | 参数      | 类型    | 描述                                                |
-|------|-----------|---------|-----------------------------------------------------|
-| 1    | dealID    | uint256 | taker 订单序号                                      |
-| 2    | token     | address | token 地址                                          |
-| 3    | maker     | address | maker 接单地址                                      |
-| 4    | direct    | uint8   | maker 接单方向 1-多单 2-空单                        |
-| 5    | size      | uint256 | 接单数量                                            |
-| 6    | price     | uint256 | 接单价格                                            |
-| 7    | makerID   | uint256 | 接单序号                                            |
-| 8    | makerGain | uint256 | 接单保盈利                                          |
-| 9    | makerLoss | uint256 | 接单亏损                                            |
-| 10   | closeFlag | uint256 | 1-全平  2-部平                                      |
-| 11   | closeType | uint256 | 1-私池平仓 2-私池爆仓 3-公池平仓  4-公池爆仓 5-移仓 |
+| 序号 | 参数               | 类型       | 描述                                                |
+|------|--------------------|------------|-----------------------------------------------------|
+| 1    | dealID             | uint256    | taker 订单序号                                      |
+| 2    | token              | address    | token 地址                                          |
+| 3    | maker              | address    | maker 接单地址                                      |
+| 4    | direct             | uint8      | maker 接单方向 1-多单 2-空单                        |
+| 5    | dealSize           | uint256    | 成交数量                                            |
+| 6    | dealPrice          | uint256    | 成交价格                                            |
+| 7    | makerID            | uint256    | 接单编号                                            |
+| 8    | makerGain          | uint256    | 成交盈利                                            |
+| 9    | makerLoss          | uint256    | 成交亏损                                            |
+| 10   | makerDealSize      | uint256    | 接单剩余数量                                        |
+| 10   | makerDealPrice     | uint256    | 接单成交均价                                        |
+| 10   | makerDealMargin    | uint256    | 接单保证金                                          |
+| 11   | makerDealState     | DealState  | 接单状态 1-有效 2-部平 3-全平 4-爆仓 5-协议         |
+| 12   | closeType          | uint256    | 1-私池平仓 2-私池爆仓 3-公池平仓  4-公池爆仓 5-移仓 |
 
 ```
 该事件由私池发出
