@@ -6,12 +6,12 @@
 
 | 链名称         | Bsc                                        |                                       
 |----------------|--------------------------------------------|
-| ProxyFactory   | 0xc17F54Aa9cA1AbFccbb4752b1115be11029EbEaa |
-| Broker         | 0x2bB4990bd38427275E79a9FC24b110A56330dC23 |
+| ProxyFactory   | 0x1D2e110Fb6C23F73f2e594fCE2E25d3FA5D7622A |
+| Broker         | 0x5E6a4cdf21C44670047DdBC910F2fE612c974372 |
 | chain id       | 56                                         |
 | rpc            | https://bsc-dataseed.binance.org/          |
 | browser        | https://bscscan.com/                       |
-| oracle         | Supra                                      |
+| oracle         | FuFuture                                   |
 | price fee      | 0.0 BNB                                    |
 | limitOrder fee | 0.0004 BNB                                 |
 
