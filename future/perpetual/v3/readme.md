@@ -6,8 +6,8 @@
 
 | 链名称         | Bsc                                        |                                       
 |----------------|--------------------------------------------|
-| ProxyFactory   | 0x1D2e110Fb6C23F73f2e594fCE2E25d3FA5D7622A |
-| Broker         | 0x5E6a4cdf21C44670047DdBC910F2fE612c974372 |
+| ProxyFactory   | 0x1511f066fF45CF77b7B86B5B514bB562D07a1D9e |
+| Broker         | 0xF768d051Ebb45B714663Cb91964c8Ea56A4720F6 |
 | chain id       | 56                                         |
 | rpc            | https://bsc-dataseed.binance.org/          |
 | browser        | https://bscscan.com/                       |
