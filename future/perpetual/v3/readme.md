@@ -15,6 +15,18 @@
 | price fee      | 0.0 BNB                                    |
 | limitOrder fee | 0.0004 BNB                                 |
 
+
+| 链名称         | AIA                                        |                                       
+|----------------|--------------------------------------------|
+| ProxyFactory   | 0x1D2e110Fb6C23F73f2e594fCE2E25d3FA5D7622A |
+| chain id       | 1319                                       |
+| rpc            | https://aia-dataseed1.aiachain.org         |
+| browser        | https://aiascan.com/                       |
+| oracle         | FuFuture                                   |
+| price fee      | 0.0 AIA                                    |
+| limitOrder fee | 0.5 AIA                                    |
+
+
 ### 获取所有系统合约地址信息
 
 - 函数名称：marketAgent
